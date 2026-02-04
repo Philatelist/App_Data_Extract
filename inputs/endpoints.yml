@@ -1,0 +1,1617 @@
+basePath: /clm/rest/methods
+endpoints:
+- name: login
+  method: GET
+  path: /login
+  auth:
+    type: basicHeaders
+  response:
+    type: text
+    saveAs: sessionId
+- name: authenticationLoginWithLocale
+  method: GET
+  path: /localeLogin
+  auth:
+    type: basicHeaders
+  requestHeaders:
+  - name: locale
+    value: en_US
+  response:
+    type: text
+    saveAs: sessionId
+- name: authenticationTicketedLogin
+  method: GET
+  path: /TicketedLogin
+  requestHeaders:
+  - name: serviceAcctUserName
+    valueFrom: user
+  - name: serviceAcctPwd
+    valueFrom: password
+  - name: user
+    value: targetUser
+  response:
+    type: json
+- name: authenticationSpecLogin
+  method: GET
+  path: /specLogin
+  auth:
+    type: basicHeaders
+  response:
+    type: json
+- name: authenticationLoginAndGetTasks
+  method: GET
+  path: /loginAndGetTasks
+  auth:
+    type: basicHeaders
+  response:
+    type: text
+    saveAs: sessionId
+- name: authenticationLoginWithLocaleAndGetTasks
+  method: GET
+  path: /loginWithLocaleAndGetMyOpenTasks
+  auth:
+    type: basicHeaders
+  requestHeaders:
+  - name: locale
+    value: en_US
+  response:
+    type: text
+    saveAs: sessionId
+- name: logout
+  method: POST
+  path: /logout
+  auth:
+    type: sessionHeader
+    headerName: session_id
+- name: authenticationLogoutIgnoreIfAlreadyLoggedOut
+  method: POST
+  path: /logoutIgnoreIfAlreadyLoggedOut
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: authenticationCheckSessionValid
+  method: GET
+  path: /sessionValid
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: authenticationForgetPassword
+  method: PUT
+  path: /forgetPassword
+  requestHeaders:
+  - name: userName
+    value: userEmail@example.com
+  response:
+    type: json
+- name: systemInfoGetVersion
+  method: GET
+  path: /version
+  response:
+    type: json
+- name: systemInfoGetLocales
+  method: GET
+  path: /locales
+  response:
+    type: json
+- name: systemInfoGetEngineType
+  method: GET
+  path: /engineType
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: systemInfoGetServerTime
+  method: GET
+  path: /serverTime
+  response:
+    type: json
+- name: systemInfoGetStartupId
+  method: GET
+  path: /startUpID
+  response:
+    type: json
+- name: systemInfoGetActiveUserCount
+  method: GET
+  path: /activeUserCount
+  response:
+    type: json
+- name: systemInfoGetNumActiveUsersByType
+  method: GET
+  path: /NumActiveUsersByType
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: periodInMonth
+    value: '12'
+  response:
+    type: json
+- name: systemInfoIsPdfToWordConversionEnabled
+  method: GET
+  path: /isPdfToWordConversionEnabled
+  response:
+    type: json
+- name: systemInfoGetProperty
+  method: GET
+  path: /property/PROPERTY_NAME
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: systemInfoGetSpecialProperty
+  method: GET
+  path: /specialProperty/ENABLE_INTEGRATION_COMPONENT
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: systemInfoGetClientLabels
+  method: GET
+  path: /clientLabels
+  requestHeaders:
+  - name: locale
+    value: en_US
+  - name: client
+    value: default
+  response:
+    type: json
+- name: systemInfoGetWordAddinAvailableProps
+  method: GET
+  path: /wordAddinAvailableProps
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: userManagementGetUser
+  method: GET
+  path: /user
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: email
+    value: user@example.com
+  response:
+    type: json
+- name: userManagementGetAllUsers
+  method: GET
+  path: /users
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: userManagementCreateUser
+  method: PUT
+  path: /user
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: json
+    schema:
+      email: string
+      firstName: string
+      lastName: string
+      userName: string
+      password: string
+  response:
+    type: json
+- name: userManagementCreateMultipleUsers
+  method: PUT
+  path: /users
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: userManagementUpdateUser
+  method: POST
+  path: /user
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: json
+    schema:
+      email: string
+      firstName: string
+      lastName: string
+  response:
+    type: json
+- name: userManagementUpdateMultipleUsers
+  method: POST
+  path: /users
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: userManagementDeleteUser
+  method: DELETE
+  path: /user
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: email
+    value: user@example.com
+  response:
+    type: json
+- name: userManagementUpdatePassword
+  method: POST
+  path: /updatePassword
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: userName
+    value: username
+  - name: password
+    value: newPassword123
+  response:
+    type: json
+- name: userManagementExportUsers
+  method: POST
+  path: /exportUsers
+  auth:
+    type: basicHeaders
+  response:
+    type: json
+- name: userManagementGetMyOpenTasks
+  method: GET
+  path: /myOpenTasks
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: rolesPermissionsGetRoles
+  method: GET
+  path: /roles
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: rolesPermissionsExportRolesXml
+  method: GET
+  path: /exportRoles
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: rolesPermissionsImportRolesXml
+  method: POST
+  path: /importRoles
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: text
+  response:
+    type: json
+- name: rolesPermissionsCreateRole
+  method: PUT
+  path: /createRole
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: roleName
+    value: NewRole
+  - name: parentRoleName
+    value: ParentRole
+  response:
+    type: json
+- name: rolesPermissionsEditRole
+  method: POST
+  path: /editRole
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: roleName
+    value: RoleName
+  - name: visibility
+    value: '1'
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: rolesPermissionsGetAllPossiblePermissions
+  method: GET
+  path: /getAllPossiblePermission
+  response:
+    type: json
+- name: rolesPermissionsAssignRolesToUser
+  method: POST
+  path: /assignRolesToUser
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: email
+    value: user@example.com
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: rolesPermissionsDeassignRolesFromUser
+  method: POST
+  path: /deassignRolesFromUser
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: email
+    value: user@example.com
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: groupsGetGroups
+  method: GET
+  path: /groups
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: groupsCreateGroup
+  method: PUT
+  path: /group
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: parentGroupId
+    value: '0'
+  requestBody:
+    type: json
+    schema:
+      name: string
+      description: string
+  response:
+    type: json
+- name: groupsUpdateGroup
+  method: POST
+  path: /group
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: parentGroupId
+    value: '0'
+  requestBody:
+    type: json
+    schema:
+      id: number
+      name: string
+  response:
+    type: json
+- name: groupsDeleteGroup
+  method: DELETE
+  path: /group
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: groupId
+    value: '1'
+  response:
+    type: json
+- name: groupsGetUsersInGroup
+  method: GET
+  path: /usersInGroup
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: groupId
+    value: '1'
+  response:
+    type: json
+- name: getBoTypes
+  method: GET
+  path: /boTypes
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: jsonArrayOfStrings
+- name: getBoMetaData
+  method: GET
+  path: /boMetaData
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: boType
+    valueFrom: boUsageType
+  response:
+    type: json
+- name: businessObjectsGetConditionalBoMetadata
+  method: POST
+  path: /conditionalBOMetaData
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: boType
+    value: Contract
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: businessObjectsGetConditionalBoMetadatas
+  method: POST
+  path: /conditionalBOMetaDatas
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: json
+    schema:
+      boTypes: string[]
+      conditionalList: any[]
+  response:
+    type: json
+- name: getTrackingNumbers
+  method: GET
+  path: /trackingNumbers
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: boType
+    valueFrom: boUsageType
+  response:
+    type: jsonArrayOfStrings
+- name: businessObjectsGetData
+  method: GET
+  path: /data
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: bundleTrackNumber
+    value: '12345'
+  response:
+    type: json
+- name: businessObjectsGetEvents
+  method: GET
+  path: /events
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: bundleTrackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: businessObjectsInvokeEvent
+  method: POST
+  path: /invokeEvent
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: action
+    value: UpdateBO
+  - name: bundleTrackingNumber
+    value: '12345'
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: bundles
+  method: POST
+  path: /bundles
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: json
+    schema:
+      trackingIds: number[]
+      fieldPaths: string[]
+  response:
+    type: json
+- name: businessObjectsExportBos
+  method: GET
+  path: /exportBOs?def=Contract&trn=12345
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: businessObjectsImportBos
+  method: POST
+  path: /importBOs
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: binaryFile
+  response:
+    type: json
+- name: businessObjectsCopyBundle
+  method: PUT
+  path: /copyBundle
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: sourceTrackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: businessObjectsGetBoState
+  method: GET
+  path: /state/12345
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: approvalTaskId
+    value: none
+  response:
+    type: json
+- name: businessObjectsChangeBundleParent
+  method: POST
+  path: /changeBundleParent
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: bundleTrackingNumber
+    value: '12345'
+  - name: parentTrackingNumber
+    value: '12344'
+  response:
+    type: json
+- name: contractsGetContractsPendingMyApproval
+  method: GET
+  path: /contractsPendingMyApproval
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: contractsUpdateContracts
+  method: POST
+  path: /updateContracts
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: contractsDeleteContracts
+  method: POST
+  path: /deleteContracts
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: contractsGetContractPrivileges
+  method: POST
+  path: /getContractPrivileges
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: contractsCheckContractsPrivileges
+  method: GET
+  path: /checkContractsPrivileges?trackingNumber=12345&trackingNumber=12346
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: contractsCanCreate
+  method: GET
+  path: /canCreate?boType=Contract
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: contractsReassignContracts
+  method: POST
+  path: /reassignContracts
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: sourceGroup
+    value: '1'
+  - name: destinationGroup
+    value: '2'
+  response:
+    type: json
+- name: contractsGlobalReassign
+  method: POST
+  path: /globalReassign
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: oldUserId
+    value: oldUser
+  - name: newUserId
+    value: newUser
+  response:
+    type: json
+- name: contractsGetContractUsageBoTypes
+  method: GET
+  path: /contractUsageBOTypes
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: contractsGetContractsId
+  method: GET
+  path: /getContractsID
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: contractsGetContractInfo
+  method: GET
+  path: /getContractInfo
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: contractsCreateAmendment
+  method: PUT
+  path: /amendment
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: masterTrackingNumber
+    value: '12345'
+  - name: amendmentName
+    value: Amendment 1
+  - name: startDate
+    value: 01/01/2024
+  response:
+    type: json
+- name: contractsGetEffectiveViewId
+  method: GET
+  path: /effectiveViewId
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: contractsGetAllContractsLink
+  method: GET
+  path: /allContractsLink?client=default
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: contractsGetCreateContractLink
+  method: GET
+  path: /createContractLink?client=default
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: boType
+    value: Contract
+  response:
+    type: json
+- name: contractsGetContractEditLink
+  method: GET
+  path: /contractEditLink
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: contractsGetContractLink
+  method: GET
+  path: /contractLink
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: documentsAttachmentsGetAllAttachmentInfo
+  method: GET
+  path: /allAttachmentInfo
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: documentsAttachmentsCreateAttachment
+  method: PUT
+  path: /attachment
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: ownerTrackingNumber
+    value: '12345'
+  - name: category
+    value: General
+  - name: comment
+    value: Attachment comment
+  - name: fileName
+    value: document.pdf
+  requestBody:
+    type: binaryFile
+  response:
+    type: json
+- name: documentsAttachmentsCreateGeneralAttachment
+  method: PUT
+  path: /generalAttachment
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: ownerTrackingNumber
+    value: '12345'
+  - name: category
+    value: General
+  - name: attachmentType
+    value: ReqAttachment
+  - name: fileName
+    value: document.pdf
+  requestBody:
+    type: binaryFile
+  response:
+    type: json
+- name: documentsAttachmentsGetLastVersionAttachment
+  method: GET
+  path: /lastVersionAttachment
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: documentsAttachmentsDownloadAllAttachmentsZip
+  method: GET
+  path: /contract/12345/attachments/{{session_id}}
+  response:
+    type: json
+- name: documentsAttachmentsGetDocument
+  method: GET
+  path: /document?url=encryptedUrl
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: documentsAttachmentsLoginAndGetDocument
+  method: GET
+  path: /loginAndGetDoc
+  auth:
+    type: basicHeaders
+  requestHeaders:
+  - name: url
+    value: encryptedUrl
+  response:
+    type: text
+    saveAs: sessionId
+- name: documentsAttachmentsDocumentsMatch
+  method: GET
+  path: /documentsMatch
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  - name: versionOne
+    value: '1'
+  - name: versionTwo
+    value: '2'
+  response:
+    type: json
+- name: documentsAttachmentsGenerateContract
+  method: PUT
+  path: /generateContract
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  - name: templateName
+    value: ContractTemplate
+  - name: format
+    value: none
+  response:
+    type: json
+- name: documentsAttachmentsGenerateContractPackage
+  method: PUT
+  path: /generateContractPackage
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: documentsAttachmentsCreateAndGenerateContract
+  method: PUT
+  path: /createAndGenerateContract
+  auth:
+    type: basicHeaders
+  requestHeaders:
+  - name: boType
+    value: Contract
+  - name: templateName
+    value: ContractTemplate
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: documentsAttachmentsGetPackageDescriptor
+  method: GET
+  path: /contract/12345/document/descriptor
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: documentsAttachmentsProcessDocument
+  method: POST
+  path: /processDocument
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: event
+    value: CheckIn
+  - name: target
+    value: '12345'
+  - name: uploadedFileAbsPath
+    value: /path/to/file.docx
+  response:
+    type: json
+- name: documentsAttachmentsSynchronizeDocument
+  method: POST
+  path: /synchronizeDocument
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: documentsAttachmentsCheckoutDocument
+  method: POST
+  path: /checkoutDocument
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: documentsAttachmentsCheckOut
+  method: POST
+  path: /checkOut
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: documentsAttachmentsCancelCheckOut
+  method: POST
+  path: /cancelCheckOut
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: documentsAttachmentsGetCheckoutDocumentInfo
+  method: GET
+  path: /getCheckOutDocumentInfo
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: documentsAttachmentsCreateDocWorkspace
+  method: POST
+  path: /createDocWorkSpace
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: documentsAttachmentsCreateOrAppendDoc
+  method: POST
+  path: /createOrAppendDoc
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: uploadedFileAbsPath
+    value: /path/to/file.docx
+  - name: bytesRead
+    value: '1024'
+  requestBody:
+    type: binaryFile
+  response:
+    type: json
+- name: documentsAttachmentsGetFileClauseDocSize
+  method: GET
+  path: /fileClauseDocSize
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: fileClauseDocPath
+    value: /path/to/clause.doc
+  response:
+    type: json
+- name: documentsAttachmentsGetFileClauseDocAbsolutePath
+  method: GET
+  path: /fileClauseDocAbsolutePath
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: documentsAttachmentsSaveFilesMultipart
+  method: POST
+  path: /saveFiles
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: multipart
+    fields:
+    - name: file
+      type: file
+  response:
+    type: json
+- name: pdfToWordConversionSetWorkingFolder
+  method: POST
+  path: /workingFolder
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: clientWorkingFolderOnServer
+    value: folderPath
+  response:
+    type: json
+- name: pdfToWordConversionSetWorkingFolder2
+  method: POST
+  path: /workingFolder2
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: clientWorkingFolderOnServer
+    value: folderPath
+  response:
+    type: json
+- name: pdfToWordConversionSetTaskCompleted
+  method: POST
+  path: /taskCompleted
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: clientWorkingFolderOnServer
+    value: folderPath
+  response:
+    type: json
+- name: pdfToWordConversionCancel
+  method: POST
+  path: /cancel
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: clientWorkingFolderOnServer
+    value: folderPath
+  response:
+    type: json
+- name: pdfToWordConversionCheckFileHash
+  method: POST
+  path: /checkFileHash
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: clientWorkingFolderOnServer
+    value: folderPath
+  - name: fileName
+    value: file.pdf
+  response:
+    type: json
+- name: pdfToWordConversionAppendChunk
+  method: POST
+  path: /appendChunk
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: clientWorkingFolderOnServer
+    value: folderPath
+  - name: fileName
+    value: file.pdf
+  - name: offset
+    value: '0'
+  - name: bytesRead
+    value: '1024'
+  requestBody:
+    type: binaryFile
+  response:
+    type: json
+- name: pdfToWordConversionRunConversion
+  method: POST
+  path: /conversion
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: clientWorkingFolderOnServer
+    value: folderPath
+  - name: fileName
+    value: input.pdf
+  - name: convertedFileName
+    value: output.doc
+  - name: convertToSearchablePDFImageFirst
+    value: 'false'
+  response:
+    type: json
+- name: pdfToWordConversionGetFileSize
+  method: GET
+  path: /size
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: clientWorkingFolderOnServer
+    value: folderPath
+  - name: filePath
+    value: /path/to/file
+  response:
+    type: json
+- name: pdfToWordConversionDownloadChunk
+  method: GET
+  path: /downloadChunk
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: filePath
+    value: /path/to/file
+  - name: offset
+    value: '0'
+  - name: bufferSize
+    value: '4096'
+  response:
+    type: json
+- name: pdfToWordConversionDownloadChunkNonTransitional
+  method: GET
+  path: /downloadChunkNonTransitional
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: filePath
+    value: /path/to/file
+  - name: offset
+    value: '0'
+  - name: bufferSize
+    value: '4096'
+  response:
+    type: json
+- name: pdfToWordConversionTransferPdfToWord
+  method: POST
+  path: /transferPdfToWord
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: pdfFile
+    value: document.pdf
+  - name: pdfServerFilePath
+    value: path/to/document.pdf
+  - name: tempDocFileLocation
+    value: temp/location
+  - name: trackingNumber
+    value: '12345'
+  - name: category
+    value: Exhibit
+  response:
+    type: json
+- name: pdfToWordConversionTransferBatchOfFiles
+  method: POST
+  path: /transferBatchOfFiles
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: fileNameList
+    value: file1.pdf&&file2.pdf
+  - name: serverFilePathList
+    value: path1.pdf&&path2.pdf
+  - name: tempDocFileLocation
+    value: temp/location
+  - name: integratedStatusPathList
+    value: status1&&status2
+  response:
+    type: json
+- name: approvalsWorkflowGetAdHocTasks
+  method: GET
+  path: /adHocTasks
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: approvalsWorkflowGetApprovalChain
+  method: GET
+  path: /describeChain/12345?status=all
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: approvalsWorkflowGetApprovalLogById
+  method: GET
+  path: /approvalLog/12345/1
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: approvalsWorkflowCreateApprovalTemplate
+  method: POST
+  path: /approvalTemplate
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: bundleDefName
+    value: Contract
+  - name: previousTaskRef
+    value: ''
+  - name: nestedChain
+    value: 'false'
+  requestBody:
+    type: json
+    schema:
+      name: string
+      steps: any[]
+  response:
+    type: json
+- name: approvalsWorkflowChangeApprovalTemplateStatus
+  method: POST
+  path: /approvalTemplateStatus
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: templateName
+    value: ApprovalTemplate
+  - name: status
+    value: Active
+  response:
+    type: json
+- name: approvalsWorkflowGetApprovalTemplates
+  method: GET
+  path: /approvalTemplates
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: reportsGetReport
+  method: GET
+  path: /report
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: reportId
+    value: encryptedReportId
+  response:
+    type: json
+- name: reportsCreateReport
+  method: POST
+  path: /report
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: templateId
+    value: encryptedTemplateId
+  response:
+    type: json
+- name: reportsGetGeneratedReports
+  method: GET
+  path: /generatedReports
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: reportsGetReportTemplates
+  method: GET
+  path: /templates
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: reportsCreateRuleReport
+  method: POST
+  path: /ruleReport
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: fileName
+    value: report.xlsx
+  - name: reportVisibility
+    value: '0'
+  requestBody:
+    type: binaryFile
+  response:
+    type: json
+- name: activitySearchGetActivityLogs
+  method: GET
+  path: /activityLogs
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: activitySearchGetSearchResult
+  method: GET
+  path: /searchResult
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: searchValue
+    value: contract name
+  response:
+    type: json
+- name: activitySearchCreateIndex
+  method: POST
+  path: /createIndex
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: companyManagementCreateCompany
+  method: PUT
+  path: /createCompany
+  auth:
+    type: basicHeaders
+  requestBody:
+    type: json
+    schema:
+      accData:
+        companyName: string
+      contactData:
+        firstName: string
+        lastName: string
+        email: string
+  response:
+    type: json
+- name: companyManagementGetCompanyInfo
+  method: GET
+  path: /getCompanyInfo
+  auth:
+    type: basicHeaders
+  response:
+    type: json
+- name: corporateHierarchyLoadHierarchy
+  method: GET
+  path: /corporate/hierarchy
+  requestHeaders:
+  - name: requestKey
+    value: GS_SERVER_KEY_VALUE
+  response:
+    type: json
+- name: corporateHierarchyGetCachedHierarchy
+  method: GET
+  path: /corporate/hierarchy/cached
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: corporateHierarchyForceSyncHierarchy
+  method: GET
+  path: /corporate/hierarchy/forcedSync
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: quoteProposalGsIntegrationCreateQuote
+  method: PUT
+  path: /bundles/quote
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: json
+    schema:
+      quoteId: number
+      user:
+        id: string
+        subSys: string
+  response:
+    type: json
+- name: quoteProposalGsIntegrationCreateProposal
+  method: PUT
+  path: /bundles/proposal
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: json
+    schema:
+      quoteId: number
+      user:
+        id: string
+        subSys: string
+  response:
+    type: json
+- name: quoteProposalGsIntegrationCreateQContract
+  method: PUT
+  path: /bundles/contract
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: contractType
+    value: QAPRBO
+  requestBody:
+    type: json
+    schema:
+      quoteId: number
+      user:
+        id: string
+        subSys: string
+  response:
+    type: json
+- name: quoteProposalGsIntegrationUpdateQuoteDefinition
+  method: POST
+  path: /updateQuoteDefinition
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: quoteProposalGsIntegrationUpdateRelatedContract
+  method: POST
+  path: /updateRelatedContract/67890
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: trackingNumber
+    value: '12345'
+  response:
+    type: json
+- name: importExportImportData
+  method: PUT
+  path: /importData
+  auth:
+    type: basicHeaders
+  requestBody:
+    type: binaryFile
+  response:
+    type: json
+- name: importExportGenerateImportTemplate
+  method: POST
+  path: /generateImportTemplate
+  auth:
+    type: basicHeaders
+  requestHeaders:
+  - name: boType
+    value: Contract
+  - name: isAmendment
+    value: 'false'
+  requestBody:
+    type: json
+  response:
+    type: json
+- name: integrationsSendMessageRibbonNotification
+  method: PUT
+  path: /sendMessage
+  requestHeaders:
+  - name: message
+    value: System notification message
+  - name: timeToShow
+    value: '30'
+  response:
+    type: json
+- name: integrationsGetCryptedLink
+  method: POST
+  path: /cryptLink
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestBody:
+    type: text
+  response:
+    type: json
+- name: integrationsReloadDocusignUserList
+  method: PUT
+  path: /eSignature/docuSign/users
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: integrationsGetUniqueIdSequence
+  method: GET
+  path: /UniqueIDSeq
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: getComponentsTablesNames
+  method: POST
+  path: /custom/getComponentsTablesNames
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: boType
+    valueFrom: boUsageType
+  response:
+    type: json
+- name: getBundleParent
+  method: POST
+  path: /custom/getBundleParent
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: execByUser
+    valueFrom: execByUser
+  requestBody:
+    type: json
+    schema:
+      trackingIds: number[]
+      fieldPaths: string[]
+  response:
+    type: json
+- name: allApprovals
+  method: GET
+  path: /custom/allApprovals/{trackingNumber}
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json
+- name: trackingNumbersPEP
+  method: GET
+  path: /custom/trackingNumbersPEP
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: boType
+    valueFrom: boUsageType
+  - name: fieldName
+    valueFrom: fieldName
+  - name: fieldValue
+    valueFrom: fieldValue
+  response:
+    type: jsonArrayOfStrings
+- name: trackingNumbersInFlight
+  method: GET
+  path: /custom/trackingNumbersInFlight
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: boType
+    valueFrom: boUsageType
+  - name: daysBeforeToday
+    valueFrom: daysBeforeToday
+  response:
+    type: jsonArrayOfStrings
+- name: trackingNumbersAfterDate
+  method: GET
+  path: /custom/trackingNumbersAfterDate
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  requestHeaders:
+  - name: boType
+    valueFrom: boUsageType
+  - name: dateTime
+    valueFrom: dateTime
+  response:
+    type: jsonArrayOfStrings
+- name: usersPEP
+  method: GET
+  path: /custom/usersPEP
+  auth:
+    type: sessionHeader
+    headerName: session_id
+  response:
+    type: json

@@ -1,0 +1,25 @@
+# CLM Data Extract - Offline Mode Configuration
+
+server:
+  url: http://localhost:8080/clm/rest/methods
+  username: admin
+  password: admin
+
+endpointsFile: inputs/endpoints.yml
+
+# Leave boTypes empty to auto-discover from sample data
+boTypes: []
+
+csvMode: per-component
+delimiter: ","
+filenameTemplate: "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv"
+downloadsFilenameTemplate: "{BO}_AttachmentsToDownload_{DDMMYYYY}_{HHMMSS}.csv"
+outputRoot: output
+exportFolderName: MetaData
+batchSize: 100
+backupRetentionDays: 30
+offlineMode: true
+
+retry:
+  maxAttempts: 3
+  baseDelayMs: 1000

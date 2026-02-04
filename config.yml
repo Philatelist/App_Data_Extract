@@ -1,0 +1,47 @@
+# CLM Data Extract Configuration
+
+server:
+  url: http://localhost:8080/services/rest/methods
+  username: admin
+  password: admin
+
+# Path to the endpoints definition file
+endpointsFile: inputs/endpoints.yml
+
+# BO types to export. If empty or omitted, all BO types are discovered automatically.
+boTypes:
+  - name: Contract
+    trackingFilter: "1000-2000, 3050"
+  - name: Amendment
+
+# CSV generation mode: per-component, merged-single, or single-only
+csvMode: per-component
+
+# CSV field delimiter
+delimiter: ","
+
+# Filename template for export CSVs. Placeholders: {BO}, {Component}, {DDMMYYYY}, {HHMMSS}
+filenameTemplate: "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv"
+
+# Filename template for download list CSVs
+downloadsFilenameTemplate: "{BO}_AttachmentsToDownload_{DDMMYYYY}_{HHMMSS}.csv"
+
+# Base directory for all output
+outputRoot: output
+
+# Subdirectory name for export CSVs
+exportFolderName: MetaData
+
+# Number of tracking IDs per bundles API call
+batchSize: 100
+
+# Number of days to keep backup directories
+backupRetentionDays: 30
+
+# Set to true to run without a live server (uses sample JSON files)
+offlineMode: false
+
+# Retry settings for API calls
+retry:
+  maxAttempts: 3
+  baseDelayMs: 1000
