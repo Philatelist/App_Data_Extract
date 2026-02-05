@@ -1,38 +1,40 @@
-# Roadmap (Declarative, checkbox-style)
+# Roadmap (Declarative)
 
-> This roadmap is execution/tracking oriented. Canonical behavior remains `spec.md`.
+> This roadmap is **execution‑tracking oriented**.
+> Canonical behavior and hard requirements are defined in `spec.md`.
 
-## Phase 1 — Repo & CLI Skeleton
-- [ ] Create CLI entrypoint and config loading
-- [ ] Directory layout: logs / backups / downloads / outputs
-- [ ] Logging + exit codes
+## Phase 1 — Repository & CLI
+- [ ] Create CLI entrypoint
+- [ ] Load and validate configuration
+- [ ] Establish directory layout (outputs, logs, backups, downloads)
+- [ ] Logging and exit codes
 
-## Phase 2 — Session & HTTP
-- [ ] Login/session persistence
-- [ ] Retry/backoff and timeouts
-- [ ] Endpoint adapter (config-driven)
+## Phase 2 — Session & HTTP Layer
+- [ ] Authentication and session persistence
+- [ ] Retry / backoff and timeouts
+- [ ] Config‑driven endpoint adapter
 
-## Phase 3 — Real API Parsing Layer
-- [ ] Metadata: parse flat node array -> domain model
-- [ ] Bundles: parse array-of-arrays -> domain model
-- [ ] Central InstancePath parsing utility
-- [ ] DTO/mapper separation (domain models annotation-free)
-- [ ] Offline mode uses real-format fixtures
+## Phase 3 — Parsing Layer (Real API Shapes)
+- [ ] Metadata: flat nodes → domain model
+- [ ] Bundles: array‑of‑arrays → domain model
+- [ ] Central InstancePath normalization utility
+- [ ] Clear DTO ↔ domain separation
+- [ ] Offline mode with real‑format fixtures
 
-## Phase 4 — Single-BO Export Pipeline
-- [ ] Fetch tracking IDs
-- [ ] Resolve fieldPaths + columns
-- [ ] Batch bundles fetch + streaming write
-- [ ] Deterministic ordering: rows by trackingIds, cols by fieldPaths
-- [ ] Downloads list generation (serverFileName from attachments components)
+## Phase 4 — Single‑BO Export Pipeline
+- [ ] Fetch tracking identifiers
+- [ ] Resolve export schema (fields + headers)
+- [ ] Batched bundles fetch with streaming CSV writes
+- [ ] Deterministic ordering of rows and columns
+- [ ] Attachments download manifest generation
 
-## Phase 5 — Multi-BO + Ops
-- [ ] Iterate boTypes sequentially
-- [ ] Retention policy for backups/logs
-- [ ] Consistent filename templates (sanitized tokens)
-- [ ] Packaging: shaded/fat jar, reproducible builds
+## Phase 5 — Multi‑BO & Operations
+- [ ] Sequential BO iteration
+- [ ] Backup and retention handling
+- [ ] Stable filename templates
+- [ ] Packaging (fat JAR, reproducible build)
 
 ## Phase 6 — Hardening
-- [ ] Integration runbook (online/offline)
-- [ ] Regression tests around overrides + filenames
-- [ ] Edge-cases: missing metadata fields, empty bundles, partial batches
+- [ ] Integration runbook (online / offline)
+- [ ] Regression coverage for overrides and filenames
+- [ ] Edge‑case handling (missing fields, empty bundles)

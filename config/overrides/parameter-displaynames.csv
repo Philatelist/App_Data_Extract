@@ -1,3 +1,6 @@
 Component;Parameter;DisplayName;
 ReqAttachment;serverFileName;File Path;
 ReqContractAttachment;serverFileName;File Path;
+ReqNAFInfo;deleteDate;Date of deletion;
+ReqNAFInfo;createDate;Date of creation;
+ReqNAFInfo;deletedBy;Last Modified/Deleted By;
