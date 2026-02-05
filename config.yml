@@ -1,24 +1,24 @@
 # CLM Data Extract Configuration
 
 server:
-  url: http://localhost:8080/services/rest/methods
-  username: admin
-  password: admin
+  url: https://pepsico-clone.auto-dev.selectica.com/services/rest/methods
+  username: ausov@corcentric.com
+  password: Sel1234_
 
 # Path to the endpoints definition file
 endpointsFile: inputs/endpoints.yml
 
 # BO types to export. If empty or omitted, all BO types are discovered automatically.
 boTypes:
-  - name: Contract
-    trackingFilter: "1000-2000, 3050"
-  - name: Amendment
+  - name: NAFBO
+    trackingFilter: "10760475-10860475"
+
 
 # CSV generation mode: per-component, merged-single, or single-only
 csvMode: per-component
 
 # CSV field delimiter
-delimiter: ","
+delimiter: ";"
 
 # Filename template for export CSVs. Placeholders: {BO}, {Component}, {DDMMYYYY}, {HHMMSS}
 filenameTemplate: "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv"
@@ -33,7 +33,7 @@ outputRoot: output
 exportFolderName: MetaData
 
 # Number of tracking IDs per bundles API call
-batchSize: 100
+batchSize: 30
 
 # Number of days to keep backup directories
 backupRetentionDays: 30

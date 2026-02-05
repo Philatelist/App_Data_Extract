@@ -21,7 +21,8 @@ public class ColumnResolver {
     private final List<ComponentMetadata> components;
     private final String boType;
     private List<String> orderFilePaths;
-    private Map<String, String> displayNameOverrides;
+    // Outer key: component internal name, inner key: parameter internal name, value: display name
+    private Map<String, Map<String, String>> displayNameOverrides;
 
     public ColumnResolver(List<ComponentMetadata> components, String boType) {
         this.components = components;
@@ -48,22 +49,30 @@ public class ColumnResolver {
 
     private void loadOverridesFile() {
         displayNameOverrides = new LinkedHashMap<>();
-        Path overridesFile = Path.of("config", "overrides", boType + ".csv");
+        Path overridesFile = Path.of("config", "overrides", "parameter-displaynames.csv");
         if (Files.exists(overridesFile)) {
             try {
                 List<String> lines = Files.readAllLines(overridesFile);
-                for (String line : lines) {
-                    String trimmed = line.trim();
+                // Skip header row (first line: Component;Parameter;DisplayName;)
+                for (int i = 1; i < lines.size(); i++) {
+                    String trimmed = lines.get(i).trim();
                     if (trimmed.isEmpty()) continue;
-                    int commaIdx = trimmed.indexOf(',');
-                    if (commaIdx > 0 && commaIdx < trimmed.length() - 1) {
-                        String fieldPath = trimmed.substring(0, commaIdx).trim();
-                        String newName = trimmed.substring(commaIdx + 1).trim();
-                        displayNameOverrides.put(fieldPath, newName);
+                    String[] parts = trimmed.split(";");
+                    if (parts.length >= 3) {
+                        String componentName = parts[0].trim();
+                        String parameterName = parts[1].trim();
+                        String displayName = parts[2].trim();
+                        if (!componentName.isEmpty() && !parameterName.isEmpty() && !displayName.isEmpty()) {
+                            displayNameOverrides
+                                    .computeIfAbsent(componentName, k -> new LinkedHashMap<>())
+                                    .put(parameterName, displayName);
+                        }
                     }
                 }
-                logger.info("Loaded display name overrides for {}: {} entries",
-                        boType, displayNameOverrides.size());
+                int totalEntries = displayNameOverrides.values().stream()
+                        .mapToInt(Map::size)
+                        .sum();
+                logger.info("Loaded display name overrides from parameter-displaynames.csv: {} entries", totalEntries);
             } catch (IOException e) {
                 logger.warn("Failed to read overrides file: {}", e.getMessage());
             }
@@ -71,23 +80,16 @@ public class ColumnResolver {
     }
 
     public List<String> resolveFieldPaths() {
+        if (orderFilePaths != null) {
+            return new ArrayList<>(orderFilePaths);
+        }
+
         List<String> paths = new ArrayList<>();
         for (ComponentMetadata comp : components) {
             for (FieldMetadata field : comp.getFields()) {
-                paths.add(field.getInstancePath());
+                paths.add(field.getInstancePath().replace("MCPDef:/", ""));
             }
         }
-
-        if (orderFilePaths != null) {
-            List<String> ordered = new ArrayList<>();
-            for (String orderPath : orderFilePaths) {
-                if (paths.contains(orderPath)) {
-                    ordered.add(orderPath);
-                }
-            }
-            return ordered;
-        }
-
         return paths;
     }
 
@@ -97,28 +99,55 @@ public class ColumnResolver {
 
         if (orderFilePaths != null) {
             for (String orderPath : orderFilePaths) {
+                // Format: Module/Component/Parameter
+                String[] segments = orderPath.split("/");
+                if (segments.length < 3) continue;
+                String componentName = segments[1];
+                String parameterName = segments[2];
+
+                if (!componentName.equals(component.getInternalName())) {
+                    continue;
+                }
+
+                // Look for a matching field in the component's metadata
+                FieldMetadata matchedField = null;
                 for (FieldMetadata field : fields) {
-                    if (orderPath.equals(field.getInstancePath())) {
-                        columns.add(buildColumn(component, field));
+                    if (parameterName.equals(field.getInternalName())) {
+                        matchedField = field;
                         break;
                     }
+                }
+
+                if (matchedField != null) {
+                    columns.add(buildColumn(component.getInternalName(), component.getDisplayName(), matchedField));
+                } else {
+                    // Field not found in metadata — build a column using the parameter name
+                    // as both internal name and fallback display name, checking overrides first
+                    String displayName = parameterName;
+                    Map<String, String> componentOverrides = displayNameOverrides.get(component.getInternalName());
+                    if (componentOverrides != null && componentOverrides.containsKey(parameterName)) {
+                        displayName = componentOverrides.get(parameterName);
+                    }
+                    String header = component.getDisplayName() + "." + displayName;
+                    columns.add(new ResolvedColumn(header, parameterName, orderPath));
                 }
             }
         } else {
             for (FieldMetadata field : fields) {
-                columns.add(buildColumn(component, field));
+                columns.add(buildColumn(component.getInternalName(), component.getDisplayName(), field));
             }
         }
 
         return columns;
     }
 
-    private ResolvedColumn buildColumn(ComponentMetadata component, FieldMetadata field) {
+    private ResolvedColumn buildColumn(String componentInternalName, String componentDisplayName, FieldMetadata field) {
         String displayName = field.getDisplayName();
-        if (displayNameOverrides.containsKey(field.getInstancePath())) {
-            displayName = displayNameOverrides.get(field.getInstancePath());
+        Map<String, String> componentOverrides = displayNameOverrides.get(componentInternalName);
+        if (componentOverrides != null && componentOverrides.containsKey(field.getInternalName())) {
+            displayName = componentOverrides.get(field.getInternalName());
         }
-        String header = component.getDisplayName() + "." + displayName;
+        String header = componentDisplayName + "." + displayName;
         return new ResolvedColumn(header, field.getInternalName(), field.getInstancePath());
     }
 

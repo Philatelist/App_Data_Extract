@@ -94,14 +94,33 @@ Original Header,New Header
 
 Set `offlineMode: true` in the config to run without connecting to a server. The tool reads sample data from `inputs/samples/`:
 
-- `inputs/samples/boMetaData.sample.json` — Sample BO metadata
-- `inputs/samples/bundles.sample.json` — Sample bundle data
+- `inputs/samples/BOMetaDataResponse.example.json` — Real BO metadata response
+- `inputs/samples/BundlesResponse.example.json` — Real bundles response
 
 This is useful for testing the export pipeline without a live API.
 
 ```bash
 java -jar target/clm-data-extract-1.0.0.jar --config config-offline.yml
 ```
+
+## API Response Shapes
+
+### Metadata Response
+
+The metadata endpoint returns a flat JSON array of node objects. Each node has a `listType` that determines its role in the hierarchy:
+
+- `BundleProperties` — BO-level info (name, usageType)
+- `ModuleProperties` — Module container
+- `ComponentProperties` — Component definition (name, displayName, cardinality)
+- `ParameterProperties` — Field definition (name, displayName, dataType)
+
+Nodes are linked via `id`/`parentId`. Each node carries a `Property` array with `Name`, `Value`, `InstancePath` entries.
+
+### Bundles Response
+
+The bundles endpoint returns a JSON array of arrays. Each inner array represents one record as a flat list of field objects with `Name`, `DisplayName`, `Value`, `InternalValue`, `DataType`, and `InstancePath`.
+
+The `InstancePath` format for bundles uses pipe-delimited instance IDs: `MCP:/Module|instanceId/Component|instanceId/fieldName`. Multi-cardinality components produce multiple fields with different instance IDs, which are grouped into separate rows.
 
 ## Output Directory Structure
 

@@ -86,4 +86,49 @@ class FilenameResolverTest {
         assertTrue(result.startsWith("Contract_Summary_"));
         assertTrue(result.endsWith(".csv"));
     }
+
+    // ── sanitize() tests ────────────────────────────────────────────────
+
+    @Test
+    void testSanitizeCleanStringUnchanged() {
+        assertEquals("Summary", FilenameResolver.sanitize("Summary"));
+        assertEquals("NAFBO", FilenameResolver.sanitize("NAFBO"));
+        assertEquals("Merged", FilenameResolver.sanitize("Merged"));
+    }
+
+    @Test
+    void testSanitizeSpacesReplacedWithUnderscore() {
+        assertEquals("Financial_Reporting_and_Control_Review",
+                FilenameResolver.sanitize("Financial Reporting and Control Review"));
+    }
+
+    @Test
+    void testSanitizeSpecialCharacters() {
+        assertEquals("Cost_Budget_Review",
+                FilenameResolver.sanitize("Cost & Budget (Review)"));
+    }
+
+    @Test
+    void testSanitizeNullAndEmpty() {
+        assertEquals("", FilenameResolver.sanitize(null));
+        assertEquals("", FilenameResolver.sanitize(""));
+    }
+
+    @Test
+    void testSanitizeCollapseAndTrim() {
+        assertEquals("test", FilenameResolver.sanitize("___test___"));
+        assertEquals("a_b", FilenameResolver.sanitize("a___b"));
+        assertEquals("test", FilenameResolver.sanitize("...test..."));
+    }
+
+    @Test
+    void testResolveWithSanitization() {
+        FilenameResolver resolver = new FilenameResolver("01012026", "120000");
+        String result = resolver.resolve(
+                "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
+                "NAFBO",
+                "Financial Reporting and Control Review");
+
+        assertEquals("NAFBO_Financial_Reporting_and_Control_Review_01012026_120000.csv", result);
+    }
 }

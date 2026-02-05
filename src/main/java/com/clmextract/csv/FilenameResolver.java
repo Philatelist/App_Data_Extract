@@ -22,10 +22,19 @@ public class FilenameResolver {
         this.timeStr = timeStr;
     }
 
+    static String sanitize(String token) {
+        if (token == null || token.isEmpty()) return "";
+        String s = token.replace(' ', '_');
+        s = s.replaceAll("[^A-Za-z0-9._-]", "_");
+        s = s.replaceAll("_+", "_");
+        s = s.replaceAll("^[_.]+|[_.]+$", "");
+        return s;
+    }
+
     public String resolve(String template, String boName, String componentName) {
         return template
-                .replace("{BO}", boName != null ? boName : "")
-                .replace("{Component}", componentName != null ? componentName : "")
+                .replace("{BO}", sanitize(boName))
+                .replace("{Component}", sanitize(componentName))
                 .replace("{DDMMYYYY}", dateStr)
                 .replace("{HHMMSS}", timeStr);
     }

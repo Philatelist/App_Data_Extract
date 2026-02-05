@@ -13,8 +13,10 @@ import java.io.Closeable;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DownloadsCsvWriter implements Closeable {
 
@@ -27,8 +29,8 @@ public class DownloadsCsvWriter implements Closeable {
     private final char delimiter;
 
     private ICSVWriter writer;
-    private String attachmentsComponentName;
-    private String serverFileNameField;
+    private final Set<String> attachmentsComponentNames = new HashSet<>();
+    private static final String SERVER_FILE_NAME = "serverFileName";
 
     public DownloadsCsvWriter(BoMetadata metadata, FilenameResolver filenameResolver,
                               String downloadsFilenameTemplate, Path downloadsDir, char delimiter) {
@@ -42,34 +44,31 @@ public class DownloadsCsvWriter implements Closeable {
 
     private void resolveAttachmentsComponent() {
         for (ComponentMetadata comp : metadata.getComponents()) {
-            if (comp.isMultipleCardinality()
-                    && comp.getInternalName().toLowerCase().contains("attachment")) {
-                attachmentsComponentName = comp.getInternalName();
-                // Look for serverFileName field
-                comp.getFields().stream()
-                        .filter(f -> "serverFileName".equals(f.getInternalName()))
-                        .findFirst()
-                        .ifPresent(f -> serverFileNameField = f.getInternalName());
-                if (serverFileNameField == null && !comp.getFields().isEmpty()) {
-                    // Fallback: use first field if no serverFileName
-                    serverFileNameField = comp.getFields().get(0).getInternalName();
-                }
-                logger.debug("Attachments component: {}, field: {}",
-                        attachmentsComponentName, serverFileNameField);
-                return;
+            if (!comp.isMultipleCardinality()) continue;
+
+            String name = comp.getInternalName();
+            if ("ReqAttachment".equals(name) || "ReqContractAttachment".equals(name)) {
+                attachmentsComponentNames.add(name);
             }
         }
-        logger.debug("No attachments component found for BO: {}", metadata.getBoName());
+
+        logger.debug("Attachments components enabled: {}, field: {}",
+                attachmentsComponentNames, SERVER_FILE_NAME);
+
+        if (attachmentsComponentNames.isEmpty()) {
+            logger.debug("No attachment components (ReqAttachment/ReqContractAttachment) found for BO: {}", metadata.getBoName());
+        }
     }
 
     public void open() {
         String filename = filenameResolver.resolve(
-                downloadsFilenameTemplate, metadata.getBoUsageType(), null);
+                downloadsFilenameTemplate, metadata.getBoName(), null);
         Path filePath = downloadsDir.resolve(filename);
 
         try {
             writer = new CSVWriterBuilder(new FileWriter(filePath.toString()))
                     .withSeparator(delimiter)
+                    .withQuoteChar(ICSVWriter.NO_QUOTE_CHARACTER)
                     .build();
             logger.info("Opened downloads CSV: {}", filePath);
         } catch (IOException e) {
@@ -78,20 +77,20 @@ public class DownloadsCsvWriter implements Closeable {
     }
 
     public void writeRecords(List<BundleRecord> records) {
-        if (writer == null || attachmentsComponentName == null || serverFileNameField == null) {
+        if (writer == null || attachmentsComponentNames.isEmpty()) {
             return;
         }
 
         for (BundleRecord record : records) {
             for (BundleComponent comp : record.getComponents()) {
-                if (!attachmentsComponentName.equals(comp.getComponentInternalName())) {
+                if (!attachmentsComponentNames.contains(comp.getComponentInternalName())) {
                     continue;
                 }
                 if (comp.getRows() == null) {
                     continue;
                 }
                 for (Map<String, String> row : comp.getRows()) {
-                    String filePath = row.get(serverFileNameField);
+                    String filePath = row.get(SERVER_FILE_NAME);
                     if (filePath != null && !filePath.isEmpty()) {
                         writer.writeNext(new String[]{filePath});
                     }
@@ -99,6 +98,7 @@ public class DownloadsCsvWriter implements Closeable {
             }
         }
     }
+
 
     @Override
     public void close() throws IOException {

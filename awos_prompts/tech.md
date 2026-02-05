@@ -1,74 +1,36 @@
-# Technical Specification
+# Technical Notes (structured, updated)
 
-## Technology Stack
+## Canonicality
+This document describes engineering intent. Canonical behavior is in `spec.md`.
 
-- Java 17
-- Maven
-- Single runnable shaded JAR
+## Determinism
+- Rows follow request `trackingIds[]` order (positional mapping for bundles).
+- Columns follow request `fieldPaths[]` order.
 
-### Libraries
-- Jackson (JSON processing)
-- OpenCSV (CSV generation)
-- java.net.http.HttpClient (HTTP)
-- Log4j2 (logging)
+## Real API shapes
+- Metadata: flat node array; hierarchy via `id/parentId/listType`.
+- Bundles: array-of-arrays; component/parameter derived from InstancePath.
 
-### CLI
-- Manual args parsing (no CLI framework)
+## InstancePath parsing
+- Strip `MCPDef:/` or `MCP:/`
+- Strip `|<instanceId>` suffixes
+- module = first segment, component = second, parameter = last
 
----
+## ColumnResolver behavior (updated, agreed)
+### Selection & ordering
+- If `config/columns/{BO}.csv` exists: return **all** paths from the file in file order.
+- Paths not present in BOMetaData are **retained** (columns exist; values may be empty unless returned by bundles).
 
-## Endpoints File Handling
+### Header display names
+- Global override file: `inputs/overrides/parameter-displaynames.csv`
+- Format: `Component;Parameter;DisplayName;` (semicolon, header row)
+- Precedence: overrides → metadata → bundles → internal
 
-- The endpoints file `inputs/endpoints.json` is provided by the user.
-- The file must be consumed in its original schema.
-- Implement an adapter layer that maps the user-provided schema to internal operations:
-  - login
-  - logout
-  - discover BOs
-  - fetch metadata
-  - fetch tracking numbers
-  - bulk / bundles fetch
-
-- If the endpoints schema is ambiguous, allow a minimal mapping section in the main configuration to resolve which endpoint name corresponds to which internal operation.
-
----
-
-## Credentials
-
-- Credentials are stored as plain text in `config.yml`.
-- Environment-variable resolution for secrets is out of scope.
-
----
-
-## Backups
-
-- Store previous export outputs under `backups/`.
-- Enforce retention based on configurable number of days.
-
----
+## CSV quoting policy (per your requirement)
+- Writers are configured with `NO_QUOTE_CHARACTER` to avoid quotes in headers and data.
+- Note: values containing delimiter/newlines may produce non-RFC CSV; this is an explicit trade-off.
 
 ## Downloads CSV
-
-- For each BO, generate a downloads CSV.
-- The filename must be generated using a **dedicated configuration property** `downloadsFilenameTemplate`.
-- Default example: `{BO}_AttachmentsToDownload_{DDMMYYYY}_{HHMMSS}.csv`.
-- The CSV must contain **only** `Attachments.File Path` values for that BO.
-
----
-
-## Reliability
-
-- Support configurable batch size for bulk requests.
-- Implement a retry policy with increasing delays (e.g., 1s, 2s, 4s, ...) up to a configurable maximum number of attempts.
-- Abort the entire run if any BO fails.
-
----
-
-## Offline Test Mode
-
-- Provide a flag that disables server calls.
-- In offline mode, read sample JSON files:
-  - `inputs/samples/boMetaData.sample.json`
-  - `inputs/samples/bundles.sample.json`
-
-- Outputs must still be generated to validate export logic.
+- One column, no header
+- Values: `serverFileName`
+- Components: `ReqAttachment`, `ReqContractAttachment`

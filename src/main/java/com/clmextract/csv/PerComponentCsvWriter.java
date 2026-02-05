@@ -52,18 +52,19 @@ public class PerComponentCsvWriter implements CsvExportWriter {
             componentColumns.put(comp.getInternalName(), columns);
 
             String filename = filenameResolver.resolve(
-                    filenameTemplate, metadata.getBoUsageType(), comp.getDisplayName());
+                    filenameTemplate, metadata.getBoName(), comp.getDisplayName());
             Path filePath = outputDir.resolve(filename);
 
             try {
                 ICSVWriter writer = new CSVWriterBuilder(new FileWriter(filePath.toString()))
                         .withSeparator(delimiter)
+                        .withQuoteChar(ICSVWriter.NO_QUOTE_CHARACTER)
                         .build();
                 writers.put(comp.getInternalName(), writer);
 
                 // Build header: Tracking # + column headers
                 String[] header = new String[columns.size() + 1];
-                header[0] = "Tracking #";
+                header[0] = "Summary.Tracking #";
                 for (int i = 0; i < columns.size(); i++) {
                     header[i + 1] = columns.get(i).getHeader();
                 }

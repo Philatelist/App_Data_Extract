@@ -16,5 +16,5 @@ public interface DataSource {
 
     List<Long> getTrackingNumbers(String boType);
 
-    BundleResponse fetchBatch(List<Long> trackingIds, List<String> fieldPaths);
+    BundleResponse fetchBatch(List<Long> trackingIds, List<String> fieldPaths, BoMetadata metadata);
 }

@@ -35,7 +35,7 @@ class MergedSingleCsvWriterTest {
         writer.close();
 
         // Merged single file should exist (Component placeholder = "Merged")
-        assertTrue(Files.exists(tempDir.resolve("Contract_Merged_01012026_120000.csv")));
+        assertTrue(Files.exists(tempDir.resolve("ExampleBO_Merged_01012026_120000.csv")));
     }
 
     @Test
@@ -53,7 +53,7 @@ class MergedSingleCsvWriterTest {
         writer.close();
 
         // Multi-cardinality component gets its own file
-        assertTrue(Files.exists(tempDir.resolve("Contract_Attachments_01012026_120000.csv")));
+        assertTrue(Files.exists(tempDir.resolve("ExampleBO_Attachments_01012026_120000.csv")));
     }
 
     @Test
@@ -70,7 +70,7 @@ class MergedSingleCsvWriterTest {
         writer.writeHeaders();
         writer.close();
 
-        String content = Files.readString(tempDir.resolve("Contract_Merged_01012026_120000.csv"));
+        String content = Files.readString(tempDir.resolve("ExampleBO_Merged_01012026_120000.csv"));
         String firstLine = content.split("\n")[0];
         assertTrue(firstLine.contains("\"Tracking #\""));
         assertTrue(firstLine.contains("\"Summary.Contract Number\""));
@@ -92,7 +92,7 @@ class MergedSingleCsvWriterTest {
         writer.writeRecords(List.of(makeBundleRecord()));
         writer.close();
 
-        String content = Files.readString(tempDir.resolve("Contract_Merged_01012026_120000.csv"));
+        String content = Files.readString(tempDir.resolve("ExampleBO_Merged_01012026_120000.csv"));
         String[] lines = content.trim().split("\n");
         assertEquals(2, lines.length); // header + 1 data row
         assertTrue(lines[1].contains("\"1051372\""));
@@ -114,7 +114,7 @@ class MergedSingleCsvWriterTest {
         writer.writeRecords(List.of(makeBundleRecord()));
         writer.close();
 
-        String content = Files.readString(tempDir.resolve("Contract_Attachments_01012026_120000.csv"));
+        String content = Files.readString(tempDir.resolve("ExampleBO_Attachments_01012026_120000.csv"));
         String[] lines = content.trim().split("\n");
         assertEquals(2, lines.length); // header + 1 attachment row
         assertTrue(lines[1].contains("/files/contract_1051372.pdf"));

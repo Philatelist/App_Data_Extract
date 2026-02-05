@@ -79,7 +79,9 @@ public class ApiDataSource implements DataSource {
     }
 
     @Override
-    public BundleResponse fetchBatch(List<Long> trackingIds, List<String> fieldPaths) {
-        return batchProcessor.fetchBatch(trackingIds, fieldPaths, sessionManager.getSessionId());
+    public BundleResponse fetchBatch(List<Long> trackingIds, List<String> fieldPaths,
+                                     BoMetadata metadata) {
+        return batchProcessor.fetchBatch(trackingIds, fieldPaths, sessionManager.getSessionId(),
+                metadata);
     }
 }

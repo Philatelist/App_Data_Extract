@@ -34,8 +34,8 @@ class PerComponentCsvWriterTest {
         writer.writeHeaders();
         writer.close();
 
-        assertTrue(Files.exists(tempDir.resolve("Contract_Summary_01012026_120000.csv")));
-        assertTrue(Files.exists(tempDir.resolve("Contract_Attachments_01012026_120000.csv")));
+        assertTrue(Files.exists(tempDir.resolve("ExampleBO_Summary_01012026_120000.csv")));
+        assertTrue(Files.exists(tempDir.resolve("ExampleBO_Attachments_01012026_120000.csv")));
     }
 
     @Test
@@ -53,7 +53,7 @@ class PerComponentCsvWriterTest {
         writer.close();
 
         String summaryContent = Files.readString(
-                tempDir.resolve("Contract_Summary_01012026_120000.csv"));
+                tempDir.resolve("ExampleBO_Summary_01012026_120000.csv"));
         String firstLine = summaryContent.split("\n")[0];
         assertTrue(firstLine.startsWith("\"Tracking #\""));
     }
@@ -73,7 +73,7 @@ class PerComponentCsvWriterTest {
         writer.close();
 
         String summaryContent = Files.readString(
-                tempDir.resolve("Contract_Summary_01012026_120000.csv"));
+                tempDir.resolve("ExampleBO_Summary_01012026_120000.csv"));
         String firstLine = summaryContent.split("\n")[0];
         assertTrue(firstLine.contains("\"Summary.Tracking #\""));
         assertTrue(firstLine.contains("\"Summary.Contract Number\""));
@@ -95,7 +95,7 @@ class PerComponentCsvWriterTest {
         writer.close();
 
         String content = Files.readString(
-                tempDir.resolve("Contract_Summary_01012026_120000.csv"));
+                tempDir.resolve("ExampleBO_Summary_01012026_120000.csv"));
         String[] lines = content.trim().split("\n");
         assertEquals(2, lines.length); // header + 1 data row
         assertTrue(lines[1].contains("\"1051372\""));
@@ -139,7 +139,7 @@ class PerComponentCsvWriterTest {
         writer.close();
 
         String content = Files.readString(
-                tempDir.resolve("Contract_Attachments_01012026_120000.csv"));
+                tempDir.resolve("ExampleBO_Attachments_01012026_120000.csv"));
         String[] lines = content.trim().split("\n");
         assertEquals(4, lines.length); // header + 3 data rows
         // Each row should have the tracking ID
@@ -181,7 +181,7 @@ class PerComponentCsvWriterTest {
         writer.close();
 
         String content = Files.readString(
-                tempDir.resolve("Contract_Summary_01012026_120000.csv"));
+                tempDir.resolve("ExampleBO_Summary_01012026_120000.csv"));
         String[] lines = content.trim().split("\n");
         assertEquals(3, lines.length); // header + 2 data rows
     }

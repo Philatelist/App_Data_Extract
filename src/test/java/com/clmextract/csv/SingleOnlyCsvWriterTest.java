@@ -36,7 +36,7 @@ class SingleOnlyCsvWriterTest {
         writer.close();
 
         // SingleOnly file should exist
-        assertTrue(Files.exists(tempDir.resolve("Contract_SingleOnly_01012026_120000.csv")));
+        assertTrue(Files.exists(tempDir.resolve("ExampleBO_SingleOnly_01012026_120000.csv")));
 
         // No attachments file should exist
         int fileCount = 0;
@@ -63,7 +63,7 @@ class SingleOnlyCsvWriterTest {
         writer.writeHeaders();
         writer.close();
 
-        String content = Files.readString(tempDir.resolve("Contract_SingleOnly_01012026_120000.csv"));
+        String content = Files.readString(tempDir.resolve("ExampleBO_SingleOnly_01012026_120000.csv"));
         String firstLine = content.split("\n")[0];
         assertTrue(firstLine.contains("\"Tracking #\""));
         assertTrue(firstLine.contains("\"Summary.Contract Number\""));
@@ -86,7 +86,7 @@ class SingleOnlyCsvWriterTest {
         writer.writeRecords(List.of(makeBundleRecord()));
         writer.close();
 
-        String content = Files.readString(tempDir.resolve("Contract_SingleOnly_01012026_120000.csv"));
+        String content = Files.readString(tempDir.resolve("ExampleBO_SingleOnly_01012026_120000.csv"));
         String[] lines = content.trim().split("\n");
         assertEquals(2, lines.length); // header + 1 data row
         assertTrue(lines[1].contains("\"1051372\""));
@@ -109,7 +109,7 @@ class SingleOnlyCsvWriterTest {
         writer.close();
 
         // Verify no attachments file was created
-        assertFalse(Files.exists(tempDir.resolve("Contract_Attachments_01012026_120000.csv")));
+        assertFalse(Files.exists(tempDir.resolve("ExampleBO_Attachments_01012026_120000.csv")));
     }
 
     private BoMetadata makeMetadata() {

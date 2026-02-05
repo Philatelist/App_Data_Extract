@@ -48,7 +48,7 @@ public class BoPipeline {
         }
 
         // Step 3: Resolve columns
-        ColumnResolver columnResolver = new ColumnResolver(metadata.getComponents(), boType);
+        ColumnResolver columnResolver = new ColumnResolver(metadata.getComponents(), metadata.getBoName());
         List<String> fieldPaths = columnResolver.resolveFieldPaths();
 
         // Step 4: Determine filename template (per-BO override or global)
@@ -82,7 +82,7 @@ public class BoPipeline {
                 List<Long> batch = batches.get(i);
                 logger.info("Processing batch {}/{} ({} IDs)", i + 1, batches.size(), batch.size());
 
-                BundleResponse bundleResponse = dataSource.fetchBatch(batch, fieldPaths);
+                BundleResponse bundleResponse = dataSource.fetchBatch(batch, fieldPaths, metadata);
 
                 if (bundleResponse.getRecords() != null) {
                     csvWriter.writeRecords(bundleResponse.getRecords());

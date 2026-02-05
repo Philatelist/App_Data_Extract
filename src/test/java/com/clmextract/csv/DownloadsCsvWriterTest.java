@@ -34,7 +34,7 @@ class DownloadsCsvWriterTest {
         writer.writeRecords(List.of(makeBundleRecordWithAttachments()));
         writer.close();
 
-        Path file = tempDir.resolve("Contract_downloads_01012026_120000.csv");
+        Path file = tempDir.resolve("ExampleBO_downloads_01012026_120000.csv");
         assertTrue(Files.exists(file));
 
         String content = Files.readString(file);
@@ -56,7 +56,7 @@ class DownloadsCsvWriterTest {
         writer.writeRecords(List.of(makeBundleRecordWithAttachments()));
         writer.close();
 
-        Path file = tempDir.resolve("Contract_downloads_01012026_120000.csv");
+        Path file = tempDir.resolve("ExampleBO_downloads_01012026_120000.csv");
         String content = Files.readString(file);
         String[] lines = content.trim().split("\n");
 
@@ -88,7 +88,7 @@ class DownloadsCsvWriterTest {
         writer.writeRecords(List.of(makeBundleRecordNoAttachments()));
         writer.close();
 
-        Path file = tempDir.resolve("Contract_downloads_01012026_120000.csv");
+        Path file = tempDir.resolve("ExampleBO_downloads_01012026_120000.csv");
         assertTrue(Files.exists(file));
 
         String content = Files.readString(file);
@@ -128,7 +128,7 @@ class DownloadsCsvWriterTest {
         writer.writeRecords(List.of(record));
         writer.close();
 
-        Path file = tempDir.resolve("Contract_downloads_01012026_120000.csv");
+        Path file = tempDir.resolve("ExampleBO_downloads_01012026_120000.csv");
         String content = Files.readString(file);
         String[] lines = content.trim().split("\n");
 
@@ -167,7 +167,7 @@ class DownloadsCsvWriterTest {
 
         writer.close();
 
-        Path file = tempDir.resolve("Contract_downloads_01012026_120000.csv");
+        Path file = tempDir.resolve("ExampleBO_downloads_01012026_120000.csv");
         String content = Files.readString(file);
         String[] lines = content.trim().split("\n");
 

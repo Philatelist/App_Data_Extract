@@ -60,7 +60,7 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
         // Open merged single CSV if there are single-cardinality columns
         if (!mergedColumns.isEmpty()) {
             String filename = filenameResolver.resolve(
-                    filenameTemplate, metadata.getBoUsageType(), "Merged");
+                    filenameTemplate, metadata.getBoName(), "Merged");
             Path filePath = outputDir.resolve(filename);
             try {
                 mergedWriter = new CSVWriterBuilder(new FileWriter(filePath.toString()))
@@ -89,7 +89,7 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
                 multiComponentColumns.put(comp.getInternalName(), columns);
 
                 String filename = filenameResolver.resolve(
-                        filenameTemplate, metadata.getBoUsageType(), comp.getDisplayName());
+                        filenameTemplate, metadata.getBoName(), comp.getDisplayName());
                 Path filePath = outputDir.resolve(filename);
                 try {
                     ICSVWriter writer = new CSVWriterBuilder(new FileWriter(filePath.toString()))

@@ -2,7 +2,6 @@ package com.clmextract.export;
 
 import com.clmextract.metadata.BoMetadata;
 import com.clmextract.metadata.MetadataParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -55,7 +54,7 @@ public class OfflineDataSource implements DataSource {
     @Override
     public List<Long> getTrackingNumbers(String boType) {
         logger.info("Offline mode: extracting tracking numbers from sample bundles for BO type: {}", boType);
-        BundleResponse bundles = loadBundles();
+        BundleResponse bundles = loadBundles(loadMetadata(), null);
         if (bundles.getRecords() == null) {
             return List.of();
         }
@@ -65,9 +64,10 @@ public class OfflineDataSource implements DataSource {
     }
 
     @Override
-    public BundleResponse fetchBatch(List<Long> trackingIds, List<String> fieldPaths) {
+    public BundleResponse fetchBatch(List<Long> trackingIds, List<String> fieldPaths,
+                                     BoMetadata metadata) {
         logger.info("Offline mode: returning sample bundle data ({} requested IDs)", trackingIds.size());
-        BundleResponse bundles = loadBundles();
+        BundleResponse bundles = loadBundles(metadata, trackingIds);
         if (bundles.getRecords() == null) {
             return bundles;
         }
@@ -85,7 +85,7 @@ public class OfflineDataSource implements DataSource {
         if (cachedMetadata != null) {
             return cachedMetadata;
         }
-        Path metadataFile = samplesDir.resolve("boMetaData.sample.json");
+        Path metadataFile = samplesDir.resolve("BOMetaDataResponse.example.json");
         try {
             String json = Files.readString(metadataFile);
             cachedMetadata = metadataParser.parse(json);
@@ -95,14 +95,11 @@ public class OfflineDataSource implements DataSource {
         }
     }
 
-    private BundleResponse loadBundles() {
-        if (cachedBundles != null) {
-            return cachedBundles;
-        }
-        Path bundlesFile = samplesDir.resolve("bundles.sample.json");
+    private BundleResponse loadBundles(BoMetadata metadata, List<Long> requestTrackingIds) {
+        Path bundlesFile = samplesDir.resolve("BundlesResponse.example.json");
         try {
             String json = Files.readString(bundlesFile);
-            cachedBundles = bundleParser.parse(json);
+            cachedBundles = bundleParser.parse(json, metadata, requestTrackingIds);
             return cachedBundles;
         } catch (IOException e) {
             throw new RuntimeException("Failed to read sample bundles: " + bundlesFile, e);

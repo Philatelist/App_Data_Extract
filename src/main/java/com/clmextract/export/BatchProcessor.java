@@ -3,6 +3,7 @@ package com.clmextract.export;
 import com.clmextract.endpoint.EndpointDefinition;
 import com.clmextract.endpoint.EndpointRegistry;
 import com.clmextract.http.RequestExecutor;
+import com.clmextract.metadata.BoMetadata;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,7 +40,7 @@ public class BatchProcessor {
     }
 
     public BundleResponse fetchBatch(List<Long> batchIds, List<String> fieldPaths,
-                                     String sessionId) {
+                                     String sessionId, BoMetadata metadata) {
         logger.info("Fetching batch of {} tracking IDs", batchIds.size());
 
         EndpointDefinition endpoint = endpointRegistry.getEndpoint(EndpointRegistry.BUNDLES);
@@ -49,7 +50,7 @@ public class BatchProcessor {
 
         String body = buildRequestBody(batchIds, fieldPaths);
         String response = requestExecutor.execute(endpoint, headers, body);
-        return bundleParser.parse(response);
+        return bundleParser.parse(response, metadata, batchIds);
     }
 
     private String buildRequestBody(List<Long> trackingIds, List<String> fieldPaths) {

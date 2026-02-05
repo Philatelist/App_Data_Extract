@@ -1,4 +1,4 @@
-basePath: /clm/rest/methods
+basePath: /services/rest/methods
 endpoints:
 - name: login
   method: GET
@@ -435,7 +435,7 @@ endpoints:
     type: jsonArrayOfStrings
 - name: getBoMetaData
   method: GET
-  path: /boMetaData
+  path: /BOMetaData
   auth:
     type: sessionHeader
     headerName: session_id

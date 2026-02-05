@@ -1,8 +1,5 @@
 package com.clmextract.metadata;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class FieldMetadata {
 
     private String internalName;

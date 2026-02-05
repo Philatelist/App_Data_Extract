@@ -1,21 +1,38 @@
-# Roadmap
+# Roadmap (Declarative, checkbox-style)
 
-## Phase 1
-Java CLI project skeleton, configuration format design, and documentation.
+> This roadmap is execution/tracking oriented. Canonical behavior remains `spec.md`.
 
-## Phase 2
-Load and validate a user-provided endpoints file (original format) and map it to required operations.
+## Phase 1 — Repo & CLI Skeleton
+- [ ] Create CLI entrypoint and config loading
+- [ ] Directory layout: logs / backups / downloads / outputs
+- [ ] Logging + exit codes
 
-## Phase 3
-Implement session-based authentication and robust request execution.
+## Phase 2 — Session & HTTP
+- [ ] Login/session persistence
+- [ ] Retry/backoff and timeouts
+- [ ] Endpoint adapter (config-driven)
 
-## Phase 4
-Implement export pipeline for one BO:
-- metadata retrieval
-- tracking IDs retrieval
-- batched bulk retrieval
-- CSV exports
+## Phase 3 — Real API Parsing Layer
+- [ ] Metadata: parse flat node array -> domain model
+- [ ] Bundles: parse array-of-arrays -> domain model
+- [ ] Central InstancePath parsing utility
+- [ ] DTO/mapper separation (domain models annotation-free)
+- [ ] Offline mode uses real-format fixtures
 
-## Phase 5
-Multi-BO sequential processing, backups retention cleanup, detailed logging, downloads list generation, and offline test mode using small sample JSON files.
+## Phase 4 — Single-BO Export Pipeline
+- [ ] Fetch tracking IDs
+- [ ] Resolve fieldPaths + columns
+- [ ] Batch bundles fetch + streaming write
+- [ ] Deterministic ordering: rows by trackingIds, cols by fieldPaths
+- [ ] Downloads list generation (serverFileName from attachments components)
 
+## Phase 5 — Multi-BO + Ops
+- [ ] Iterate boTypes sequentially
+- [ ] Retention policy for backups/logs
+- [ ] Consistent filename templates (sanitized tokens)
+- [ ] Packaging: shaded/fat jar, reproducible builds
+
+## Phase 6 — Hardening
+- [ ] Integration runbook (online/offline)
+- [ ] Regression tests around overrides + filenames
+- [ ] Edge-cases: missing metadata fields, empty bundles, partial batches

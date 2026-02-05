@@ -1,24 +1,32 @@
-# Tasks
+# Tasks (checkbox-style, updated)
 
-Create detailed tasks for the implementation:
+## A. Parsing real API shapes
+- [x] Metadata DTO + mapper + parser (flat node array)
+- [x] Bundles DTO + mapper + parser (array-of-arrays)
+- [x] InstancePathUtil (MCPDef/MCP + strip instance IDs)
+- [x] Domain models annotation-free
+- [x] Offline mode uses real-format fixtures
 
-- Maven project skeleton with shaded JAR packaging
-- Manual args parsing + configuration design
-- Credentials stored as plain text in config.yml (env var resolution out of scope)
-- Endpoints adapter / parser for user-provided original endpoints file
-- Session manager (validate session / login / logout lifecycle)
-- HTTP request executor (java.net.http.HttpClient)
-- Metadata parsing
-- Field-path planning
-- Tracking IDs retrieval
-- Explicit IDs and numeric ranges parsing
-- Batched bulk data fetch
-- Streaming CSV generation per component (OpenCSV)
-- Merge single-cardinality components option
-- Export only single-cardinality components option
-- Downloads list generator
-- Detailed REST-call logging (Log4j2)
-- Backups creation and retention cleanup
-- Offline test mode using sample JSON files
-- Abort entire run if any BO fails
-- README with build and run instructions
+## B. Ordering guarantees
+- [x] Thread request trackingIds into BundlesMapper (positional trackingId assignment)
+- [x] Ensure row order == request order
+- [x] Ensure column order == fieldPaths order
+
+## C. Filenames
+- [x] `{BO}` uses boName (internal), not usageType
+- [x] Sanitize `{BO}` and `{Component}` tokens
+
+## D. Overrides
+- [ ] Column order file: `config/columns/{BO}.csv` (Module/Component/Parameter per line)
+- [ ] Display name overrides: **global** `inputs/overrides/parameter-displaynames.csv`
+  - Format: `Component;Parameter;DisplayName;` (semicolon, header row)
+- [ ] Retain order-file paths not in metadata as columns
+
+## E. CSV output policy
+- [ ] Set writers to `NO_QUOTE_CHARACTER` (no quotes in headers/data)
+- [ ] Tracking header is `Summary.Tracking #`
+
+## F. Downloads list
+- [ ] DownloadsCsvWriter writes one column, no header
+- [ ] Source fields: `serverFileName`
+- [ ] Source components: `ReqAttachment`, `ReqContractAttachment`

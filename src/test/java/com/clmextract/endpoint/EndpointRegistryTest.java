@@ -25,7 +25,7 @@ class EndpointRegistryTest {
         EndpointRegistry registry = new EndpointRegistry("inputs/endpoints.yml");
         registry.load();
 
-        assertEquals("/clm/rest/methods", registry.getBasePath());
+        assertEquals("/services/rest/methods", registry.getBasePath());
         assertTrue(registry.getAllEndpoints().size() > 5);
 
         EndpointDefinition login = registry.getEndpoint(EndpointRegistry.LOGIN);

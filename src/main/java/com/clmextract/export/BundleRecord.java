@@ -1,10 +1,7 @@
 package com.clmextract.export;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class BundleRecord {
 
     private long trackingId;

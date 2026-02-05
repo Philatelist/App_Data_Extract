@@ -61,7 +61,7 @@ public class SingleOnlyCsvWriter implements CsvExportWriter {
         }
 
         String filename = filenameResolver.resolve(
-                filenameTemplate, metadata.getBoUsageType(), "SingleOnly");
+                filenameTemplate, metadata.getBoName(), "SingleOnly");
         Path filePath = outputDir.resolve(filename);
         try {
             writer = new CSVWriterBuilder(new FileWriter(filePath.toString()))
