@@ -10,9 +10,14 @@ endpointsFile: inputs/endpoints.yml
 
 # BO types to export. If empty or omitted, all BO types are discovered automatically.
 boTypes:
+  - name: GlobalProcurementBO
+    trackingFilter: "17427966"
+  - name: GPAMEA_BO
+    trackingFilter: "17404022"
+  - name: GPEuropeBO
+    trackingFilter: "17468488"
   - name: NAFBO
-    trackingFilter: "10760475-10860475"
-
+    trackingFilter: "17455516"
 
 # CSV generation mode: per-component, merged-single, or single-only
 csvMode: per-component
