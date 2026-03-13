@@ -1,19 +1,18 @@
 # CLM Data Extract Configuration
 
 server:
-  url: https://pepsico-clone.auto-dev.selectica.com/services/rest/methods
-  username: ausov@corcentric.com
-  password: Sel1234_
+  url: https://..../services/rest/methods
+  username:
+  password:
 
 # Path to the endpoints definition file
 endpointsFile: inputs/endpoints.yml
 
 # BO types to export. If empty or omitted, all BO types are discovered automatically.
 boTypes:
-  - name: GlobalProcurementBO
-  - name: GPAMEA_BO
-  - name: GPEuropeBO
-  - name: NAFBO
+  - name: ...BO
+  - name: ...BO
+
 
 trackingFilter: ""
 
