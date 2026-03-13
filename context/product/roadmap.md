@@ -64,6 +64,11 @@ _Implement the full export pipeline for one BO type end-to-end._
 
 ### Phase 5 -- Multi-BO Processing & Operational Features
 
+- [x] **BO Type Discovery and Usage Type Filtering**
+  - [x] **Auto-discovery mode:** When `boTypes` is empty/omitted, call `/BOTypes` to discover all available BO types and export them automatically.
+  - [x] **usageType filter:** New `boUsageTypeFilter` config option (`Directory`, `NonContract`, `Contract`) filters discovered BOs by their metadata `usageType` before export.
+  - [x] **Fail-fast validation:** Invalid `boUsageTypeFilter` values are caught at startup before any API calls.
+
 _Loop over all configured BO types, add backup management, logging, downloads list generation, and an offline test mode._
 
 - [ ] **Multi-BO Sequential Processing**

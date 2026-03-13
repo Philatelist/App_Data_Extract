@@ -262,11 +262,11 @@ class ConfigLoaderTest {
     }
 
     // ------------------------------------------------------------------
-    // 10. boType with empty name throws
+    // 10. boType with blank name is now allowed (discovery mode signal)
     // ------------------------------------------------------------------
 
     @Test
-    void testBoTypeWithEmptyNameThrows() throws IOException {
+    void testBoTypeWithBlankNameAllowed() throws IOException {
         String yaml = """
                 server:
                   url: "http://example.com"
@@ -274,14 +274,13 @@ class ConfigLoaderTest {
                   password: "pass"
                 outputRoot: "out"
                 boTypes:
-                  - name: ""
+                  - name:
                 """;
 
         String path = writeYaml(tempDir, yaml);
-
-        ConfigValidationException ex = assertThrows(ConfigValidationException.class,
-                () -> ConfigLoader.load(path));
-        assertTrue(ex.getMessage().contains("boTypes"));
+        // Should NOT throw — blank name is now a valid discovery-mode signal
+        AppConfig config = ConfigLoader.load(path);
+        assertNotNull(config);
     }
 
     // ------------------------------------------------------------------
@@ -295,5 +294,128 @@ class ConfigLoaderTest {
         ConfigValidationException ex = assertThrows(ConfigValidationException.class,
                 () -> ConfigLoader.load(fakePath));
         assertTrue(ex.getMessage().contains("Cannot read config file"));
+    }
+
+    // ------------------------------------------------------------------
+    // 12. boUsageTypeFilter: Contract loads cleanly
+    // ------------------------------------------------------------------
+
+    @Test
+    void testBoUsageTypeFilterContractLoadsCleanly() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                boUsageTypeFilter: Contract
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertEquals("Contract", config.getBoUsageTypeFilter());
+    }
+
+    // ------------------------------------------------------------------
+    // 13. boUsageTypeFilter: Directory loads cleanly
+    // ------------------------------------------------------------------
+
+    @Test
+    void testBoUsageTypeFilterDirectoryLoadsCleanly() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                boUsageTypeFilter: Directory
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertEquals("Directory", config.getBoUsageTypeFilter());
+    }
+
+    // ------------------------------------------------------------------
+    // 14. boUsageTypeFilter: NonContract loads cleanly
+    // ------------------------------------------------------------------
+
+    @Test
+    void testBoUsageTypeFilterNonContractLoadsCleanly() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                boUsageTypeFilter: NonContract
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertEquals("NonContract", config.getBoUsageTypeFilter());
+    }
+
+    // ------------------------------------------------------------------
+    // 15. boUsageTypeFilter: contract (lowercase) throws
+    // ------------------------------------------------------------------
+
+    @Test
+    void testBoUsageTypeFilterLowercaseContractThrows() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                boUsageTypeFilter: contract
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+
+        ConfigValidationException ex = assertThrows(ConfigValidationException.class,
+                () -> ConfigLoader.load(path));
+        assertTrue(ex.getMessage().contains("Invalid boUsageTypeFilter value"));
+    }
+
+    // ------------------------------------------------------------------
+    // 16. boUsageTypeFilter: BadValue throws
+    // ------------------------------------------------------------------
+
+    @Test
+    void testBoUsageTypeFilterBadValueThrows() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                boUsageTypeFilter: BadValue
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+
+        ConfigValidationException ex = assertThrows(ConfigValidationException.class,
+                () -> ConfigLoader.load(path));
+        assertTrue(ex.getMessage().contains("Invalid boUsageTypeFilter value"));
+    }
+
+    // ------------------------------------------------------------------
+    // 17. boUsageTypeFilter absent => field is null
+    // ------------------------------------------------------------------
+
+    @Test
+    void testBoUsageTypeFilterAbsentIsNull() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertNull(config.getBoUsageTypeFilter());
     }
 }

@@ -21,6 +21,7 @@ public class AppConfig {
     private boolean offlineMode = false;
     private int retryMaxAttempts = 3;
     private long retryBaseDelayMs = 1000;
+    private String boUsageTypeFilter = null;
 
     public AppConfig() {
     }
@@ -151,5 +152,13 @@ public class AppConfig {
 
     public void setRetryBaseDelayMs(long retryBaseDelayMs) {
         this.retryBaseDelayMs = retryBaseDelayMs;
+    }
+
+    public String getBoUsageTypeFilter() {
+        return boUsageTypeFilter;
+    }
+
+    public void setBoUsageTypeFilter(String boUsageTypeFilter) {
+        this.boUsageTypeFilter = boUsageTypeFilter;
     }
 }

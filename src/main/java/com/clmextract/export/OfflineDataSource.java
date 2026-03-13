@@ -42,7 +42,7 @@ public class OfflineDataSource implements DataSource {
     public List<String> getBoTypes() {
         logger.info("Offline mode: discovering BO types from sample metadata");
         BoMetadata metadata = loadMetadata();
-        return List.of(metadata.getBoUsageType());
+        return List.of(metadata.getBoName());
     }
 
     @Override

@@ -17,6 +17,8 @@ public class ConfigLoader {
             "per-component", "merged-single", "single-only"
     );
 
+    private static final Set<String> VALID_BO_USAGE_TYPE_FILTERS = Set.of("Directory", "NonContract", "Contract");
+
     public static AppConfig load(String configPath) {
         Map<String, Object> root = parseYaml(configPath);
 
@@ -63,6 +65,7 @@ public class ConfigLoader {
         config.setBatchSize(getIntOrDefault(root, "batchSize", 100));
         config.setBackupRetentionDays(getIntOrDefault(root, "backupRetentionDays", 30));
         config.setOfflineMode(getBooleanOrDefault(root, "offlineMode", false));
+        config.setBoUsageTypeFilter(getStringOrDefault(root, "boUsageTypeFilter", null));
 
         // --- delimiter ---
         String delimiterStr = getStringOrDefault(root, "delimiter", ",");
@@ -116,11 +119,12 @@ public class ConfigLoader {
             throw new ConfigValidationException("backupRetentionDays must be >= 0");
         }
 
-        List<BoTypeConfig> boTypes = config.getBoTypes();
-        for (int i = 0; i < boTypes.size(); i++) {
-            if (isNullOrEmpty(boTypes.get(i).getName())) {
-                throw new ConfigValidationException("boTypes[" + i + "].name is required");
-            }
+        String boUsageTypeFilter = config.getBoUsageTypeFilter();
+        if (boUsageTypeFilter != null && !boUsageTypeFilter.isEmpty()
+                && !VALID_BO_USAGE_TYPE_FILTERS.contains(boUsageTypeFilter)) {
+            throw new ConfigValidationException(
+                    "Invalid boUsageTypeFilter value: '" + boUsageTypeFilter
+                            + "'. Allowed values: Directory, NonContract, Contract.");
         }
     }
 

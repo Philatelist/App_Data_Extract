@@ -4,11 +4,14 @@ import com.clmextract.backup.BackupManager;
 import com.clmextract.config.AppConfig;
 import com.clmextract.config.BoTypeConfig;
 import com.clmextract.endpoint.EndpointRegistry;
+import com.clmextract.metadata.BoMetadata;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ExportOrchestrator {
 
@@ -61,21 +64,63 @@ public class ExportOrchestrator {
         return new ApiDataSource(config, endpointRegistry);
     }
 
-    private List<BoTypeConfig> resolveBoTypes(DataSource dataSource) {
-        if (!config.getBoTypes().isEmpty()) {
-            return config.getBoTypes();
+    List<BoTypeConfig> resolveBoTypes(DataSource dataSource) {
+        // Filter config boTypes to non-blank entries
+        List<BoTypeConfig> explicit = config.getBoTypes().stream()
+                .filter(bt -> bt.getName() != null && !bt.getName().isBlank())
+                .collect(Collectors.toList());
+
+        if (!explicit.isEmpty()) {
+            // Explicit mode
+            List<String> names = explicit.stream().map(BoTypeConfig::getName).collect(Collectors.toList());
+            logger.info("Explicit boTypes configured: processing {} BO type(s): {}", explicit.size(), names);
+            return explicit;
         }
 
-        logger.info("No BO types configured, discovering...");
+        // Discovery mode
+        logger.info("No explicit boTypes configured. Discovering all BO types from server.");
         List<String> boTypeNames = dataSource.getBoTypes();
+        logger.info("Discovered {} BO type(s) from /BOTypes: {}", boTypeNames.size(), boTypeNames);
 
+        if (boTypeNames.isEmpty()) {
+            logger.warn("No BO types found on server. Nothing to export.");
+            return Collections.emptyList();
+        }
+
+        // Mode 3: filter by usageType
+        String usageTypeFilter = config.getBoUsageTypeFilter();
+        if (usageTypeFilter != null && !usageTypeFilter.isBlank()) {
+            logger.info("No explicit boTypes configured. Discovering BO types with usageType filter: {}.", usageTypeFilter);
+            List<BoTypeConfig> retained = new ArrayList<>();
+            for (String name : boTypeNames) {
+                BoMetadata metadata = dataSource.getMetadata(name);
+                String usageType = metadata.getBoUsageType();
+                if (usageType == null) {
+                    logger.warn("BO type {}: no usageType found in metadata — excluded.", name);
+                    continue;
+                }
+                if (usageType.equals(usageTypeFilter)) {
+                    BoTypeConfig btc = new BoTypeConfig();
+                    btc.setName(name);
+                    retained.add(btc);
+                }
+            }
+            List<String> retainedNames = retained.stream().map(BoTypeConfig::getName).collect(Collectors.toList());
+            logger.info("Retained {} of {} BO type(s) after usageType filter '{}': {}.",
+                    retained.size(), boTypeNames.size(), usageTypeFilter, retainedNames);
+            if (retained.isEmpty()) {
+                logger.warn("No BO types to process. Exiting.");
+            }
+            return retained;
+        }
+
+        // Mode 2: no filter — return all discovered
         List<BoTypeConfig> discovered = new ArrayList<>();
         for (String name : boTypeNames) {
             BoTypeConfig btc = new BoTypeConfig();
             btc.setName(name);
             discovered.add(btc);
         }
-        logger.info("Discovered {} BO types: {}", discovered.size(), boTypeNames);
         return discovered;
     }
 }

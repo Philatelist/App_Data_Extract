@@ -10,8 +10,11 @@ endpointsFile: inputs/endpoints.yml
 
 # BO types to export. If empty or omitted, all BO types are discovered automatically.
 boTypes:
-  - name: ...BO
-  - name: ...BO
+  - name:
+
+# Optional: filter discovered BOs by usage type. Allowed: Directory, NonContract, Contract.
+# Only applies when boTypes is empty (discovery mode).
+# boUsageTypeFilter: Contract
 
 
 trackingFilter: ""

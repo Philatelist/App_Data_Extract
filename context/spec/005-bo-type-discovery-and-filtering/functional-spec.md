@@ -1,7 +1,7 @@
 # Functional Specification: BO Type Discovery and Usage Type Filtering
 
 - **Roadmap Item:** Phase 5 — Multi-BO Processing (BO type resolution enhancement)
-- **Status:** Approved
+- **Status:** Completed
 - **Author:** Claude
 
 ---
@@ -37,10 +37,10 @@ The tool's BO type resolution behaviour is determined by the `boTypes` and `boUs
 | **Discovery — filtered** | `boTypes` is absent/empty; `boUsageTypeFilter` is set to a valid value | Discover all BO types, inspect each BO's usageType, export only BOs that match the filter. |
 
 **Acceptance Criteria:**
-- [ ] When `boTypes` lists `NAFBO` and `GPEBO`, only those two BOs are processed. `boUsageTypeFilter` is ignored even if present.
-- [ ] When `boTypes: []`, the tool enters discovery mode.
-- [ ] When `boTypes` contains one entry with a blank name (`- name: `), the tool treats this as empty and enters discovery mode.
-- [ ] When `boTypes` is omitted entirely, the tool enters discovery mode.
+- [x] When `boTypes` lists `NAFBO` and `GPEBO`, only those two BOs are processed. `boUsageTypeFilter` is ignored even if present.
+- [x] When `boTypes: []`, the tool enters discovery mode.
+- [x] When `boTypes` contains one entry with a blank name (`- name: `), the tool treats this as empty and enters discovery mode.
+- [x] When `boTypes` is omitted entirely, the tool enters discovery mode.
 
 ---
 
@@ -58,9 +58,9 @@ When discovery mode is triggered and no `boUsageTypeFilter` is set:
 - The tool exits cleanly (exit code 0). No CSV files are written.
 
 **Acceptance Criteria:**
-- [ ] When discovery mode is active and no filter is set, the tool calls `/BOTypes` and processes all returned BO types.
-- [ ] The tool logs the number and names of all discovered BO types.
-- [ ] When `/BOTypes` returns an empty array, the tool logs a warning and exits with code 0 without writing any CSV files.
+- [x] When discovery mode is active and no filter is set, the tool calls `/BOTypes` and processes all returned BO types.
+- [x] The tool logs the number and names of all discovered BO types.
+- [x] When `/BOTypes` returns an empty array, the tool logs a warning and exits with code 0 without writing any CSV files.
 
 ---
 
@@ -92,11 +92,11 @@ boUsageTypeFilter: Contract
 - If the `/BOMetaData` call fails for a BO during filtering, the run **fails with a clear error message** and exits with a non-zero status code.
 
 **Acceptance Criteria:**
-- [ ] Only BO types whose `usageType` matches `boUsageTypeFilter` are exported.
-- [ ] The tool logs the number of BOs discovered, filtered, and retained.
-- [ ] BO types with no `usageType` property in their metadata are excluded with a warning.
-- [ ] If `/BOMetaData` fails for any BO during filtering, the run fails with a clear error message.
-- [ ] If the filter retains zero BO types, the tool logs a warning and exits cleanly (exit code 0).
+- [x] Only BO types whose `usageType` matches `boUsageTypeFilter` are exported.
+- [x] The tool logs the number of BOs discovered, filtered, and retained.
+- [x] BO types with no `usageType` property in their metadata are excluded with a warning.
+- [x] If `/BOMetaData` fails for any BO during filtering, the run fails with a clear error message.
+- [x] If the filter retains zero BO types, the tool logs a warning and exits cleanly (exit code 0).
 
 ---
 
@@ -109,10 +109,10 @@ The `boUsageTypeFilter` config value is validated at startup, before any API cal
 - **Absent value:** No filter is applied (Mode 2 — all).
 
 **Acceptance Criteria:**
-- [ ] Setting `boUsageTypeFilter: Contract` passes validation.
-- [ ] Setting `boUsageTypeFilter: contract` (lowercase) fails validation with a clear error message.
-- [ ] Setting `boUsageTypeFilter: SomeOtherType` fails validation with a clear error message.
-- [ ] Omitting `boUsageTypeFilter` entirely is valid (no filter applied).
+- [x] Setting `boUsageTypeFilter: Contract` passes validation.
+- [x] Setting `boUsageTypeFilter: contract` (lowercase) fails validation with a clear error message.
+- [x] Setting `boUsageTypeFilter: SomeOtherType` fails validation with a clear error message.
+- [x] Omitting `boUsageTypeFilter` entirely is valid (no filter applied).
 
 ---
 
@@ -125,8 +125,8 @@ When `boTypes` contains at least one entry with a non-blank name, the tool behav
 - Each explicitly named BO type is processed in order.
 
 **Acceptance Criteria:**
-- [ ] The existing explicit BO export behaviour is unchanged.
-- [ ] Setting both explicit `boTypes` and `boUsageTypeFilter` does not cause an error — the filter is silently ignored and explicit mode runs.
+- [x] The existing explicit BO export behaviour is unchanged.
+- [x] Setting both explicit `boTypes` and `boUsageTypeFilter` does not cause an error — the filter is silently ignored and explicit mode runs.
 
 ---
 
@@ -145,8 +145,8 @@ All discovery events are logged to both the run log file and stdout, consistent 
 | Empty result | `"No BO types to process. Exiting."` |
 
 **Acceptance Criteria:**
-- [ ] All discovery log messages appear in the timestamped run log file.
-- [ ] All discovery log messages are mirrored to stdout.
+- [x] All discovery log messages appear in the timestamped run log file.
+- [x] All discovery log messages are mirrored to stdout.
 
 ---
 
