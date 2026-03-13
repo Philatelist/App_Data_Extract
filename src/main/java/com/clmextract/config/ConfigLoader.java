@@ -44,7 +44,7 @@ public class ConfigLoader {
             for (Map<String, Object> entry : boTypesList) {
                 BoTypeConfig bt = new BoTypeConfig();
                 bt.setName(getStringOrDefault(entry, "name", null));
-                bt.setTrackingFilter(getStringOrDefault(entry, "trackingFilter", null));
+                bt.setTrackingFilter(getStringOrDefault(root, "trackingFilter", null));
                 bt.setFilenameTemplate(getStringOrDefault(entry, "filenameTemplate", null));
                 boTypes.add(bt);
             }

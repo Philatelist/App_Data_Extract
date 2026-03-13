@@ -9,6 +9,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import com.fasterxml.jackson.core.StreamReadConstraints;
+import com.fasterxml.jackson.core.JsonFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +24,13 @@ public class MetadataParser {
     private final MetadataMapper metadataMapper;
 
     public MetadataParser() {
-        this.objectMapper = new ObjectMapper();
+        JsonFactory factory = JsonFactory.builder()
+                .streamReadConstraints(StreamReadConstraints.builder()
+                        .maxStringLength(50_000_000) // например 50MB
+                        .build())
+                .build();
+
+        this.objectMapper = new ObjectMapper(factory);
         this.metadataMapper = new MetadataMapper();
     }
 
