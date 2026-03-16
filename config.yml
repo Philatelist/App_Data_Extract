@@ -19,6 +19,9 @@ boTypes:
 
 trackingFilter: ""
 
+skipColumns:
+  - "Component Id"
+
 # CSV generation mode: per-component, merged-single, or single-only
 csvMode: per-component
 
