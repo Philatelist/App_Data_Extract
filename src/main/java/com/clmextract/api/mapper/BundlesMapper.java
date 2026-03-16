@@ -165,11 +165,19 @@ public class BundlesMapper {
                 BundleComponent comp = new BundleComponent();
                 comp.setComponentInternalName(componentName);
 
+                boolean isAttachment = "ReqAttachment".equals(componentName);
                 List<Map<String, String>> rows = new ArrayList<>();
                 for (List<BundleFieldDto> instanceFields : byInstanceId.values()) {
                     Map<String, String> row = new LinkedHashMap<>();
                     for (BundleFieldDto f : instanceFields) {
                         row.put(f.getName(), normalizeValue(f.getName(), unescapeHtml(f.getValue())));
+                    }
+                    if (isAttachment) {
+                        String filePath = row.get("serverFileName");
+                        if (filePath != null) {
+                            int lastSlash = filePath.lastIndexOf('/');
+                            row.put("sftpFileName", lastSlash >= 0 ? filePath.substring(lastSlash + 1) : filePath);
+                        }
                     }
                     rows.add(row);
                 }

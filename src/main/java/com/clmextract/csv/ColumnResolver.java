@@ -195,6 +195,10 @@ public class ColumnResolver {
             });
         }
 
+        if ("ReqAttachment".equals(compInternal)) {
+            columns.add(new ResolvedColumn(component.getDisplayName() + ".SFTP File Name", "sftpFileName", "sftpFileName"));
+        }
+
         return columns;
     }
 
