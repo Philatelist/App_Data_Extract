@@ -64,7 +64,7 @@ public class PerComponentCsvWriter implements CsvExportWriter {
 
                 // Build header: Tracking # + column headers
                 String[] header = new String[columns.size() + 1];
-                header[0] = "Summary.Tracking #";
+                header[0] = columnResolver.resolveTrackingHeader();
                 for (int i = 0; i < columns.size(); i++) {
                     header[i + 1] = columns.get(i).getHeader();
                 }

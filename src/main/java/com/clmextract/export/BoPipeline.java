@@ -48,7 +48,7 @@ public class BoPipeline {
         }
 
         // Step 3: Resolve columns
-        ColumnResolver columnResolver = new ColumnResolver(metadata.getComponents(), metadata.getBoName());
+        ColumnResolver columnResolver = new ColumnResolver(metadata.getComponents(), metadata.getBoName(), config.getSkipColumns());
         List<String> fieldPaths = columnResolver.resolveFieldPaths();
 
         // Step 4: Determine filename template (per-BO override or global)

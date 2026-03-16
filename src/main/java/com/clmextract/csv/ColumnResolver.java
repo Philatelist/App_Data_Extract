@@ -9,9 +9,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ColumnResolver {
@@ -20,13 +22,19 @@ public class ColumnResolver {
 
     private final List<ComponentMetadata> components;
     private final String boType;
+    private final Set<String> skipColumns;
     private List<String> orderFilePaths;
     // Outer key: component internal name, inner key: parameter internal name, value: display name
     private Map<String, Map<String, String>> displayNameOverrides;
 
     public ColumnResolver(List<ComponentMetadata> components, String boType) {
+        this(components, boType, List.of());
+    }
+
+    public ColumnResolver(List<ComponentMetadata> components, String boType, List<String> skipColumns) {
         this.components = components;
         this.boType = boType;
+        this.skipColumns = new HashSet<>(skipColumns);
         loadOrderFile();
         loadOverridesFile();
     }
@@ -77,6 +85,27 @@ public class ColumnResolver {
                 logger.warn("Failed to read overrides file: {}", e.getMessage());
             }
         }
+    }
+
+    /**
+     * Returns the header label for the first (tracking) column, e.g. "Basic Information.Tracking #".
+     * Finds the component that owns the trackingNumber field; falls back to "Tracking #" if not found.
+     */
+    public String resolveTrackingHeader() {
+        for (ComponentMetadata comp : components) {
+            if (comp.getFields() == null) continue;
+            for (FieldMetadata field : comp.getFields()) {
+                if ("trackingNumber".equals(field.getInternalName())) {
+                    String displayName = field.getDisplayName();
+                    Map<String, String> overrides = displayNameOverrides.get(comp.getInternalName());
+                    if (overrides != null && overrides.containsKey(field.getInternalName())) {
+                        displayName = overrides.get(field.getInternalName());
+                    }
+                    return comp.getDisplayName() + "." + displayName;
+                }
+            }
+        }
+        return "Tracking #";
     }
 
     public List<String> resolveFieldPaths() {
@@ -136,6 +165,18 @@ public class ColumnResolver {
             for (FieldMetadata field : fields) {
                 columns.add(buildColumn(component.getInternalName(), component.getDisplayName(), field));
             }
+        }
+
+        // Always exclude the tracking number field — it is already the dedicated first column
+        columns.removeIf(col -> "trackingNumber".equals(col.getFieldInternalName()));
+
+        if (!skipColumns.isEmpty()) {
+            columns.removeIf(col -> {
+                String header = col.getHeader();
+                int dot = header.lastIndexOf('.');
+                String fieldName = dot >= 0 ? header.substring(dot + 1) : header;
+                return skipColumns.stream().anyMatch(skip -> skip.equalsIgnoreCase(fieldName));
+            });
         }
 
         return columns;

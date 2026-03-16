@@ -69,7 +69,7 @@ public class SingleOnlyCsvWriter implements CsvExportWriter {
                     .build();
 
             String[] header = new String[mergedColumns.size() + 1];
-            header[0] = "Tracking #";
+            header[0] = columnResolver.resolveTrackingHeader();
             for (int i = 0; i < mergedColumns.size(); i++) {
                 header[i + 1] = mergedColumns.get(i).column.getHeader();
             }

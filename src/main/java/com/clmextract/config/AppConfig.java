@@ -22,6 +22,7 @@ public class AppConfig {
     private int retryMaxAttempts = 3;
     private long retryBaseDelayMs = 1000;
     private String boUsageTypeFilter = null;
+    private List<String> skipColumns = new ArrayList<>();
 
     public AppConfig() {
     }
@@ -160,5 +161,13 @@ public class AppConfig {
 
     public void setBoUsageTypeFilter(String boUsageTypeFilter) {
         this.boUsageTypeFilter = boUsageTypeFilter;
+    }
+
+    public List<String> getSkipColumns() {
+        return skipColumns;
+    }
+
+    public void setSkipColumns(List<String> skipColumns) {
+        this.skipColumns = skipColumns != null ? skipColumns : new ArrayList<>();
     }
 }

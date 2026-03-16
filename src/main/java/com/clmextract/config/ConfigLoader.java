@@ -66,6 +66,7 @@ public class ConfigLoader {
         config.setBackupRetentionDays(getIntOrDefault(root, "backupRetentionDays", 30));
         config.setOfflineMode(getBooleanOrDefault(root, "offlineMode", false));
         config.setBoUsageTypeFilter(getStringOrDefault(root, "boUsageTypeFilter", null));
+        config.setSkipColumns(getStringList(root, "skipColumns"));
 
         // --- delimiter ---
         String delimiterStr = getStringOrDefault(root, "delimiter", ",");
@@ -182,6 +183,19 @@ public class ConfigLoader {
             return ((Number) value).longValue();
         }
         return defaultValue;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<String> getStringList(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value instanceof List) {
+            List<String> result = new ArrayList<>();
+            for (Object item : (List<?>) value) {
+                if (item != null) result.add(item.toString());
+            }
+            return result;
+        }
+        return new ArrayList<>();
     }
 
     private static boolean getBooleanOrDefault(Map<String, Object> map, String key, boolean defaultValue) {
