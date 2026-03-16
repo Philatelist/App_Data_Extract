@@ -67,6 +67,9 @@ public class ConfigLoader {
         config.setOfflineMode(getBooleanOrDefault(root, "offlineMode", false));
         config.setBoUsageTypeFilter(getStringOrDefault(root, "boUsageTypeFilter", null));
         config.setSkipColumns(getStringList(root, "skipColumns"));
+        config.setGenerateParentCsv(getBooleanOrDefault(root, "generateParentCsv", false));
+        config.setParentFilenameTemplate(getStringOrDefault(root, "parentFilenameTemplate",
+                "{BO}_BundleParent_{DDMMYYYY}_{HHMMSS}.csv"));
 
         // --- delimiter ---
         String delimiterStr = getStringOrDefault(root, "delimiter", ",");

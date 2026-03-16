@@ -23,6 +23,8 @@ public class AppConfig {
     private long retryBaseDelayMs = 1000;
     private String boUsageTypeFilter = null;
     private List<String> skipColumns = new ArrayList<>();
+    private boolean generateParentCsv = false;
+    private String parentFilenameTemplate = "{BO}_BundleParent_{DDMMYYYY}_{HHMMSS}.csv";
 
     public AppConfig() {
     }
@@ -169,5 +171,21 @@ public class AppConfig {
 
     public void setSkipColumns(List<String> skipColumns) {
         this.skipColumns = skipColumns != null ? skipColumns : new ArrayList<>();
+    }
+
+    public boolean isGenerateParentCsv() {
+        return generateParentCsv;
+    }
+
+    public void setGenerateParentCsv(boolean generateParentCsv) {
+        this.generateParentCsv = generateParentCsv;
+    }
+
+    public String getParentFilenameTemplate() {
+        return parentFilenameTemplate;
+    }
+
+    public void setParentFilenameTemplate(String parentFilenameTemplate) {
+        this.parentFilenameTemplate = parentFilenameTemplate;
     }
 }

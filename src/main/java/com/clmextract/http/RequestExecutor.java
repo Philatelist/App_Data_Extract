@@ -29,6 +29,21 @@ public class RequestExecutor {
         this.retryPolicy = new RetryPolicy(config.getRetryMaxAttempts(), config.getRetryBaseDelayMs());
     }
 
+    /** Extracts scheme+host+port from a URL, e.g. "https://host:8080/a/b" → "https://host:8080". */
+    private static String extractOrigin(String baseUrl) {
+        try {
+            URI uri = URI.create(baseUrl);
+            int port = uri.getPort();
+            return uri.getScheme() + "://" + uri.getHost() + (port != -1 ? ":" + port : "");
+        } catch (Exception e) {
+            // Fallback: strip everything from the third slash onward
+            int schemeEnd = baseUrl.indexOf("://");
+            if (schemeEnd == -1) return baseUrl;
+            int pathStart = baseUrl.indexOf('/', schemeEnd + 3);
+            return pathStart == -1 ? baseUrl : baseUrl.substring(0, pathStart);
+        }
+    }
+
     public void setReLoginHandler(SessionReLoginHandler reLoginHandler) {
         this.reLoginHandler = reLoginHandler;
     }
@@ -56,8 +71,10 @@ public class RequestExecutor {
     }
 
     private String doExecute(EndpointDefinition endpoint, Map<String, String> dynamicHeaders, String body) {
-        String url = config.getBaseUrl() + endpoint.getPath();
-        logger.debug("Executing {} {} ", endpoint.getMethod(), url);
+        String url = endpoint.isAbsolutePath()
+                ? extractOrigin(config.getBaseUrl()) + endpoint.getPath()
+                : config.getBaseUrl() + endpoint.getPath();
+        logger.debug("Executing {} {}", endpoint.getMethod(), url);
 
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(url));

@@ -7,6 +7,7 @@ public class EndpointDefinition {
     private String name;
     private String method;
     private String path;
+    private boolean absolutePath;
     private AuthConfig auth;
     private List<HeaderDef> requestHeaders;
     private BodyConfig requestBody;
@@ -34,6 +35,14 @@ public class EndpointDefinition {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public boolean isAbsolutePath() {
+        return absolutePath;
+    }
+
+    public void setAbsolutePath(boolean absolutePath) {
+        this.absolutePath = absolutePath;
     }
 
     public AuthConfig getAuth() {

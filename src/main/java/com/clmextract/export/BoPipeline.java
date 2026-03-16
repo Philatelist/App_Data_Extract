@@ -7,6 +7,7 @@ import com.clmextract.csv.CsvExportWriter;
 import com.clmextract.csv.CsvWriterFactory;
 import com.clmextract.csv.DownloadsCsvWriter;
 import com.clmextract.csv.FilenameResolver;
+import com.clmextract.csv.ParentCsvWriter;
 import com.clmextract.metadata.BoMetadata;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -102,7 +103,26 @@ public class BoPipeline {
             }
         }
 
-        // Step 7: State cleanup
+        // Step 7: Bundle parent CSV
+        if (config.isGenerateParentCsv()) {
+            String parentFilename = filenameResolver.resolve(
+                    config.getParentFilenameTemplate(), boType, null);
+            Path parentFilePath = outputDir.resolve(parentFilename);
+            ParentCsvWriter parentCsvWriter = new ParentCsvWriter(parentFilePath, config.getDelimiter());
+            parentCsvWriter.open();
+            try {
+                List<ParentRecord> parentRecords = dataSource.fetchBundleParents(trackingIds, config.getBatchSize());
+                parentCsvWriter.writeRecords(parentRecords);
+                logger.info("Written {} parent record(s) to {}", parentRecords.size(), parentFilePath);
+            } finally {
+                try {
+                    parentCsvWriter.close();
+                } catch (IOException e) {
+                    logger.warn("Error closing parent CSV writer: {}", e.getMessage());
+                }
+            }
+        }
+
         logger.info("=== Completed pipeline for BO type: {} ===", boType);
     }
 }

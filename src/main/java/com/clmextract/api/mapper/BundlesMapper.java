@@ -9,11 +9,16 @@ import com.clmextract.export.BundleResponse;
 import com.clmextract.metadata.BoMetadata;
 import com.clmextract.metadata.ComponentMetadata;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class BundlesMapper {
+
+    private static final Logger logger = LogManager.getLogger(BundlesMapper.class);
 
     private static final Pattern DECIMAL_ENTITY = Pattern.compile("&#(\\d+);");
     private static final Pattern HEX_ENTITY = Pattern.compile("&#x([0-9a-fA-F]+);", Pattern.CASE_INSENSITIVE);
@@ -32,6 +37,14 @@ public class BundlesMapper {
         result = replaceNumericEntities(result, DECIMAL_ENTITY, 10);
         result = replaceNumericEntities(result, HEX_ENTITY, 16);
         return result;
+    }
+
+    private static String normalizeValue(String fieldName, String value) {
+        if (value == null) return null;
+        if ("serverFileName".equals(fieldName)) {
+            return value.replace('\\', '/');
+        }
+        return value;
     }
 
     private static String replaceNumericEntities(String input, Pattern pattern, int radix) {
@@ -107,6 +120,10 @@ public class BundlesMapper {
         for (BundleFieldDto field : rawFields) {
             ParsedPath parsed = InstancePathUtil.parse(field.getInstancePath());
             if (parsed.isEmpty() || parsed.component() == null) {
+                String ip = field.getInstancePath();
+                if (ip != null && (ip.contains("Attachment") || "serverFileName".equals(field.getName()))) {
+                    logger.info("Ungrouped attachment-related field: name={} instancePath={} value={}", field.getName(), ip, field.getValue());
+                }
                 continue;
             }
 
@@ -117,6 +134,20 @@ public class BundlesMapper {
                     .computeIfAbsent(componentName, k -> new LinkedHashMap<>())
                     .computeIfAbsent(instanceId, k -> new ArrayList<>())
                     .add(field);
+        }
+
+        // Log fields for attachment components to diagnose serverFileName
+        for (Map.Entry<String, Map<String, List<BundleFieldDto>>> entry : groupedByComponent.entrySet()) {
+            String compName = entry.getKey();
+            if ("ReqAttachment".equals(compName) || "ReqContractAttachment".equals(compName)) {
+                for (Map.Entry<String, List<BundleFieldDto>> instanceEntry : entry.getValue().entrySet()) {
+                    List<String> fieldNames = new ArrayList<>();
+                    for (BundleFieldDto f : instanceEntry.getValue()) {
+                        fieldNames.add(f.getName() + "=" + f.getValue());
+                    }
+                    logger.info("Attachment component '{}' instance '{}' fields: {}", compName, instanceEntry.getKey(), fieldNames);
+                }
+            }
         }
 
         // Convert grouped fields into BundleComponents
@@ -138,7 +169,7 @@ public class BundlesMapper {
                 for (List<BundleFieldDto> instanceFields : byInstanceId.values()) {
                     Map<String, String> row = new LinkedHashMap<>();
                     for (BundleFieldDto f : instanceFields) {
-                        row.put(f.getName(), unescapeHtml(f.getValue()));
+                        row.put(f.getName(), normalizeValue(f.getName(), unescapeHtml(f.getValue())));
                     }
                     rows.add(row);
                 }
@@ -153,7 +184,7 @@ public class BundlesMapper {
                 Map<String, String> fields = new LinkedHashMap<>();
                 for (List<BundleFieldDto> instanceFields : byInstanceId.values()) {
                     for (BundleFieldDto f : instanceFields) {
-                        fields.put(f.getName(), unescapeHtml(f.getValue()));
+                        fields.put(f.getName(), normalizeValue(f.getName(), unescapeHtml(f.getValue())));
                     }
                 }
 

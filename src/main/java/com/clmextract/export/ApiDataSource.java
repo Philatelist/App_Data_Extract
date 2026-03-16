@@ -28,6 +28,7 @@ public class ApiDataSource implements DataSource {
     private final MetadataParser metadataParser;
     private final TrackingNumberFetcher trackingNumberFetcher;
     private final BatchProcessor batchProcessor;
+    private final BundleParentFetcher bundleParentFetcher;
 
     public ApiDataSource(AppConfig config, EndpointRegistry endpointRegistry) {
         this.config = config;
@@ -38,6 +39,7 @@ public class ApiDataSource implements DataSource {
         this.metadataParser = new MetadataParser();
         this.trackingNumberFetcher = new TrackingNumberFetcher();
         this.batchProcessor = new BatchProcessor(requestExecutor, endpointRegistry);
+        this.bundleParentFetcher = new BundleParentFetcher(requestExecutor, endpointRegistry);
     }
 
     @Override
@@ -83,5 +85,10 @@ public class ApiDataSource implements DataSource {
                                      BoMetadata metadata) {
         return batchProcessor.fetchBatch(trackingIds, fieldPaths, sessionManager.getSessionId(),
                 metadata);
+    }
+
+    @Override
+    public List<ParentRecord> fetchBundleParents(List<Long> trackingIds, int batchSize) {
+        return bundleParentFetcher.fetch(trackingIds, sessionManager.getSessionId(), batchSize);
     }
 }

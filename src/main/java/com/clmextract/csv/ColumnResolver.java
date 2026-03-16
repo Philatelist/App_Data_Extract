@@ -109,16 +109,19 @@ public class ColumnResolver {
     }
 
     public List<String> resolveFieldPaths() {
+        List<String> paths;
         if (orderFilePaths != null) {
-            return new ArrayList<>(orderFilePaths);
-        }
-
-        List<String> paths = new ArrayList<>();
-        for (ComponentMetadata comp : components) {
-            for (FieldMetadata field : comp.getFields()) {
-                paths.add(field.getInstancePath().replace("MCPDef:/", ""));
+            paths = new ArrayList<>(orderFilePaths);
+        } else {
+            paths = new ArrayList<>();
+            for (ComponentMetadata comp : components) {
+                for (FieldMetadata field : comp.getFields()) {
+                    paths.add(field.getInstancePath().replace("MCPDef:/", ""));
+                }
             }
         }
+
+
         return paths;
     }
 
@@ -169,6 +172,19 @@ public class ColumnResolver {
 
         // Always exclude the tracking number field — it is already the dedicated first column
         columns.removeIf(col -> "trackingNumber".equals(col.getFieldInternalName()));
+
+        // serverFileName (File Path) must only appear in attachment components, always as the second column.
+        // For all other components it is removed regardless of whether it came from metadata or order file.
+        String compInternal = component.getInternalName();
+        boolean isAttachment = "ReqAttachment".equals(compInternal) || "ReqContractAttachment".equals(compInternal);
+        if (isAttachment) {
+            // Remove from wherever it is, then re-insert at position 0 to guarantee second column
+            columns.removeIf(col -> "serverFileName".equals(col.getFieldInternalName()));
+            String header = component.getDisplayName() + ".File Path";
+            columns.add(0, new ResolvedColumn(header, "serverFileName", "serverFileName"));
+        } else {
+            columns.removeIf(col -> "serverFileName".equals(col.getFieldInternalName()));
+        }
 
         if (!skipColumns.isEmpty()) {
             columns.removeIf(col -> {

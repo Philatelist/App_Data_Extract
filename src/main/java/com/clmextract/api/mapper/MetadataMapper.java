@@ -66,6 +66,36 @@ public class MetadataMapper {
             }
         }
 
+        // Inject serverFileName for attachment components — it is a system field not in ParameterProperties
+        // but the API will return it when explicitly requested via fieldPaths
+        for (ComponentMetadata comp : componentById.values()) {
+            String name = comp.getInternalName();
+            if (!"ReqAttachment".equals(name) && !"ReqContractAttachment".equals(name)) continue;
+
+            List<FieldMetadata> fields = comp.getFields();
+            boolean alreadyPresent = fields.stream().anyMatch(f -> "serverFileName".equals(f.getInternalName()));
+            if (alreadyPresent) continue;
+
+            // Derive instancePath from the first field that has one: replace the last segment with serverFileName
+            String injectedPath = null;
+            for (FieldMetadata f : fields) {
+                if (f.getInstancePath() != null) {
+                    int lastSlash = f.getInstancePath().lastIndexOf('/');
+                    if (lastSlash >= 0) {
+                        injectedPath = f.getInstancePath().substring(0, lastSlash + 1) + "serverFileName";
+                    }
+                    break;
+                }
+            }
+            if (injectedPath == null) continue;
+
+            FieldMetadata serverFileName = new FieldMetadata();
+            serverFileName.setInternalName("serverFileName");
+            serverFileName.setDisplayName("File Path");
+            serverFileName.setInstancePath(injectedPath);
+            fields.add(serverFileName);
+        }
+
         metadata.setComponents(new ArrayList<>(componentById.values()));
         return metadata;
     }

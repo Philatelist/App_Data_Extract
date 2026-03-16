@@ -34,6 +34,11 @@ filenameTemplate: "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv"
 # Filename template for download list CSVs
 downloadsFilenameTemplate: "{BO}_AttachmentsToDownload_{DDMMYYYY}_{HHMMSS}.csv"
 
+generateParentCsv: true
+
+# optional override:
+parentFilenameTemplate: "{BO}_RelationshipMapping_{DDMMYYYY}_{HHMMSS}.csv"
+
 # Base directory for all output
 outputRoot: output
 

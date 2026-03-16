@@ -1544,7 +1544,8 @@ endpoints:
     type: json
 - name: getBundleParent
   method: POST
-  path: /custom/getBundleParent
+  path: /services/rest/custom/getBundleParent
+  absolutePath: true
   auth:
     type: sessionHeader
     headerName: session_id

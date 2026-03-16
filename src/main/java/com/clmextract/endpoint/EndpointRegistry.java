@@ -17,6 +17,7 @@ public class EndpointRegistry {
     public static final String GET_BO_METADATA = "GET_BO_METADATA";
     public static final String GET_TRACKING_NUMBERS = "GET_TRACKING_NUMBERS";
     public static final String BUNDLES = "BUNDLES";
+    public static final String GET_BUNDLE_PARENT = "GET_BUNDLE_PARENT";
 
     private static final Map<String, String> OPERATION_NAME_MAP = new HashMap<>();
 
@@ -27,6 +28,7 @@ public class EndpointRegistry {
         OPERATION_NAME_MAP.put("getBoMetaData", GET_BO_METADATA);
         OPERATION_NAME_MAP.put("getTrackingNumbers", GET_TRACKING_NUMBERS);
         OPERATION_NAME_MAP.put("bundles", BUNDLES);
+        OPERATION_NAME_MAP.put("getBundleParent", GET_BUNDLE_PARENT);
     }
 
     private static final String[] REQUIRED_OPERATIONS = {
@@ -103,6 +105,7 @@ public class EndpointRegistry {
         def.setName((String) entry.get("name"));
         def.setMethod((String) entry.get("method"));
         def.setPath((String) entry.get("path"));
+        def.setAbsolutePath(Boolean.TRUE.equals(entry.get("absolutePath")));
 
         if (entry.containsKey("auth")) {
             Map<String, Object> authMap = (Map<String, Object>) entry.get("auth");
