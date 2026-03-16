@@ -93,7 +93,13 @@ public class ExportOrchestrator {
             logger.info("No explicit boTypes configured. Discovering BO types with usageType filter: {}.", usageTypeFilter);
             List<BoTypeConfig> retained = new ArrayList<>();
             for (String name : boTypeNames) {
-                BoMetadata metadata = dataSource.getMetadata(name);
+                BoMetadata metadata;
+                try {
+                    metadata = dataSource.getMetadata(name);
+                } catch (Exception e) {
+                    logger.warn("BO type {}: failed to fetch metadata, skipping. Reason: {}", name, e.getMessage());
+                    continue;
+                }
                 String usageType = metadata.getBoUsageType();
                 if (usageType == null) {
                     logger.warn("BO type {}: no usageType found in metadata — excluded.", name);

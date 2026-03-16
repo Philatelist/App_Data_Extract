@@ -10,8 +10,43 @@ import com.clmextract.metadata.BoMetadata;
 import com.clmextract.metadata.ComponentMetadata;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BundlesMapper {
+
+    private static final Pattern DECIMAL_ENTITY = Pattern.compile("&#(\\d+);");
+    private static final Pattern HEX_ENTITY = Pattern.compile("&#x([0-9a-fA-F]+);", Pattern.CASE_INSENSITIVE);
+
+    static String unescapeHtml(String value) {
+        if (value == null) return null;
+        String result = value.replace("\r\n", " ").replace("\r", " ").replace("\n", " ");
+        if (!result.contains("&")) return result;
+        result = result
+                .replace("&amp;", "&")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replace("&apos;", "'")
+                .replace("&nbsp;", "\u00A0");
+        result = replaceNumericEntities(result, DECIMAL_ENTITY, 10);
+        result = replaceNumericEntities(result, HEX_ENTITY, 16);
+        return result;
+    }
+
+    private static String replaceNumericEntities(String input, Pattern pattern, int radix) {
+        Matcher m = pattern.matcher(input);
+        if (!m.find()) return input;
+        StringBuilder sb = new StringBuilder();
+        m.reset();
+        while (m.find()) {
+            int codePoint = Integer.parseInt(m.group(1), radix);
+            m.appendReplacement(sb, Matcher.quoteReplacement(new String(Character.toChars(codePoint))));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
 
     public BundleResponse map(List<List<BundleFieldDto>> rawRecords, BoMetadata metadata, List<Long> requestTrackingIds) {
         BundleResponse response = new BundleResponse();
@@ -103,7 +138,7 @@ public class BundlesMapper {
                 for (List<BundleFieldDto> instanceFields : byInstanceId.values()) {
                     Map<String, String> row = new LinkedHashMap<>();
                     for (BundleFieldDto f : instanceFields) {
-                        row.put(f.getName(), f.getValue());
+                        row.put(f.getName(), unescapeHtml(f.getValue()));
                     }
                     rows.add(row);
                 }
@@ -118,7 +153,7 @@ public class BundlesMapper {
                 Map<String, String> fields = new LinkedHashMap<>();
                 for (List<BundleFieldDto> instanceFields : byInstanceId.values()) {
                     for (BundleFieldDto f : instanceFields) {
-                        fields.put(f.getName(), f.getValue());
+                        fields.put(f.getName(), unescapeHtml(f.getValue()));
                     }
                 }
 

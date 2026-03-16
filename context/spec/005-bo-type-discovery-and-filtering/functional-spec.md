@@ -89,13 +89,13 @@ boUsageTypeFilter: Contract
 
 **Edge cases:**
 - If a BO's metadata does not contain a `usageType` property in `BundleProperties`, that BO is **excluded** from the results and a warning is logged: `"BO type [name]: no usageType found in metadata — excluded."`
-- If the `/BOMetaData` call fails for a BO during filtering, the run **fails with a clear error message** and exits with a non-zero status code.
+- If the `/BOMetaData` call fails for a BO during filtering, that BO is **skipped** with a warning log and the run continues with the remaining BOs.
 
 **Acceptance Criteria:**
 - [x] Only BO types whose `usageType` matches `boUsageTypeFilter` are exported.
 - [x] The tool logs the number of BOs discovered, filtered, and retained.
 - [x] BO types with no `usageType` property in their metadata are excluded with a warning.
-- [x] If `/BOMetaData` fails for any BO during filtering, the run fails with a clear error message.
+- [x] If `/BOMetaData` fails for any BO during filtering, that BO is skipped with a warning and the run continues.
 - [x] If the filter retains zero BO types, the tool logs a warning and exits cleanly (exit code 0).
 
 ---
