@@ -22,6 +22,7 @@ public class AppConfig {
     private int retryMaxAttempts = 3;
     private long retryBaseDelayMs = 1000;
     private String boUsageTypeFilter = null;
+    private String trackingFilter = null;
     private List<String> skipColumns = new ArrayList<>();
     private boolean generateParentCsv = false;
     private String parentFilenameTemplate = "{BO}_BundleParent_{DDMMYYYY}_{HHMMSS}.csv";
@@ -165,6 +166,14 @@ public class AppConfig {
 
     public void setBoUsageTypeFilter(String boUsageTypeFilter) {
         this.boUsageTypeFilter = boUsageTypeFilter;
+    }
+
+    public String getTrackingFilter() {
+        return trackingFilter;
+    }
+
+    public void setTrackingFilter(String trackingFilter) {
+        this.trackingFilter = trackingFilter;
     }
 
     public List<String> getSkipColumns() {

@@ -46,7 +46,6 @@ public class ConfigLoader {
             for (Map<String, Object> entry : boTypesList) {
                 BoTypeConfig bt = new BoTypeConfig();
                 bt.setName(getStringOrDefault(entry, "name", null));
-                bt.setTrackingFilter(getStringOrDefault(root, "trackingFilter", null));
                 bt.setFilenameTemplate(getStringOrDefault(entry, "filenameTemplate", null));
                 boTypes.add(bt);
             }
@@ -66,6 +65,7 @@ public class ConfigLoader {
         config.setBackupRetentionDays(getIntOrDefault(root, "backupRetentionDays", 30));
         config.setOfflineMode(getBooleanOrDefault(root, "offlineMode", false));
         config.setBoUsageTypeFilter(getStringOrDefault(root, "boUsageTypeFilter", null));
+        config.setTrackingFilter(getStringOrDefault(root, "trackingFilter", null));
         config.setSkipColumns(getStringList(root, "skipColumns"));
         config.setGenerateParentCsv(getBooleanOrDefault(root, "generateParentCsv", false));
         config.setParentFilenameTemplate(getStringOrDefault(root, "parentFilenameTemplate",

@@ -39,8 +39,8 @@ public class BoPipeline {
 
         // Step 2: Tracking numbers
         List<Long> trackingIds = dataSource.getTrackingNumbers(boType);
-        if (boTypeConfig.getTrackingFilter() != null) {
-            trackingIds = TrackingFilter.apply(trackingIds, boTypeConfig.getTrackingFilter());
+        if (config.getTrackingFilter() != null) {
+            trackingIds = TrackingFilter.apply(trackingIds, config.getTrackingFilter());
         }
         logger.info("Tracking IDs to process: {}", trackingIds.size());
 
