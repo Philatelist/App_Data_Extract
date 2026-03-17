@@ -5,6 +5,7 @@ import java.util.List;
 public class BoMetadata {
 
     private String boName;
+    private String boDisplayName;
     private String boUsageType;
     private List<ComponentMetadata> components;
 
@@ -14,6 +15,14 @@ public class BoMetadata {
 
     public void setBoName(String boName) {
         this.boName = boName;
+    }
+
+    public String getBoDisplayName() {
+        return boDisplayName != null ? boDisplayName : boName;
+    }
+
+    public void setBoDisplayName(String boDisplayName) {
+        this.boDisplayName = boDisplayName;
     }
 
     public String getBoUsageType() {

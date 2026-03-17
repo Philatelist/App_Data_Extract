@@ -3,11 +3,15 @@ package com.clmextract.export;
 import com.clmextract.backup.BackupManager;
 import com.clmextract.config.AppConfig;
 import com.clmextract.config.BoTypeConfig;
+import com.clmextract.csv.FilenameResolver;
+import com.clmextract.csv.SummaryCsvWriter;
 import com.clmextract.endpoint.EndpointRegistry;
 import com.clmextract.metadata.BoMetadata;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +38,15 @@ public class ExportOrchestrator {
         backupManager.backupCurrentExports();
         backupManager.createOutputDirectories();
 
+        FilenameResolver filenameResolver = new FilenameResolver();
+        Path outputDir = Path.of(config.getOutputRoot(), config.getExportFolderName());
+
+        SummaryCsvWriter summaryCsvWriter = null;
+        if (config.isGenerateSummaryCsv()) {
+            String summaryFilename = filenameResolver.resolve(config.getSummaryFilenameTemplate(), null, null);
+            summaryCsvWriter = new SummaryCsvWriter(outputDir.resolve(summaryFilename), config.getDelimiter());
+        }
+
         DataSource dataSource = createDataSource();
         dataSource.login();
         try {
@@ -41,6 +54,7 @@ public class ExportOrchestrator {
             logger.info("BO types to process: {}", boTypes.size());
 
             BoPipeline pipeline = new BoPipeline(config, dataSource);
+            pipeline.setSummaryCsvWriter(summaryCsvWriter);
 
             for (int i = 0; i < boTypes.size(); i++) {
                 BoTypeConfig boType = boTypes.get(i);
@@ -52,6 +66,13 @@ public class ExportOrchestrator {
         } finally {
             dataSource.logout();
             backupManager.enforceRetention();
+            if (summaryCsvWriter != null) {
+                try {
+                    summaryCsvWriter.close();
+                } catch (IOException e) {
+                    logger.warn("Error closing summary CSV writer: {}", e.getMessage());
+                }
+            }
             logger.info("CLM Data Extract run finished");
         }
     }

@@ -16,6 +16,9 @@ boTypes:
 # Only applies when boTypes is empty (discovery mode).
 # boUsageTypeFilter: Contract
 
+generateSummaryCsv: true
+# optional, default: Summary_{DDMMYYYY}_{HHMMSS}.csv
+summaryFilenameTemplate: "TotalPerBO_{DDMMYYYY}_{HHMMSS}.csv"
 
 trackingFilter: ""
 

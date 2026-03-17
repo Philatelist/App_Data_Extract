@@ -25,6 +25,8 @@ public class AppConfig {
     private List<String> skipColumns = new ArrayList<>();
     private boolean generateParentCsv = false;
     private String parentFilenameTemplate = "{BO}_BundleParent_{DDMMYYYY}_{HHMMSS}.csv";
+    private boolean generateSummaryCsv = false;
+    private String summaryFilenameTemplate = "Summary_{DDMMYYYY}_{HHMMSS}.csv";
 
     public AppConfig() {
     }
@@ -187,5 +189,21 @@ public class AppConfig {
 
     public void setParentFilenameTemplate(String parentFilenameTemplate) {
         this.parentFilenameTemplate = parentFilenameTemplate;
+    }
+
+    public boolean isGenerateSummaryCsv() {
+        return generateSummaryCsv;
+    }
+
+    public void setGenerateSummaryCsv(boolean generateSummaryCsv) {
+        this.generateSummaryCsv = generateSummaryCsv;
+    }
+
+    public String getSummaryFilenameTemplate() {
+        return summaryFilenameTemplate;
+    }
+
+    public void setSummaryFilenameTemplate(String summaryFilenameTemplate) {
+        this.summaryFilenameTemplate = summaryFilenameTemplate;
     }
 }

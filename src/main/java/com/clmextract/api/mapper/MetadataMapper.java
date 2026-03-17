@@ -20,6 +20,7 @@ public class MetadataMapper {
         for (MetadataNodeDto node : nodes) {
             if ("BundleProperties".equals(node.getListType())) {
                 metadata.setBoName(findPropertyValue(node.getProperties(), "name"));
+                metadata.setBoDisplayName(findPropertyValue(node.getProperties(), "displayName"));
                 metadata.setBoUsageType(findPropertyValue(node.getProperties(), "usageType"));
                 break;
             }

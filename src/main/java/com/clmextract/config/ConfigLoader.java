@@ -70,6 +70,9 @@ public class ConfigLoader {
         config.setGenerateParentCsv(getBooleanOrDefault(root, "generateParentCsv", false));
         config.setParentFilenameTemplate(getStringOrDefault(root, "parentFilenameTemplate",
                 "{BO}_BundleParent_{DDMMYYYY}_{HHMMSS}.csv"));
+        config.setGenerateSummaryCsv(getBooleanOrDefault(root, "generateSummaryCsv", false));
+        config.setSummaryFilenameTemplate(getStringOrDefault(root, "summaryFilenameTemplate",
+                "Summary_{DDMMYYYY}_{HHMMSS}.csv"));
 
         // --- delimiter ---
         String delimiterStr = getStringOrDefault(root, "delimiter", ",");

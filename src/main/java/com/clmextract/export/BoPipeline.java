@@ -8,6 +8,7 @@ import com.clmextract.csv.CsvWriterFactory;
 import com.clmextract.csv.DownloadsCsvWriter;
 import com.clmextract.csv.FilenameResolver;
 import com.clmextract.csv.ParentCsvWriter;
+import com.clmextract.csv.SummaryCsvWriter;
 import com.clmextract.metadata.BoMetadata;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -103,26 +104,40 @@ public class BoPipeline {
             }
         }
 
-        // Step 7: Bundle parent CSV
-        if (config.isGenerateParentCsv()) {
-            String parentFilename = filenameResolver.resolve(
-                    config.getParentFilenameTemplate(), boType, null);
-            Path parentFilePath = outputDir.resolve(parentFilename);
-            ParentCsvWriter parentCsvWriter = new ParentCsvWriter(parentFilePath, config.getDelimiter());
-            parentCsvWriter.open();
-            try {
-                List<ParentRecord> parentRecords = dataSource.fetchBundleParents(trackingIds, config.getBatchSize());
-                parentCsvWriter.writeRecords(parentRecords);
-                logger.info("Written {} parent record(s) to {}", parentRecords.size(), parentFilePath);
-            } finally {
+        // Step 7: Bundle parent CSV and/or summary — fetch once if either is needed
+        if (config.isGenerateParentCsv() || summaryCsvWriter != null) {
+            List<ParentRecord> parentRecords = dataSource.fetchBundleParents(trackingIds, config.getBatchSize());
+
+            if (config.isGenerateParentCsv()) {
+                String parentFilename = filenameResolver.resolve(
+                        config.getParentFilenameTemplate(), boType, null);
+                Path parentFilePath = outputDir.resolve(parentFilename);
+                ParentCsvWriter parentCsvWriter = new ParentCsvWriter(parentFilePath, config.getDelimiter());
+                parentCsvWriter.open();
                 try {
-                    parentCsvWriter.close();
-                } catch (IOException e) {
-                    logger.warn("Error closing parent CSV writer: {}", e.getMessage());
+                    parentCsvWriter.writeRecords(parentRecords);
+                    logger.info("Written {} parent record(s) to {}", parentRecords.size(), parentFilePath);
+                } finally {
+                    try {
+                        parentCsvWriter.close();
+                    } catch (IOException e) {
+                        logger.warn("Error closing parent CSV writer: {}", e.getMessage());
+                    }
                 }
+            }
+
+            if (summaryCsvWriter != null) {
+                summaryCsvWriter.writeBoSummary(metadata.getBoDisplayName(), parentRecords);
+                logger.info("Written summary for BO type: {}", boType);
             }
         }
 
         logger.info("=== Completed pipeline for BO type: {} ===", boType);
+    }
+
+    private SummaryCsvWriter summaryCsvWriter;
+
+    public void setSummaryCsvWriter(SummaryCsvWriter summaryCsvWriter) {
+        this.summaryCsvWriter = summaryCsvWriter;
     }
 }
