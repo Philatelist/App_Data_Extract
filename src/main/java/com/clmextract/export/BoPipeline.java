@@ -106,7 +106,15 @@ public class BoPipeline {
 
         // Step 7: Bundle parent CSV and/or summary — fetch once if either is needed
         if (config.isGenerateParentCsv() || summaryCsvWriter != null) {
-            List<ParentRecord> parentRecords = dataSource.fetchBundleParents(trackingIds, config.getBatchSize());
+            List<ParentRecord> parentRecords;
+            try {
+                parentRecords = dataSource.fetchBundleParents(trackingIds, config.getBatchSize());
+            } catch (Exception e) {
+                logger.warn("BO type {}: failed to fetch bundle parents, skipping RelationshipMapping and summary. Reason: {}",
+                        boType, e.getMessage());
+                logger.info("=== Completed pipeline for BO type: {} ===", boType);
+                return;
+            }
 
             if (config.isGenerateParentCsv()) {
                 String parentFilename = filenameResolver.resolve(

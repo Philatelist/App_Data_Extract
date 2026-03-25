@@ -18,6 +18,8 @@ public class EndpointRegistry {
     public static final String GET_TRACKING_NUMBERS = "GET_TRACKING_NUMBERS";
     public static final String BUNDLES = "BUNDLES";
     public static final String GET_BUNDLE_PARENT = "GET_BUNDLE_PARENT";
+    public static final String GET_REPORT_TEMPLATES = "GET_REPORT_TEMPLATES";
+    public static final String CREATE_REPORT = "CREATE_REPORT";
 
     private static final Map<String, String> OPERATION_NAME_MAP = new HashMap<>();
 
@@ -29,6 +31,8 @@ public class EndpointRegistry {
         OPERATION_NAME_MAP.put("getTrackingNumbers", GET_TRACKING_NUMBERS);
         OPERATION_NAME_MAP.put("bundles", BUNDLES);
         OPERATION_NAME_MAP.put("getBundleParent", GET_BUNDLE_PARENT);
+        OPERATION_NAME_MAP.put("reportsGetReportTemplates", GET_REPORT_TEMPLATES);
+        OPERATION_NAME_MAP.put("reportsCreateReport", CREATE_REPORT);
     }
 
     private static final String[] REQUIRED_OPERATIONS = {

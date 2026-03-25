@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,6 +64,23 @@ public class ExportOrchestrator {
             }
 
             logger.info("All BO types processed successfully");
+
+            // Run reports
+            if (!config.getReports().isEmpty()) {
+                List<ReportResult> reportResults = dataSource.fetchReports(config.getReports());
+                for (ReportResult result : reportResults) {
+                    String filename = filenameResolver.resolve(
+                            result.getDisplayName().replaceAll("[^A-Za-z0-9._-]", "_") + "_{DDMMYYYY}_{HHMMSS}.csv",
+                            null, null);
+                    Path reportFile = outputDir.resolve(filename);
+                    try (PrintWriter pw = new PrintWriter(reportFile.toFile())) {
+                        pw.print(result.getCsvContent());
+                        logger.info("Written report '{}' to {}", result.getDisplayName(), reportFile);
+                    } catch (IOException e) {
+                        logger.warn("Failed to write report '{}': {}", result.getDisplayName(), e.getMessage());
+                    }
+                }
+            }
         } finally {
             dataSource.logout();
             backupManager.enforceRetention();

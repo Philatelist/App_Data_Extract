@@ -66,6 +66,7 @@ public class ConfigLoader {
         config.setOfflineMode(getBooleanOrDefault(root, "offlineMode", false));
         config.setBoUsageTypeFilter(getStringOrDefault(root, "boUsageTypeFilter", null));
         config.setTrackingFilter(getStringOrDefault(root, "trackingFilter", null));
+        config.setReports(parseCommaSeparatedOrList(root, "reports"));
         config.setSkipColumns(getStringList(root, "skipColumns"));
         config.setGenerateParentCsv(getBooleanOrDefault(root, "generateParentCsv", false));
         config.setParentFilenameTemplate(getStringOrDefault(root, "parentFilenameTemplate",
@@ -189,6 +190,23 @@ public class ConfigLoader {
             return ((Number) value).longValue();
         }
         return defaultValue;
+    }
+
+    // Accepts either a YAML list or a comma-separated string
+    private static List<String> parseCommaSeparatedOrList(Map<String, Object> map, String key) {
+        Object value = map.get(key);
+        if (value instanceof List) {
+            return getStringList(map, key);
+        }
+        if (value != null) {
+            List<String> result = new ArrayList<>();
+            for (String part : value.toString().split(",")) {
+                String trimmed = part.trim();
+                if (!trimmed.isEmpty()) result.add(trimmed);
+            }
+            return result;
+        }
+        return new ArrayList<>();
     }
 
     @SuppressWarnings("unchecked")

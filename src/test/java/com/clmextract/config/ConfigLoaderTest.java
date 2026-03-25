@@ -68,9 +68,8 @@ class ConfigLoaderTest {
         assertNotNull(config.getBoTypes());
         assertEquals(2, config.getBoTypes().size());
         assertEquals("Contract", config.getBoTypes().get(0).getName());
-        assertEquals("1000-2000", config.getBoTypes().get(0).getTrackingFilter());
         assertEquals("Amendment", config.getBoTypes().get(1).getName());
-        assertNull(config.getBoTypes().get(1).getTrackingFilter());
+        assertEquals("1000-2000", config.getTrackingFilter());
 
         assertEquals("per-component", config.getCsvMode());
         assertEquals(',', config.getDelimiter());

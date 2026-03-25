@@ -21,4 +21,8 @@ public interface DataSource {
     default List<ParentRecord> fetchBundleParents(List<Long> trackingIds, int batchSize) {
         return List.of();
     }
+
+    default List<ReportResult> fetchReports(List<String> reportNames) {
+        return List.of();
+    }
 }

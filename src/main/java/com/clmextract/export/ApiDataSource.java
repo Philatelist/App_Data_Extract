@@ -29,6 +29,7 @@ public class ApiDataSource implements DataSource {
     private final TrackingNumberFetcher trackingNumberFetcher;
     private final BatchProcessor batchProcessor;
     private final BundleParentFetcher bundleParentFetcher;
+    private final ReportFetcher reportFetcher;
 
     public ApiDataSource(AppConfig config, EndpointRegistry endpointRegistry) {
         this.config = config;
@@ -40,6 +41,7 @@ public class ApiDataSource implements DataSource {
         this.trackingNumberFetcher = new TrackingNumberFetcher();
         this.batchProcessor = new BatchProcessor(requestExecutor, endpointRegistry);
         this.bundleParentFetcher = new BundleParentFetcher(requestExecutor, endpointRegistry);
+        this.reportFetcher = new ReportFetcher(requestExecutor, endpointRegistry);
     }
 
     @Override
@@ -90,5 +92,10 @@ public class ApiDataSource implements DataSource {
     @Override
     public List<ParentRecord> fetchBundleParents(List<Long> trackingIds, int batchSize) {
         return bundleParentFetcher.fetch(trackingIds, sessionManager.getSessionId(), batchSize);
+    }
+
+    @Override
+    public List<ReportResult> fetchReports(List<String> reportNames) {
+        return reportFetcher.fetch(reportNames, sessionManager.getSessionId());
     }
 }

@@ -1294,7 +1294,7 @@ endpoints:
     headerName: session_id
   requestHeaders:
   - name: templateId
-    value: encryptedTemplateId
+    valueFrom: templateId
   response:
     type: json
 - name: reportsGetGeneratedReports

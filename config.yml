@@ -61,3 +61,6 @@ offlineMode: false
 retry:
   maxAttempts: 3
   baseDelayMs: 1000
+
+# single report or multiple
+#reports: "Supplemental Report"
