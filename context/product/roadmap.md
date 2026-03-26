@@ -85,3 +85,7 @@ _Loop over all configured BO types, add backup management, logging, downloads li
   - [ ] **Retention cleanup:** After a successful run, count existing run directories and delete the oldest ones that exceed the configured retention limit.
 - [ ] **Offline Test Mode**
   - [ ] **Sample JSON test mode:** Allow the tool to run against small sample JSON files (like the provided `boMetaData.sample.json` and `bundles.sample.json`) instead of a live API, for development and validation without a server.
+- [x] **Run Manifest File**
+  - [x] **ManifestCsvWriter:** New class that scans the MetaData output folder, computes SHA-256 checksums, and writes a `Manifest_{DDMMYYYY}_{HHMMSS}.csv` listing every file produced during the run (Filename, SHA256, SizeBytes, GeneratedAt).
+  - [x] **Retry resilience:** Up to 3 attempts on I/O failure, with partial file cleanup between retries. Failure after 3 attempts is logged as a warning and does not fail the run.
+  - [x] **Orchestrator integration:** Manifest generation is called automatically at the end of every run, after all other output is written, using the same FilenameResolver timestamp as the rest of the run's files.

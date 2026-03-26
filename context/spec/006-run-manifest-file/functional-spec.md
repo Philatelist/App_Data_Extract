@@ -1,7 +1,7 @@
 # Functional Specification: Run Manifest File
 
 - **Roadmap Item:** Generate a manifest file listing all output files and their SHA-256 checksums
-- **Status:** Approved
+- **Status:** Completed
 - **Author:** CLM Data Extract Team
 
 ---
@@ -25,8 +25,8 @@ This feature adds a manifest CSV file written at the end of every run. It lists 
 - The manifest filename follows the existing timestamp template convention: `Manifest_{DDMMYYYY}_{HHMMSS}.csv`, using the same timestamp as the rest of the run's output.
 
   **Acceptance Criteria:**
-  - [ ] After every run, a file matching `Manifest_*.csv` exists in the `output/MetaData/` folder.
-  - [ ] The filename timestamp matches the run timestamp used by other output files of that run.
+  - [x] After every run, a file matching `Manifest_*.csv` exists in the `output/MetaData/` folder.
+  - [x] The filename timestamp matches the run timestamp used by other output files of that run.
 
 ### 2.2 Manifest CSV Content
 
@@ -42,10 +42,10 @@ The manifest CSV must contain the following columns, in this order:
 The file must include a header row using these exact column names.
 
 **Acceptance Criteria:**
-- [ ] The manifest CSV has exactly four columns: `Filename`, `SHA256`, `SizeBytes`, `GeneratedAt`.
-- [ ] Each data row corresponds to one file that was written during the run.
-- [ ] The `SHA256` value for each file can be independently verified using a standard `sha256sum` tool.
-- [ ] The `SizeBytes` value matches the actual file size on disk at the time of writing.
+- [x] The manifest CSV has exactly four columns: `Filename`, `SHA256`, `SizeBytes`, `GeneratedAt`.
+- [x] Each data row corresponds to one file that was written during the run.
+- [x] The `SHA256` value for each file can be independently verified using a standard `sha256sum` tool.
+- [x] The `SizeBytes` value matches the actual file size on disk at the time of writing.
 
 ### 2.3 Scope of Files Listed
 
@@ -54,8 +54,8 @@ The file must include a header row using these exact column names.
 - The manifest is generated **after** all other files have been written, so every file produced during the run is captured.
 
 **Acceptance Criteria:**
-- [ ] Every file in `output/MetaData/` from that run appears as a row in the manifest, except the manifest file itself.
-- [ ] No files from previous runs or unrelated directories appear in the manifest.
+- [x] Every file in `output/MetaData/` from that run appears as a row in the manifest, except the manifest file itself.
+- [x] No files from previous runs or unrelated directories appear in the manifest.
 
 ### 2.4 Empty Run Behaviour
 
@@ -63,8 +63,8 @@ The file must include a header row using these exact column names.
 - In this case the file contains only the header row and zero data rows.
 
 **Acceptance Criteria:**
-- [ ] When no output files are produced, the manifest file exists and contains only the header row.
-- [ ] No error or warning is raised solely because the manifest has no data rows.
+- [x] When no output files are produced, the manifest file exists and contains only the header row.
+- [x] No error or warning is raised solely because the manifest has no data rows.
 
 ### 2.5 Logging
 
@@ -72,8 +72,8 @@ The file must include a header row using these exact column names.
 - If manifest generation fails (e.g., I/O error computing a checksum), the failure is logged as a warning and the run does not exit with an error.
 
 **Acceptance Criteria:**
-- [ ] The run log contains an entry such as: `Written manifest 'Manifest_25032026_143022.csv' listing 7 file(s)`.
-- [ ] An I/O failure during manifest writing produces a warning log entry and does not cause the overall run to fail.
+- [x] The run log contains an entry such as: `Written manifest 'Manifest_25032026_143022.csv' listing 7 file(s)`.
+- [x] An I/O failure during manifest writing produces a warning log entry and does not cause the overall run to fail.
 
 ---
 

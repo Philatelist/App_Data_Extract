@@ -4,6 +4,7 @@ import com.clmextract.backup.BackupManager;
 import com.clmextract.config.AppConfig;
 import com.clmextract.config.BoTypeConfig;
 import com.clmextract.csv.FilenameResolver;
+import com.clmextract.csv.ManifestCsvWriter;
 import com.clmextract.csv.SummaryCsvWriter;
 import com.clmextract.endpoint.EndpointRegistry;
 import com.clmextract.metadata.BoMetadata;
@@ -81,6 +82,16 @@ public class ExportOrchestrator {
                     }
                 }
             }
+            // Generate manifest
+            try {
+                String manifestFilename = filenameResolver.resolve("Manifest_{DDMMYYYY}_{HHMMSS}.csv", null, null);
+                Path manifestPath = outputDir.resolve(manifestFilename);
+                ManifestCsvWriter manifestCsvWriter = new ManifestCsvWriter(outputDir, manifestPath, config.getDelimiter());
+                manifestCsvWriter.write();
+                logger.info("Manifest generation complete: {}", manifestFilename);
+            } catch (Exception e) {
+                logger.warn("Manifest generation failed: {}", e.getMessage());
+            }
         } finally {
             dataSource.logout();
             backupManager.enforceRetention();
@@ -95,7 +106,7 @@ public class ExportOrchestrator {
         }
     }
 
-    private DataSource createDataSource() {
+    protected DataSource createDataSource() {
         if (config.isOfflineMode()) {
             logger.info("Running in OFFLINE mode using sample data files");
             return new OfflineDataSource("inputs/samples");

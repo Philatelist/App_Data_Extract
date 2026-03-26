@@ -17,7 +17,7 @@ DON'T:
 # Technical Specification: Run Manifest File
 
 - **Functional Specification:** `context/spec/006-run-manifest-file/functional-spec.md`
-- **Status:** Approved
+- **Status:** Completed
 - **Author(s):** CLM Data Extract Team
 
 ---

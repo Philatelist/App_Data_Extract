@@ -6,6 +6,7 @@ import com.clmextract.metadata.BoMetadata;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -263,5 +264,38 @@ class ExportOrchestratorTest {
 
         assertNotNull(result);
         assertTrue(result.isEmpty(), "No matching usageType should return an empty list");
+    }
+
+    // ----------------------------------------------------------------
+    // Test 8: run() produces exactly one Manifest_*.csv in outputDir
+    // ----------------------------------------------------------------
+
+    @Test
+    void testRun_producesManifestCsv() {
+        AppConfig config = new AppConfig();
+        config.setOutputRoot(tempDir.toString());
+        config.setExportFolderName("MetaData");
+        config.setBoTypes(new ArrayList<>());
+        config.setBoUsageTypeFilter(null);
+
+        StubDataSource stub = new StubDataSource(new ArrayList<>());
+
+        // Subclass ExportOrchestrator so we can inject StubDataSource
+        // instead of going through the real createDataSource() path.
+        ExportOrchestrator orchestrator = new ExportOrchestrator(config, null) {
+            @Override
+            protected DataSource createDataSource() {
+                return stub;
+            }
+        };
+
+        orchestrator.run();
+
+        Path outputDir = tempDir.resolve("MetaData");
+        File[] manifestFiles = outputDir.toFile().listFiles(
+                f -> f.getName().startsWith("Manifest_") && f.getName().endsWith(".csv"));
+
+        assertNotNull(manifestFiles, "Output directory must exist and be listable");
+        assertEquals(1, manifestFiles.length, "Exactly one Manifest_*.csv file must be created");
     }
 }
