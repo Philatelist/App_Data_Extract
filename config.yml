@@ -18,7 +18,7 @@ boTypes:
 
 generateSummaryCsv: true
 # optional, default: Summary_{DDMMYYYY}_{HHMMSS}.csv
-summaryFilenameTemplate: "TotalPerBO_{DDMMYYYY}_{HHMMSS}.csv"
+#summaryFilenameTemplate: "TotalPerBO_{DDMMYYYY}_{HHMMSS}.csv"
 
 trackingFilter: ""
 

@@ -74,6 +74,10 @@
                     <include>config.yml</include>
                 </includes>
             </resource>
+            <resource>
+                <directory>${project.basedir}/inputs</directory>
+                <targetPath>inputs</targetPath>
+            </resource>
         </resources>
 
         <plugins>

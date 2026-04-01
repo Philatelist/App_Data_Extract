@@ -6,6 +6,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -85,24 +87,39 @@ public class OfflineDataSource implements DataSource {
         if (cachedMetadata != null) {
             return cachedMetadata;
         }
-        Path metadataFile = samplesDir.resolve("BOMetaDataResponse.example.json");
+        String filename = "BOMetaDataResponse.example.json";
         try {
-            String json = Files.readString(metadataFile);
+            String json = readSampleFile(filename);
             cachedMetadata = metadataParser.parse(json);
             return cachedMetadata;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read sample metadata: " + metadataFile, e);
+            throw new RuntimeException("Failed to read sample metadata: " + filename, e);
         }
     }
 
     private BundleResponse loadBundles(BoMetadata metadata, List<Long> requestTrackingIds) {
-        Path bundlesFile = samplesDir.resolve("BundlesResponse.example.json");
+        String filename = "BundlesResponse.example.json";
         try {
-            String json = Files.readString(bundlesFile);
+            String json = readSampleFile(filename);
             cachedBundles = bundleParser.parse(json, metadata, requestTrackingIds);
             return cachedBundles;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read sample bundles: " + bundlesFile, e);
+            throw new RuntimeException("Failed to read sample bundles: " + filename, e);
+        }
+    }
+
+    /** Tries filesystem first; falls back to classpath inside the JAR. */
+    private String readSampleFile(String filename) throws IOException {
+        Path fsPath = samplesDir.resolve(filename);
+        if (Files.exists(fsPath)) {
+            return Files.readString(fsPath);
+        }
+        String classpathPath = "/" + samplesDir.toString().replace('\\', '/') + "/" + filename;
+        try (InputStream is = OfflineDataSource.class.getResourceAsStream(classpathPath)) {
+            if (is == null) {
+                throw new IOException("Not found on filesystem or classpath: " + classpathPath);
+            }
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 }

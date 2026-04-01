@@ -50,6 +50,9 @@ public class App {
         System.out.println("  Offline mode: " + config.isOfflineMode());
         System.out.println("========================================");
 
+        // Configure logging before any library code triggers Log4j2 auto-initialization
+        LogSetup.configure(config.getOutputRoot());
+
         EndpointRegistry endpointRegistry;
         try {
             endpointRegistry = new EndpointRegistry(config.getEndpointsFile());
@@ -74,8 +77,6 @@ public class App {
             System.out.println("  BO_TYPES:   (not available)");
         }
         System.out.println("=================");
-
-        LogSetup.configure(config.getOutputRoot());
 
         ExportOrchestrator orchestrator = new ExportOrchestrator(config, endpointRegistry);
         try {

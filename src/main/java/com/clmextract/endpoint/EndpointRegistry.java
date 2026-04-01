@@ -2,8 +2,10 @@ package com.clmextract.endpoint;
 
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,9 +53,9 @@ public class EndpointRegistry {
     @SuppressWarnings("unchecked")
     public void load() {
         Map<String, Object> root;
-        try (FileInputStream fis = new FileInputStream(endpointsFilePath)) {
+        try (InputStream in = openStream(endpointsFilePath)) {
             Yaml yaml = new Yaml();
-            root = yaml.load(fis);
+            root = yaml.load(in);
         } catch (IOException e) {
             throw new EndpointResolutionException("Cannot read endpoints file: " + endpointsFilePath);
         }
@@ -85,6 +87,20 @@ public class EndpointRegistry {
                 throw new EndpointResolutionException("Required endpoint not found: " + endpointName);
             }
         }
+    }
+
+    /** Tries filesystem first; falls back to classpath inside the JAR. */
+    private InputStream openStream(String path) throws IOException {
+        File file = new File(path);
+        if (file.exists()) {
+            return new FileInputStream(file);
+        }
+        String classpathPath = path.startsWith("/") ? path : "/" + path;
+        InputStream is = EndpointRegistry.class.getResourceAsStream(classpathPath);
+        if (is == null) {
+            throw new IOException("Not found on filesystem or classpath: " + path);
+        }
+        return is;
     }
 
     public EndpointDefinition getEndpoint(String operation) {

@@ -5,6 +5,21 @@
   <artifactId>clm-data-extract</artifactId>
   <version>1.0.0</version>
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>${project.basedir}</directory>
+        <includes>
+          <include>config.yml</include>
+        </includes>
+      </resource>
+      <resource>
+        <targetPath>inputs</targetPath>
+        <directory>${project.basedir}/inputs</directory>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
