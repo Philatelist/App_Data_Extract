@@ -15,7 +15,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class BoPipeline {
 
@@ -36,6 +39,31 @@ public class BoPipeline {
         // Step 1: Metadata
         BoMetadata metadata = dataSource.getMetadata(boType);
         logger.info("Metadata loaded: {} components", metadata.getComponents().size());
+
+        // Step 1b: Skip components filtering
+        if (!config.getSkipComponents().isEmpty()) {
+            Set<String> skipSet = new HashSet<>();
+            for (String entry : config.getSkipComponents()) {
+                skipSet.add(entry.trim().toLowerCase());
+            }
+            List<com.clmextract.metadata.ComponentMetadata> retained = new ArrayList<>();
+            int skippedCount = 0;
+            for (com.clmextract.metadata.ComponentMetadata component : metadata.getComponents()) {
+                String normDisplay = component.getDisplayName() != null ? component.getDisplayName().trim().toLowerCase() : "";
+                String normInternal = component.getInternalName() != null ? component.getInternalName().trim().toLowerCase() : "";
+                if (skipSet.contains(normDisplay) || skipSet.contains(normInternal)) {
+                    logger.info("Skipping component \"{}\" for BO type \"{}\" (in skipComponents list)",
+                            component.getDisplayName(), boType);
+                    skippedCount++;
+                } else {
+                    retained.add(component);
+                }
+            }
+            metadata.setComponents(retained);
+            if (skippedCount > 0) {
+                logger.info("Filtered {} component(s) for BO type: {}", skippedCount, boType);
+            }
+        }
 
         // Step 2: Tracking numbers
         List<Long> trackingIds = dataSource.getTrackingNumbers(boType);

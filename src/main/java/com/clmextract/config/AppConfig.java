@@ -25,6 +25,7 @@ public class AppConfig {
     private String trackingFilter = null;
     private List<String> reports = new ArrayList<>();
     private List<String> skipColumns = new ArrayList<>();
+    private List<String> skipComponents = new ArrayList<>();
     private boolean generateParentCsv = false;
     private String parentFilenameTemplate = "{BO}_BundleParent_{DDMMYYYY}_{HHMMSS}.csv";
     private boolean generateSummaryCsv = false;
@@ -191,6 +192,14 @@ public class AppConfig {
 
     public void setSkipColumns(List<String> skipColumns) {
         this.skipColumns = skipColumns != null ? skipColumns : new ArrayList<>();
+    }
+
+    public List<String> getSkipComponents() {
+        return skipComponents;
+    }
+
+    public void setSkipComponents(List<String> skipComponents) {
+        this.skipComponents = skipComponents != null ? skipComponents : new ArrayList<>();
     }
 
     public boolean isGenerateParentCsv() {
