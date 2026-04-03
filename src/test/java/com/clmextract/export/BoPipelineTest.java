@@ -3,6 +3,7 @@ package com.clmextract.export;
 import com.clmextract.config.AppConfig;
 import com.clmextract.config.BoTypeConfig;
 import com.clmextract.metadata.BoMetadata;
+import com.clmextract.metadata.ComponentMetadata;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -248,5 +249,221 @@ class BoPipelineTest {
                 f -> f.getName().contains("RelationshipMapping"));
         assertTrue(files == null || files.length == 0,
                 "No RelationshipMapping file when no tracking IDs");
+    }
+
+    // ================================================================
+    // Skip-components tests
+    // ================================================================
+
+    /**
+     * A DataSource stub that returns a pre-built BoMetadata so tests can
+     * inspect which components survived after the pipeline filtering step.
+     * It captures the metadata reference so the test can inspect it after
+     * execute() returns.
+     */
+    private static class CapturingDataSource implements DataSource {
+        final BoMetadata metadata;
+
+        CapturingDataSource(BoMetadata metadata) {
+            this.metadata = metadata;
+        }
+
+        @Override public void login() {}
+        @Override public void logout() {}
+        @Override public List<String> getBoTypes() { return Collections.emptyList(); }
+
+        @Override
+        public BoMetadata getMetadata(String boType) {
+            return metadata;
+        }
+
+        @Override
+        public List<Long> getTrackingNumbers(String boType) {
+            // Return empty so pipeline exits before writing any files (simplifies tests)
+            return Collections.emptyList();
+        }
+
+        @Override
+        public BundleResponse fetchBatch(List<Long> ids, List<String> fieldPaths, BoMetadata metadata) {
+            BundleResponse r = new BundleResponse();
+            r.setRecords(new ArrayList<>());
+            return r;
+        }
+
+        @Override
+        public List<ParentRecord> fetchBundleParents(List<Long> ids, int batchSize) {
+            return Collections.emptyList();
+        }
+    }
+
+    /** Build a ComponentMetadata with the given displayName and internalName. */
+    private static ComponentMetadata component(String displayName, String internalName) {
+        ComponentMetadata c = new ComponentMetadata();
+        c.setDisplayName(displayName);
+        c.setInternalName(internalName);
+        c.setFields(new ArrayList<>());
+        return c;
+    }
+
+    /** Build a BoMetadata with the supplied components. */
+    private static BoMetadata boMetadata(ComponentMetadata... components) {
+        BoMetadata m = new BoMetadata();
+        m.setBoName("TESTBO");
+        m.setComponents(new ArrayList<>(Arrays.asList(components)));
+        return m;
+    }
+
+    // ----------------------------------------------------------------
+    // skipComponents test 1: filter by displayName (exact, case-sensitive entry)
+    // ----------------------------------------------------------------
+
+    @Test
+    void skipComponents_byDisplayName_removesComponent() throws IOException {
+        AppConfig config = buildConfig();
+        config.setSkipComponents(Arrays.asList("BundleProperties"));
+
+        BoMetadata metadata = boMetadata(
+                component("BundleProperties", "bundle_props"),
+                component("BasicInfo", "basic_info")
+        );
+
+        CapturingDataSource ds = new CapturingDataSource(metadata);
+        BoPipeline pipeline = new BoPipeline(config, ds);
+
+        BoTypeConfig boTypeConfig = new BoTypeConfig();
+        boTypeConfig.setName("TESTBO");
+        pipeline.execute(boTypeConfig);
+
+        List<ComponentMetadata> remaining = metadata.getComponents();
+        assertEquals(1, remaining.size(), "Only one component should remain");
+        assertEquals("BasicInfo", remaining.get(0).getDisplayName());
+    }
+
+    // ----------------------------------------------------------------
+    // skipComponents test 2: case-insensitive matching
+    // ----------------------------------------------------------------
+
+    @Test
+    void skipComponents_caseInsensitive_removesComponent() throws IOException {
+        AppConfig config = buildConfig();
+        config.setSkipComponents(Arrays.asList("bundleproperties"));
+
+        BoMetadata metadata = boMetadata(
+                component("BundleProperties", "bundle_props"),
+                component("BasicInfo", "basic_info")
+        );
+
+        CapturingDataSource ds = new CapturingDataSource(metadata);
+        BoPipeline pipeline = new BoPipeline(config, ds);
+
+        BoTypeConfig boTypeConfig = new BoTypeConfig();
+        boTypeConfig.setName("TESTBO");
+        pipeline.execute(boTypeConfig);
+
+        List<ComponentMetadata> remaining = metadata.getComponents();
+        assertEquals(1, remaining.size(), "Component should be skipped case-insensitively");
+        assertEquals("BasicInfo", remaining.get(0).getDisplayName());
+    }
+
+    // ----------------------------------------------------------------
+    // skipComponents test 3: whitespace trimming
+    // ----------------------------------------------------------------
+
+    @Test
+    void skipComponents_whitespaceTrimed_removesComponent() throws IOException {
+        AppConfig config = buildConfig();
+        config.setSkipComponents(Arrays.asList("  BundleProperties  "));
+
+        BoMetadata metadata = boMetadata(
+                component("BundleProperties", "bundle_props"),
+                component("BasicInfo", "basic_info")
+        );
+
+        CapturingDataSource ds = new CapturingDataSource(metadata);
+        BoPipeline pipeline = new BoPipeline(config, ds);
+
+        BoTypeConfig boTypeConfig = new BoTypeConfig();
+        boTypeConfig.setName("TESTBO");
+        pipeline.execute(boTypeConfig);
+
+        List<ComponentMetadata> remaining = metadata.getComponents();
+        assertEquals(1, remaining.size(), "Component should be skipped despite surrounding whitespace in config entry");
+        assertEquals("BasicInfo", remaining.get(0).getDisplayName());
+    }
+
+    // ----------------------------------------------------------------
+    // skipComponents test 4: partial name does NOT match (exact match only)
+    // ----------------------------------------------------------------
+
+    @Test
+    void skipComponents_partialName_doesNotMatch() throws IOException {
+        AppConfig config = buildConfig();
+        config.setSkipComponents(Arrays.asList("Bundle"));
+
+        BoMetadata metadata = boMetadata(
+                component("BundleProperties", "bundle_props"),
+                component("BasicInfo", "basic_info")
+        );
+
+        CapturingDataSource ds = new CapturingDataSource(metadata);
+        BoPipeline pipeline = new BoPipeline(config, ds);
+
+        BoTypeConfig boTypeConfig = new BoTypeConfig();
+        boTypeConfig.setName("TESTBO");
+        pipeline.execute(boTypeConfig);
+
+        List<ComponentMetadata> remaining = metadata.getComponents();
+        assertEquals(2, remaining.size(), "Partial match should NOT skip the component");
+    }
+
+    // ----------------------------------------------------------------
+    // skipComponents test 5: empty skipComponents — nothing removed
+    // ----------------------------------------------------------------
+
+    @Test
+    void skipComponents_empty_removesNothing() throws IOException {
+        AppConfig config = buildConfig();
+        config.setSkipComponents(Collections.emptyList());
+
+        BoMetadata metadata = boMetadata(
+                component("BundleProperties", "bundle_props"),
+                component("BasicInfo", "basic_info")
+        );
+
+        CapturingDataSource ds = new CapturingDataSource(metadata);
+        BoPipeline pipeline = new BoPipeline(config, ds);
+
+        BoTypeConfig boTypeConfig = new BoTypeConfig();
+        boTypeConfig.setName("TESTBO");
+        pipeline.execute(boTypeConfig);
+
+        List<ComponentMetadata> remaining = metadata.getComponents();
+        assertEquals(2, remaining.size(), "All components should remain when skipComponents is empty");
+    }
+
+    // ----------------------------------------------------------------
+    // skipComponents test 6: match by internalName (not displayName)
+    // ----------------------------------------------------------------
+
+    @Test
+    void skipComponents_byInternalName_removesComponent() throws IOException {
+        AppConfig config = buildConfig();
+        config.setSkipComponents(Arrays.asList("bundle_props"));
+
+        BoMetadata metadata = boMetadata(
+                component("BundleProperties", "bundle_props"),
+                component("BasicInfo", "basic_info")
+        );
+
+        CapturingDataSource ds = new CapturingDataSource(metadata);
+        BoPipeline pipeline = new BoPipeline(config, ds);
+
+        BoTypeConfig boTypeConfig = new BoTypeConfig();
+        boTypeConfig.setName("TESTBO");
+        pipeline.execute(boTypeConfig);
+
+        List<ComponentMetadata> remaining = metadata.getComponents();
+        assertEquals(1, remaining.size(), "Component should be skipped when internalName matches");
+        assertEquals("BasicInfo", remaining.get(0).getDisplayName());
     }
 }

@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -416,5 +418,66 @@ class ConfigLoaderTest {
         String path = writeYaml(tempDir, yaml);
         AppConfig config = ConfigLoader.load(path);
         assertNull(config.getBoUsageTypeFilter());
+    }
+
+    // ------------------------------------------------------------------
+    // 18. skipComponents parsed from YAML list
+    // ------------------------------------------------------------------
+
+    @Test
+    void skipComponents_parsedFromYamlList() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                skipComponents:
+                  - TableNamesMapping
+                  - BundleProperties
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertEquals(List.of("TableNamesMapping", "BundleProperties"), config.getSkipComponents());
+    }
+
+    // ------------------------------------------------------------------
+    // 19. skipComponents absent key returns empty list
+    // ------------------------------------------------------------------
+
+    @Test
+    void skipComponents_absentKey_returnsEmptyList() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertTrue(config.getSkipComponents().isEmpty());
+    }
+
+    // ------------------------------------------------------------------
+    // 20. skipComponents empty list returns empty list
+    // ------------------------------------------------------------------
+
+    @Test
+    void skipComponents_emptyList_returnsEmptyList() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                skipComponents: []
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertTrue(config.getSkipComponents().isEmpty());
     }
 }

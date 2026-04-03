@@ -68,6 +68,7 @@ public class ConfigLoader {
         config.setTrackingFilter(getStringOrDefault(root, "trackingFilter", null));
         config.setReports(parseCommaSeparatedOrList(root, "reports"));
         config.setSkipColumns(getStringList(root, "skipColumns"));
+        config.setSkipComponents(getStringList(root, "skipComponents"));
         config.setGenerateParentCsv(getBooleanOrDefault(root, "generateParentCsv", false));
         config.setParentFilenameTemplate(getStringOrDefault(root, "parentFilenameTemplate",
                 "{BO}_BundleParent_{DDMMYYYY}_{HHMMSS}.csv"));

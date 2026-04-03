@@ -18,7 +18,7 @@ boTypes:
 
 generateSummaryCsv: true
 # optional, default: Summary_{DDMMYYYY}_{HHMMSS}.csv
-#summaryFilenameTemplate: "TotalPerBO_{DDMMYYYY}_{HHMMSS}.csv"
+summaryFilenameTemplate: "TotalPerBO_{DDMMYYYY}_{HHMMSS}.csv"
 
 trackingFilter: ""
 
@@ -64,3 +64,9 @@ retry:
 
 # single report or multiple
 #reports: "Supplemental Report"
+
+skipComponents:
+  - Account User Recipients
+  - External User Recipients
+  - Signature Document Details
+  - Approval Tasks
