@@ -1295,6 +1295,8 @@ endpoints:
   requestHeaders:
   - name: templateId
     valueFrom: templateId
+  - name: Content-Type
+    value: text/csv
   response:
     type: json
 - name: reportsGetGeneratedReports
