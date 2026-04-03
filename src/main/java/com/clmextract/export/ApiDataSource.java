@@ -39,7 +39,7 @@ public class ApiDataSource implements DataSource {
         this.requestExecutor.setReLoginHandler(sessionManager);
         this.metadataParser = new MetadataParser();
         this.trackingNumberFetcher = new TrackingNumberFetcher();
-        this.batchProcessor = new BatchProcessor(requestExecutor, endpointRegistry);
+        this.batchProcessor = new BatchProcessor(requestExecutor, endpointRegistry, config);
         this.bundleParentFetcher = new BundleParentFetcher(requestExecutor, endpointRegistry);
         this.reportFetcher = new ReportFetcher(requestExecutor, endpointRegistry);
     }

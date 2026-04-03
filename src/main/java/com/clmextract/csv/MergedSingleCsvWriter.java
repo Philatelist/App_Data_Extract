@@ -72,7 +72,7 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
                 for (int i = 0; i < mergedColumns.size(); i++) {
                     header[i + 1] = mergedColumns.get(i).column.getHeader();
                 }
-                mergedWriter.writeNext(header);
+                mergedWriter.writeNext(header, false);
                 logger.info("Opened merged single CSV: {}", filePath);
             } catch (IOException e) {
                 throw new RuntimeException("Failed to open merged CSV: " + filePath, e);
@@ -102,7 +102,7 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
                     for (int i = 0; i < columns.size(); i++) {
                         header[i + 1] = columns.get(i).getHeader();
                     }
-                    writer.writeNext(header);
+                    writer.writeNext(header, false);
                     logger.info("Opened multi-cardinality CSV for {}: {}", comp.getDisplayName(), filePath);
                 } catch (IOException e) {
                     throw new RuntimeException("Failed to open CSV: " + filePath, e);
@@ -136,7 +136,7 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
                         row[i + 1] = "";
                     }
                 }
-                mergedWriter.writeNext(row);
+                mergedWriter.writeNext(row, false);
             }
 
             // Write multi-cardinality rows
@@ -157,7 +157,7 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
                             row[i + 1] = rowData.getOrDefault(
                                     columns.get(i).getFieldInternalName(), "");
                         }
-                        writer.writeNext(row);
+                        writer.writeNext(row, false);
                     }
                 }
             }

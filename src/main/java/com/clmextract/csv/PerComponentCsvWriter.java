@@ -58,7 +58,6 @@ public class PerComponentCsvWriter implements CsvExportWriter {
             try {
                 ICSVWriter writer = new CSVWriterBuilder(new FileWriter(filePath.toString()))
                         .withSeparator(delimiter)
-                        .withQuoteChar(ICSVWriter.NO_QUOTE_CHARACTER)
                         .build();
                 writers.put(comp.getInternalName(), writer);
 
@@ -68,7 +67,7 @@ public class PerComponentCsvWriter implements CsvExportWriter {
                 for (int i = 0; i < columns.size(); i++) {
                     header[i + 1] = columns.get(i).getHeader();
                 }
-                writer.writeNext(header);
+                writer.writeNext(header, false);
 
                 logger.info("Opened CSV for component {}: {}", comp.getDisplayName(), filePath);
             } catch (IOException e) {
@@ -99,7 +98,7 @@ public class PerComponentCsvWriter implements CsvExportWriter {
                         String fieldName = columns.get(i).getFieldInternalName();
                         row[i + 1] = fields != null ? fields.getOrDefault(fieldName, "") : "";
                     }
-                    writer.writeNext(row);
+                    writer.writeNext(row, false);
                 } else if (comp.isMultipleCardinality()) {
                     List<Map<String, String>> rows = comp.getRows();
                     if (rows != null) {
@@ -110,7 +109,7 @@ public class PerComponentCsvWriter implements CsvExportWriter {
                                 String fieldName = columns.get(i).getFieldInternalName();
                                 row[i + 1] = rowData.getOrDefault(fieldName, "");
                             }
-                            writer.writeNext(row);
+                            writer.writeNext(row, false);
                         }
                     }
                 }

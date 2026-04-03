@@ -30,6 +30,8 @@ public class AppConfig {
     private String parentFilenameTemplate = "{BO}_BundleParent_{DDMMYYYY}_{HHMMSS}.csv";
     private boolean generateSummaryCsv = false;
     private String summaryFilenameTemplate = "Summary_{DDMMYYYY}_{HHMMSS}.csv";
+    private boolean delimiterReplacementEnabled = false;
+    private String delimiterSubstituteChar = null;
 
     public AppConfig() {
     }
@@ -232,5 +234,21 @@ public class AppConfig {
 
     public void setSummaryFilenameTemplate(String summaryFilenameTemplate) {
         this.summaryFilenameTemplate = summaryFilenameTemplate;
+    }
+
+    public boolean isDelimiterReplacementEnabled() {
+        return delimiterReplacementEnabled;
+    }
+
+    public void setDelimiterReplacementEnabled(boolean delimiterReplacementEnabled) {
+        this.delimiterReplacementEnabled = delimiterReplacementEnabled;
+    }
+
+    public String getDelimiterSubstituteChar() {
+        return delimiterSubstituteChar;
+    }
+
+    public void setDelimiterSubstituteChar(String delimiterSubstituteChar) {
+        this.delimiterSubstituteChar = delimiterSubstituteChar;
     }
 }

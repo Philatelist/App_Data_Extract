@@ -70,3 +70,7 @@ skipComponents:
   - External User Recipients
   - Signature Document Details
   - Approval Tasks
+
+delimiterReplacement:
+  enabled: true          # false = quoting mode (default when section is absent)
+  substituteChar: ","    # the character to replace the delimiter with in values

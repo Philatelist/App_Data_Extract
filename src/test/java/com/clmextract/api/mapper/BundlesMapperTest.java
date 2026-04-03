@@ -243,6 +243,81 @@ class BundlesMapperTest {
         assertEquals(222L, response.getRecords().get(1).getTrackingId());
     }
 
+    // --- Delimiter replacement tests ---
+
+    @Test
+    void replacementDisabled_valueWithDelimiter_unchanged() {
+        BundlesMapper mapper = new BundlesMapper(';', null);
+        BoMetadata metadata = buildMetadata("single");
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "1",
+                "MCP:/TestData|1/ReqInfo|1/trackingNumber"));
+        fields.add(makeField("contractName", "foo;bar",
+                "MCP:/TestData|1/ReqInfo|1/contractName"));
+
+        List<List<BundleFieldDto>> rawRecords = List.of(fields);
+        BundleResponse response = mapper.map(rawRecords, metadata, null);
+
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("foo;bar", comp.getFields().get("contractName"));
+    }
+
+    @Test
+    void replacementEnabled_allOccurrencesReplaced() {
+        BundlesMapper mapper = new BundlesMapper(';', "||");
+        BoMetadata metadata = buildMetadata("single");
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "2",
+                "MCP:/TestData|2/ReqInfo|2/trackingNumber"));
+        fields.add(makeField("contractName", "a;b;c",
+                "MCP:/TestData|2/ReqInfo|2/contractName"));
+
+        List<List<BundleFieldDto>> rawRecords = List.of(fields);
+        BundleResponse response = mapper.map(rawRecords, metadata, null);
+
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("a||b||c", comp.getFields().get("contractName"));
+    }
+
+    @Test
+    void replacementEnabled_valueWithoutDelimiter_unchanged() {
+        BundlesMapper mapper = new BundlesMapper(';', "||");
+        BoMetadata metadata = buildMetadata("single");
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "3",
+                "MCP:/TestData|3/ReqInfo|3/trackingNumber"));
+        fields.add(makeField("contractName", "hello",
+                "MCP:/TestData|3/ReqInfo|3/contractName"));
+
+        List<List<BundleFieldDto>> rawRecords = List.of(fields);
+        BundleResponse response = mapper.map(rawRecords, metadata, null);
+
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("hello", comp.getFields().get("contractName"));
+    }
+
+    @Test
+    void replacementAppliedAfterHtmlDecoding() {
+        BundlesMapper mapper = new BundlesMapper(';', "||");
+        BoMetadata metadata = buildMetadata("single");
+
+        // "&amp;;" in raw value → after unescapeHtml becomes "&;" → after replacement becomes "&||"
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "4",
+                "MCP:/TestData|4/ReqInfo|4/trackingNumber"));
+        fields.add(makeField("contractName", "&amp;;bar",
+                "MCP:/TestData|4/ReqInfo|4/contractName"));
+
+        List<List<BundleFieldDto>> rawRecords = List.of(fields);
+        BundleResponse response = mapper.map(rawRecords, metadata, null);
+
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("&||bar", comp.getFields().get("contractName"));
+    }
+
     // --- Helper methods ---
 
     private BoMetadata buildMetadata(String cardinality) {

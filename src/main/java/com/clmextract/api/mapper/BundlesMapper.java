@@ -18,6 +18,23 @@ public class BundlesMapper {
     private static final Pattern DECIMAL_ENTITY = Pattern.compile("&#(\\d+);");
     private static final Pattern HEX_ENTITY = Pattern.compile("&#x([0-9a-fA-F]+);", Pattern.CASE_INSENSITIVE);
 
+    private final char delimiter;
+    private final String delimiterSubstituteChar;
+
+    public BundlesMapper() {
+        this(',', null);
+    }
+
+    public BundlesMapper(char delimiter, String delimiterSubstituteChar) {
+        this.delimiter = delimiter;
+        this.delimiterSubstituteChar = delimiterSubstituteChar;
+    }
+
+    private String applyDelimiterReplacement(String value) {
+        if (delimiterSubstituteChar == null || value == null) return value;
+        return value.replace(String.valueOf(delimiter), delimiterSubstituteChar);
+    }
+
     static String unescapeHtml(String value) {
         if (value == null) return null;
         String result = value.replace("\r\n", " ").replace("\r", " ").replace("\n", " ");
@@ -147,7 +164,7 @@ public class BundlesMapper {
                 for (List<BundleFieldDto> instanceFields : byInstanceId.values()) {
                     Map<String, String> row = new LinkedHashMap<>();
                     for (BundleFieldDto f : instanceFields) {
-                        row.put(f.getName(), normalizeValue(f.getName(), unescapeHtml(f.getValue())));
+                        row.put(f.getName(), applyDelimiterReplacement(normalizeValue(f.getName(), unescapeHtml(f.getValue()))));
                     }
                     if (isAttachment) {
                         String filePath = row.get("serverFileName");
@@ -169,7 +186,7 @@ public class BundlesMapper {
                 Map<String, String> fields = new LinkedHashMap<>();
                 for (List<BundleFieldDto> instanceFields : byInstanceId.values()) {
                     for (BundleFieldDto f : instanceFields) {
-                        fields.put(f.getName(), normalizeValue(f.getName(), unescapeHtml(f.getValue())));
+                        fields.put(f.getName(), applyDelimiterReplacement(normalizeValue(f.getName(), unescapeHtml(f.getValue()))));
                     }
                 }
 

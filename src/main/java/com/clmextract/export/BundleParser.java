@@ -2,6 +2,7 @@ package com.clmextract.export;
 
 import com.clmextract.api.dto.BundleFieldDto;
 import com.clmextract.api.mapper.BundlesMapper;
+import com.clmextract.config.AppConfig;
 import com.clmextract.metadata.BoMetadata;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +21,14 @@ public class BundleParser {
     public BundleParser() {
         this.objectMapper = new ObjectMapper();
         this.bundlesMapper = new BundlesMapper();
+    }
+
+    public BundleParser(AppConfig config) {
+        this.objectMapper = new ObjectMapper();
+        this.bundlesMapper = new BundlesMapper(
+                config.getDelimiter(),
+                config.isDelimiterReplacementEnabled() ? config.getDelimiterSubstituteChar() : null
+        );
     }
 
     public BundleResponse parse(String json, BoMetadata metadata, List<Long> requestTrackingIds) {

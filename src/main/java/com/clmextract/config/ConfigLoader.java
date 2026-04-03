@@ -80,6 +80,13 @@ public class ConfigLoader {
         String delimiterStr = getStringOrDefault(root, "delimiter", ",");
         config.setDelimiter(delimiterStr.isEmpty() ? ',' : delimiterStr.charAt(0));
 
+        // --- delimiterReplacement section ---
+        Map<String, Object> delimiterReplacement = getMap(root, "delimiterReplacement");
+        if (delimiterReplacement != null) {
+            config.setDelimiterReplacementEnabled(getBooleanOrDefault(delimiterReplacement, "enabled", false));
+            config.setDelimiterSubstituteChar(getStringOrDefault(delimiterReplacement, "substituteChar", null));
+        }
+
         // --- validation ---
         validate(config);
 
@@ -134,6 +141,20 @@ public class ConfigLoader {
             throw new ConfigValidationException(
                     "Invalid boUsageTypeFilter value: '" + boUsageTypeFilter
                             + "'. Allowed values: Directory, NonContract, Contract.");
+        }
+
+        if (config.isDelimiterReplacementEnabled()) {
+            if (isNullOrEmpty(config.getDelimiterSubstituteChar())) {
+                throw new ConfigValidationException(
+                    "delimiterReplacement.substituteChar is required when replacement is enabled");
+            }
+            char delim = config.getDelimiter();
+            for (char c : config.getDelimiterSubstituteChar().toCharArray()) {
+                if (c == delim) {
+                    throw new ConfigValidationException(
+                        "delimiterReplacement.substituteChar must not contain the delimiter character ('" + delim + "')");
+                }
+            }
         }
     }
 

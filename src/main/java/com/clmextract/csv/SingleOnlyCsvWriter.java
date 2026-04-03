@@ -73,7 +73,7 @@ public class SingleOnlyCsvWriter implements CsvExportWriter {
             for (int i = 0; i < mergedColumns.size(); i++) {
                 header[i + 1] = mergedColumns.get(i).column.getHeader();
             }
-            writer.writeNext(header);
+            writer.writeNext(header, false);
             logger.info("Opened single-only CSV: {}", filePath);
         } catch (IOException e) {
             throw new RuntimeException("Failed to open CSV: " + filePath, e);
@@ -106,7 +106,7 @@ public class SingleOnlyCsvWriter implements CsvExportWriter {
                     row[i + 1] = "";
                 }
             }
-            writer.writeNext(row);
+            writer.writeNext(row, false);
         }
     }
 

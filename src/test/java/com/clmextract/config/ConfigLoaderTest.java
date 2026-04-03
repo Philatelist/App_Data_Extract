@@ -480,4 +480,140 @@ class ConfigLoaderTest {
         AppConfig config = ConfigLoader.load(path);
         assertTrue(config.getSkipComponents().isEmpty());
     }
+
+    // ------------------------------------------------------------------
+    // 21. delimiterReplacement absent => disabled and null substituteChar
+    // ------------------------------------------------------------------
+
+    @Test
+    void delimiterReplacement_absentSection_disabledAndNullSubstituteChar() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertFalse(config.isDelimiterReplacementEnabled());
+        assertNull(config.getDelimiterSubstituteChar());
+    }
+
+    // ------------------------------------------------------------------
+    // 22. delimiterReplacement enabled with valid substituteChar loads
+    // ------------------------------------------------------------------
+
+    @Test
+    void delimiterReplacement_enabledWithValidSubstituteChar_loads() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                delimiter: ";"
+                delimiterReplacement:
+                  enabled: true
+                  substituteChar: "||"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertTrue(config.isDelimiterReplacementEnabled());
+        assertEquals("||", config.getDelimiterSubstituteChar());
+    }
+
+    // ------------------------------------------------------------------
+    // 23. delimiterReplacement enabled without substituteChar fails
+    // ------------------------------------------------------------------
+
+    @Test
+    void delimiterReplacement_enabledWithoutSubstituteChar_fails() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                delimiterReplacement:
+                  enabled: true
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        ConfigValidationException ex = assertThrows(ConfigValidationException.class,
+                () -> ConfigLoader.load(path));
+        assertTrue(ex.getMessage().contains("substituteChar is required"));
+    }
+
+    // ------------------------------------------------------------------
+    // 24. delimiterReplacement enabled with empty substituteChar fails
+    // ------------------------------------------------------------------
+
+    @Test
+    void delimiterReplacement_enabledWithEmptySubstituteChar_fails() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                delimiterReplacement:
+                  enabled: true
+                  substituteChar: ""
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        assertThrows(ConfigValidationException.class,
+                () -> ConfigLoader.load(path));
+    }
+
+    // ------------------------------------------------------------------
+    // 25. delimiterReplacement substituteChar contains delimiter fails
+    // ------------------------------------------------------------------
+
+    @Test
+    void delimiterReplacement_substituteCharContainsDelimiter_fails() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                delimiter: ";"
+                delimiterReplacement:
+                  enabled: true
+                  substituteChar: "|;"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        ConfigValidationException ex = assertThrows(ConfigValidationException.class,
+                () -> ConfigLoader.load(path));
+        assertTrue(ex.getMessage().contains(";"));
+    }
+
+    // ------------------------------------------------------------------
+    // 26. delimiterReplacement substituteChar with no delimiter chars passes
+    // ------------------------------------------------------------------
+
+    @Test
+    void delimiterReplacement_substituteCharWithNoDelimiterChars_passes() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                delimiter: ";"
+                delimiterReplacement:
+                  enabled: true
+                  substituteChar: "||"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertTrue(config.isDelimiterReplacementEnabled());
+        assertEquals("||", config.getDelimiterSubstituteChar());
+    }
 }

@@ -68,7 +68,6 @@ public class DownloadsCsvWriter implements Closeable {
         try {
             writer = new CSVWriterBuilder(new FileWriter(filePath.toString()))
                     .withSeparator(delimiter)
-                    .withQuoteChar(ICSVWriter.NO_QUOTE_CHARACTER)
                     .build();
             logger.info("Opened downloads CSV: {}", filePath);
         } catch (IOException e) {
@@ -92,7 +91,7 @@ public class DownloadsCsvWriter implements Closeable {
                 for (Map<String, String> row : comp.getRows()) {
                     String filePath = row.get(SERVER_FILE_NAME);
                     if (filePath != null && !filePath.isEmpty()) {
-                        writer.writeNext(new String[]{filePath});
+                        writer.writeNext(new String[]{filePath}, false);
                     }
                 }
             }

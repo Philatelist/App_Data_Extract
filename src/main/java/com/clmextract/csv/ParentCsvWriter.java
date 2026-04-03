@@ -33,9 +33,8 @@ public class ParentCsvWriter implements Closeable {
         try {
             writer = new CSVWriterBuilder(new FileWriter(filePath.toString()))
                     .withSeparator(delimiter)
-                    .withQuoteChar(ICSVWriter.NO_QUOTE_CHARACTER)
                     .build();
-            writer.writeNext(HEADER);
+            writer.writeNext(HEADER, false);
             logger.info("Opened bundle parent CSV: {}", filePath);
         } catch (IOException e) {
             throw new RuntimeException("Failed to open bundle parent CSV: " + filePath, e);
@@ -51,7 +50,7 @@ public class ParentCsvWriter implements Closeable {
                     r.getBundleType(),
                     r.getBundleCategory(),
                     r.getParentId()
-            });
+            }, false);
         }
     }
 

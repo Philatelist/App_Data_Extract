@@ -1,5 +1,6 @@
 package com.clmextract.export;
 
+import com.clmextract.config.AppConfig;
 import com.clmextract.endpoint.EndpointDefinition;
 import com.clmextract.endpoint.EndpointRegistry;
 import com.clmextract.http.RequestExecutor;
@@ -23,10 +24,10 @@ public class BatchProcessor {
     private final BundleParser bundleParser;
     private final ObjectMapper objectMapper;
 
-    public BatchProcessor(RequestExecutor requestExecutor, EndpointRegistry endpointRegistry) {
+    public BatchProcessor(RequestExecutor requestExecutor, EndpointRegistry endpointRegistry, AppConfig config) {
         this.requestExecutor = requestExecutor;
         this.endpointRegistry = endpointRegistry;
-        this.bundleParser = new BundleParser();
+        this.bundleParser = new BundleParser(config);
         this.objectMapper = new ObjectMapper();
     }
 
