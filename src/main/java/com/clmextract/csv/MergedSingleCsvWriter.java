@@ -83,9 +83,6 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
         for (ComponentMetadata comp : metadata.getComponents()) {
             if (comp.isMultipleCardinality()) {
                 List<ColumnResolver.ResolvedColumn> columns = columnResolver.resolveColumns(comp);
-                if (columns.isEmpty()) {
-                    continue;
-                }
                 multiComponentColumns.put(comp.getInternalName(), columns);
 
                 String filename = filenameResolver.resolve(

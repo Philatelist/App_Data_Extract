@@ -46,9 +46,6 @@ public class PerComponentCsvWriter implements CsvExportWriter {
     public void writeHeaders() {
         for (ComponentMetadata comp : metadata.getComponents()) {
             List<ColumnResolver.ResolvedColumn> columns = columnResolver.resolveColumns(comp);
-            if (columns.isEmpty()) {
-                continue;
-            }
             componentColumns.put(comp.getInternalName(), columns);
 
             String filename = filenameResolver.resolve(
