@@ -32,6 +32,7 @@ public class AppConfig {
     private String summaryFilenameTemplate = "Summary_{DDMMYYYY}_{HHMMSS}.csv";
     private boolean delimiterReplacementEnabled = false;
     private String delimiterSubstituteChar = null;
+    private List<AdditionalColumnConfig> additionalColumns = new ArrayList<>();
 
     public AppConfig() {
     }
@@ -250,5 +251,13 @@ public class AppConfig {
 
     public void setDelimiterSubstituteChar(String delimiterSubstituteChar) {
         this.delimiterSubstituteChar = delimiterSubstituteChar;
+    }
+
+    public List<AdditionalColumnConfig> getAdditionalColumns() {
+        return additionalColumns;
+    }
+
+    public void setAdditionalColumns(List<AdditionalColumnConfig> additionalColumns) {
+        this.additionalColumns = additionalColumns != null ? additionalColumns : new ArrayList<>();
     }
 }

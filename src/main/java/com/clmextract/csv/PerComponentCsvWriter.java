@@ -46,6 +46,7 @@ public class PerComponentCsvWriter implements CsvExportWriter {
     public void writeHeaders() {
         for (ComponentMetadata comp : metadata.getComponents()) {
             List<ColumnResolver.ResolvedColumn> columns = columnResolver.resolveColumns(comp);
+            ColumnResolver.injectAdditionalColumns(columns, columnResolver.getAdditionalColumns());
             componentColumns.put(comp.getInternalName(), columns);
 
             String filename = filenameResolver.resolve(
@@ -92,8 +93,9 @@ public class PerComponentCsvWriter implements CsvExportWriter {
                     row[0] = trackingId;
                     Map<String, String> fields = comp.getFields();
                     for (int i = 0; i < columns.size(); i++) {
-                        String fieldName = columns.get(i).getFieldInternalName();
-                        row[i + 1] = fields != null ? fields.getOrDefault(fieldName, "") : "";
+                        ColumnResolver.ResolvedColumn col = columns.get(i);
+                        row[i + 1] = col.isAdditional() ? ""
+                                : (fields != null ? fields.getOrDefault(col.getFieldInternalName(), "") : "");
                     }
                     writer.writeNext(row, false);
                 } else if (comp.isMultipleCardinality()) {
@@ -103,8 +105,9 @@ public class PerComponentCsvWriter implements CsvExportWriter {
                             String[] row = new String[columns.size() + 1];
                             row[0] = trackingId;
                             for (int i = 0; i < columns.size(); i++) {
-                                String fieldName = columns.get(i).getFieldInternalName();
-                                row[i + 1] = rowData.getOrDefault(fieldName, "");
+                                ColumnResolver.ResolvedColumn col = columns.get(i);
+                                row[i + 1] = col.isAdditional() ? ""
+                                        : rowData.getOrDefault(col.getFieldInternalName(), "");
                             }
                             writer.writeNext(row, false);
                         }

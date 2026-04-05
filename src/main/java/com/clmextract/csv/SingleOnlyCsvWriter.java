@@ -54,6 +54,12 @@ public class SingleOnlyCsvWriter implements CsvExportWriter {
             }
             // Multi-cardinality components are skipped entirely
         }
+        // Inject additional columns once into the merged list
+        List<ColumnResolver.ResolvedColumn> addlPlaceholders = new ArrayList<>();
+        ColumnResolver.injectAdditionalColumns(addlPlaceholders, columnResolver.getAdditionalColumns());
+        for (ColumnResolver.ResolvedColumn col : addlPlaceholders) {
+            mergedColumns.add(new MergedColumnEntry(null, col));
+        }
 
         if (mergedColumns.isEmpty()) {
             logger.info("No single-cardinality components found, no CSV will be written");
@@ -98,12 +104,12 @@ public class SingleOnlyCsvWriter implements CsvExportWriter {
 
             for (int i = 0; i < mergedColumns.size(); i++) {
                 MergedColumnEntry entry = mergedColumns.get(i);
-                BundleComponent comp = componentMap.get(entry.componentInternalName);
-                if (comp != null && comp.getFields() != null) {
-                    row[i + 1] = comp.getFields().getOrDefault(
-                            entry.column.getFieldInternalName(), "");
-                } else {
+                if (entry.column.isAdditional()) {
                     row[i + 1] = "";
+                } else {
+                    BundleComponent comp = componentMap.get(entry.componentInternalName);
+                    row[i + 1] = (comp != null && comp.getFields() != null)
+                            ? comp.getFields().getOrDefault(entry.column.getFieldInternalName(), "") : "";
                 }
             }
             writer.writeNext(row, false);

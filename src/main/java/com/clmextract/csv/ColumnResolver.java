@@ -1,5 +1,6 @@
 package com.clmextract.csv;
 
+import com.clmextract.config.AdditionalColumnConfig;
 import com.clmextract.metadata.ComponentMetadata;
 import com.clmextract.metadata.FieldMetadata;
 import org.apache.logging.log4j.LogManager;
@@ -23,20 +24,47 @@ public class ColumnResolver {
     private final List<ComponentMetadata> components;
     private final String boType;
     private final Set<String> skipColumns;
+    private final List<AdditionalColumnConfig> additionalColumns;
     private List<String> orderFilePaths;
     // Outer key: component internal name, inner key: parameter internal name, value: display name
     private Map<String, Map<String, String>> displayNameOverrides;
 
     public ColumnResolver(List<ComponentMetadata> components, String boType) {
-        this(components, boType, List.of());
+        this(components, boType, List.of(), List.of());
     }
 
     public ColumnResolver(List<ComponentMetadata> components, String boType, List<String> skipColumns) {
+        this(components, boType, skipColumns, List.of());
+    }
+
+    public ColumnResolver(List<ComponentMetadata> components, String boType, List<String> skipColumns,
+                          List<AdditionalColumnConfig> additionalColumns) {
         this.components = components;
         this.boType = boType;
         this.skipColumns = new HashSet<>(skipColumns);
+        this.additionalColumns = additionalColumns != null ? additionalColumns : List.of();
         loadOrderFile();
         loadOverridesFile();
+    }
+
+    public List<AdditionalColumnConfig> getAdditionalColumns() {
+        return additionalColumns;
+    }
+
+    /**
+     * Injects additional columns into an existing column list at their configured positions.
+     * Positions are 1-indexed (1 = first column after Tracking #). Columns with a higher
+     * position are inserted first to avoid index shifting.
+     */
+    public static void injectAdditionalColumns(List<ResolvedColumn> columns,
+                                               List<AdditionalColumnConfig> additionalColumns) {
+        if (additionalColumns == null || additionalColumns.isEmpty()) return;
+        List<AdditionalColumnConfig> sorted = new ArrayList<>(additionalColumns);
+        sorted.sort((a, b) -> Integer.compare(b.getPosition(), a.getPosition()));
+        for (AdditionalColumnConfig addCol : sorted) {
+            int idx = Math.max(0, Math.min(addCol.getPosition() - 1, columns.size()));
+            columns.add(idx, new ResolvedColumn(addCol.getHeader(), null, null, true));
+        }
     }
 
     private void loadOrderFile() {
@@ -120,7 +148,6 @@ public class ColumnResolver {
                 }
             }
         }
-
 
         return paths;
     }
@@ -216,11 +243,17 @@ public class ColumnResolver {
         private final String header;
         private final String fieldInternalName;
         private final String instancePath;
+        private final boolean additional;
 
         public ResolvedColumn(String header, String fieldInternalName, String instancePath) {
+            this(header, fieldInternalName, instancePath, false);
+        }
+
+        public ResolvedColumn(String header, String fieldInternalName, String instancePath, boolean additional) {
             this.header = header;
             this.fieldInternalName = fieldInternalName;
             this.instancePath = instancePath;
+            this.additional = additional;
         }
 
         public String getHeader() {
@@ -233,6 +266,10 @@ public class ColumnResolver {
 
         public String getInstancePath() {
             return instancePath;
+        }
+
+        public boolean isAdditional() {
+            return additional;
         }
     }
 }

@@ -56,8 +56,14 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
                 }
             }
         }
+        // Inject additional columns once into the merged list
+        List<ColumnResolver.ResolvedColumn> addlPlaceholders = new ArrayList<>();
+        ColumnResolver.injectAdditionalColumns(addlPlaceholders, columnResolver.getAdditionalColumns());
+        for (ColumnResolver.ResolvedColumn col : addlPlaceholders) {
+            mergedColumns.add(new MergedColumnEntry(null, col));
+        }
 
-        // Open merged single CSV if there are single-cardinality columns
+        // Open merged single CSV if there are any columns
         if (!mergedColumns.isEmpty()) {
             String filename = filenameResolver.resolve(
                     filenameTemplate, metadata.getBoName(), "Merged");
@@ -83,6 +89,7 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
         for (ComponentMetadata comp : metadata.getComponents()) {
             if (comp.isMultipleCardinality()) {
                 List<ColumnResolver.ResolvedColumn> columns = columnResolver.resolveColumns(comp);
+                ColumnResolver.injectAdditionalColumns(columns, columnResolver.getAdditionalColumns());
                 multiComponentColumns.put(comp.getInternalName(), columns);
 
                 String filename = filenameResolver.resolve(
@@ -125,12 +132,12 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
 
                 for (int i = 0; i < mergedColumns.size(); i++) {
                     MergedColumnEntry entry = mergedColumns.get(i);
-                    BundleComponent comp = componentMap.get(entry.componentInternalName);
-                    if (comp != null && comp.getFields() != null) {
-                        row[i + 1] = comp.getFields().getOrDefault(
-                                entry.column.getFieldInternalName(), "");
-                    } else {
+                    if (entry.column.isAdditional()) {
                         row[i + 1] = "";
+                    } else {
+                        BundleComponent comp = componentMap.get(entry.componentInternalName);
+                        row[i + 1] = (comp != null && comp.getFields() != null)
+                                ? comp.getFields().getOrDefault(entry.column.getFieldInternalName(), "") : "";
                     }
                 }
                 mergedWriter.writeNext(row, false);
@@ -151,8 +158,9 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
                         String[] row = new String[columns.size() + 1];
                         row[0] = trackingId;
                         for (int i = 0; i < columns.size(); i++) {
-                            row[i + 1] = rowData.getOrDefault(
-                                    columns.get(i).getFieldInternalName(), "");
+                            ColumnResolver.ResolvedColumn col = columns.get(i);
+                            row[i + 1] = col.isAdditional() ? ""
+                                    : rowData.getOrDefault(col.getFieldInternalName(), "");
                         }
                         writer.writeNext(row, false);
                     }

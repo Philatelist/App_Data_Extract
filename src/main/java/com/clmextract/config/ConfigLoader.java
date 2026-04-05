@@ -87,6 +87,22 @@ public class ConfigLoader {
             config.setDelimiterSubstituteChar(getStringOrDefault(delimiterReplacement, "substituteChar", null));
         }
 
+        // --- additionalColumns ---
+        List<Map<String, Object>> addColsList = getListOfMaps(root, "additionalColumns");
+        if (addColsList != null) {
+            List<AdditionalColumnConfig> addCols = new ArrayList<>();
+            for (Map<String, Object> colEntry : addColsList) {
+                String header = getStringOrDefault(colEntry, "header", null);
+                if (header != null) {
+                    AdditionalColumnConfig col = new AdditionalColumnConfig();
+                    col.setHeader(header);
+                    col.setPosition(getIntOrDefault(colEntry, "position", 1));
+                    addCols.add(col);
+                }
+            }
+            config.setAdditionalColumns(addCols);
+        }
+
         // --- validation ---
         validate(config);
 
