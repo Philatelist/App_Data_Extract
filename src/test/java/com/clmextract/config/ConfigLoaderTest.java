@@ -45,8 +45,8 @@ class ConfigLoaderTest {
                 endpointsFile: "inputs/endpoints.yml"
                 boTypes:
                   - name: "Contract"
-                    trackingFilter: "1000-2000"
                   - name: "Amendment"
+                trackingFilter: "1000-2000"
                 csvMode: "per-component"
                 delimiter: ","
                 filenameTemplate: "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv"
@@ -615,5 +615,97 @@ class ConfigLoaderTest {
         AppConfig config = ConfigLoader.load(path);
         assertTrue(config.isDelimiterReplacementEnabled());
         assertEquals("||", config.getDelimiterSubstituteChar());
+    }
+
+    // ------------------------------------------------------------------
+    // 27. yesNoTranslation absent section => default values
+    // ------------------------------------------------------------------
+
+    @Test
+    void yesNoTranslation_absentSection_defaultValues() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertFalse(config.isYesNoTranslationEnabled());
+        assertEquals("YES", config.getYesNoTrueValue());
+        assertEquals("NO", config.getYesNoFalseValue());
+    }
+
+    // ------------------------------------------------------------------
+    // 28. yesNoTranslation enabled with no sub-keys => uses defaults
+    // ------------------------------------------------------------------
+
+    @Test
+    void yesNoTranslation_enabledWithNoSubKeys_usesDefaults() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                yesNoTranslation:
+                  enabled: true
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertTrue(config.isYesNoTranslationEnabled());
+        assertEquals("YES", config.getYesNoTrueValue());
+        assertEquals("NO", config.getYesNoFalseValue());
+    }
+
+    // ------------------------------------------------------------------
+    // 29. yesNoTranslation enabled with custom values => stored correctly
+    // ------------------------------------------------------------------
+
+    @Test
+    void yesNoTranslation_enabledWithCustomValues_storedCorrectly() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                yesNoTranslation:
+                  enabled: true
+                  trueValue: "Yes"
+                  falseValue: "No"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertTrue(config.isYesNoTranslationEnabled());
+        assertEquals("Yes", config.getYesNoTrueValue());
+        assertEquals("No", config.getYesNoFalseValue());
+    }
+
+    // ------------------------------------------------------------------
+    // 30. yesNoTranslation disabled explicitly => disabled
+    // ------------------------------------------------------------------
+
+    @Test
+    void yesNoTranslation_disabledExplicitly_disabled() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                yesNoTranslation:
+                  enabled: false
+                  trueValue: "YES"
+                  falseValue: "NO"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertFalse(config.isYesNoTranslationEnabled());
     }
 }
