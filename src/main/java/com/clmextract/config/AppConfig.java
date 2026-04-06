@@ -32,10 +32,10 @@ public class AppConfig {
     private String summaryFilenameTemplate = "Summary_{DDMMYYYY}_{HHMMSS}.csv";
     private boolean delimiterReplacementEnabled = false;
     private String delimiterSubstituteChar = null;
+    private List<AdditionalColumnConfig> additionalColumns = new ArrayList<>();
     private boolean yesNoTranslationEnabled = false;
     private String yesNoTrueValue = "YES";
     private String yesNoFalseValue = "NO";
-    private List<AdditionalColumnConfig> additionalColumns = new ArrayList<>();
 
     public AppConfig() {
     }
@@ -256,6 +256,14 @@ public class AppConfig {
         this.delimiterSubstituteChar = delimiterSubstituteChar;
     }
 
+    public List<AdditionalColumnConfig> getAdditionalColumns() {
+        return additionalColumns;
+    }
+
+    public void setAdditionalColumns(List<AdditionalColumnConfig> additionalColumns) {
+        this.additionalColumns = additionalColumns != null ? additionalColumns : new ArrayList<>();
+    }
+
     public boolean isYesNoTranslationEnabled() {
         return yesNoTranslationEnabled;
     }
@@ -278,13 +286,5 @@ public class AppConfig {
 
     public void setYesNoFalseValue(String yesNoFalseValue) {
         this.yesNoFalseValue = yesNoFalseValue;
-    }
-
-    public List<AdditionalColumnConfig> getAdditionalColumns() {
-        return additionalColumns;
-    }
-
-    public void setAdditionalColumns(List<AdditionalColumnConfig> additionalColumns) {
-        this.additionalColumns = additionalColumns != null ? additionalColumns : new ArrayList<>();
     }
 }
