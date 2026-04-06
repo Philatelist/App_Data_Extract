@@ -80,6 +80,15 @@ additionalColumns:
     position: 1
 
 yesNoTranslation:
-  enabled: true
+  enabled: false
   trueValue: "YES"
   falseValue: "NO"
+
+fieldValueMappings:
+  docuSignCachedAccountId:
+    "21301908": "RHCS NA Only"
+    "503038804": "EU - RHCS IZ"
+    "9a59d0a1-0809-4581-b8a9-286268c08a8e": "RHCS NA Only"
+  approvedToMoveForwardCheckbox:
+    "FALSE": "NO"
+    "TRUE": "YES"

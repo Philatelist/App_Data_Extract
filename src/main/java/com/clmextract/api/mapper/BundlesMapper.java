@@ -9,6 +9,7 @@ import com.clmextract.export.BundleResponse;
 import com.clmextract.metadata.BoMetadata;
 import com.clmextract.metadata.ComponentMetadata;
 
+import com.clmextract.metadata.FieldMetadata;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,19 +21,68 @@ public class BundlesMapper {
 
     private final char delimiter;
     private final String delimiterSubstituteChar;
+    private final boolean yesNoTranslationEnabled;
+    private final String yesNoTrueValue;
+    private final String yesNoFalseValue;
+    // fieldName → (rawValue → mappedValue)
+    private final Map<String, Map<String, String>> fieldValueMappings;
 
     public BundlesMapper() {
-        this(',', null);
+        this(',', null, false, "YES", "NO", null);
     }
 
     public BundlesMapper(char delimiter, String delimiterSubstituteChar) {
+        this(delimiter, delimiterSubstituteChar, false, "YES", "NO", null);
+    }
+
+    public BundlesMapper(char delimiter, String delimiterSubstituteChar,
+                         boolean yesNoTranslationEnabled, String yesNoTrueValue, String yesNoFalseValue,
+                         Map<String, Map<String, String>> fieldValueMappings) {
         this.delimiter = delimiter;
         this.delimiterSubstituteChar = delimiterSubstituteChar;
+        this.yesNoTranslationEnabled = yesNoTranslationEnabled;
+        this.yesNoTrueValue = yesNoTrueValue != null ? yesNoTrueValue : "YES";
+        this.yesNoFalseValue = yesNoFalseValue != null ? yesNoFalseValue : "NO";
+        // Normalize to lowercase keys for case-insensitive lookup
+        this.fieldValueMappings = normalizeMappings(fieldValueMappings);
+    }
+
+    private static Map<String, Map<String, String>> normalizeMappings(Map<String, Map<String, String>> raw) {
+        if (raw == null || raw.isEmpty()) return Map.of();
+        Map<String, Map<String, String>> result = new LinkedHashMap<>();
+        for (Map.Entry<String, Map<String, String>> fieldEntry : raw.entrySet()) {
+            Map<String, String> normalizedValues = new LinkedHashMap<>();
+            if (fieldEntry.getValue() != null) {
+                for (Map.Entry<String, String> valEntry : fieldEntry.getValue().entrySet()) {
+                    normalizedValues.put(valEntry.getKey().toLowerCase(), valEntry.getValue());
+                }
+            }
+            result.put(fieldEntry.getKey().toLowerCase(), normalizedValues);
+        }
+        return result;
     }
 
     private String applyDelimiterReplacement(String value) {
         if (delimiterSubstituteChar == null || value == null) return value;
         return value.replace(String.valueOf(delimiter), delimiterSubstituteChar);
+    }
+
+    private String applyFieldValueMapping(String fieldName, String value) {
+        if (value == null || fieldValueMappings.isEmpty()) return value;
+        Map<String, String> mappings = fieldValueMappings.get(fieldName.toLowerCase());
+        if (mappings == null) return value;
+        return mappings.getOrDefault(value.toLowerCase(), value);
+    }
+
+    private String applyYesNoTranslation(String value, String fieldDataType, Set<String> yesNoFields, String fieldName) {
+        if (!yesNoTranslationEnabled || value == null) return value;
+        // Match if bundle field DataType is "boolean", or if metadata tagged this field as yesNoRadioButtons
+        boolean isYesNo = "boolean".equalsIgnoreCase(fieldDataType)
+                || (yesNoFields != null && yesNoFields.contains(fieldName));
+        if (!isYesNo) return value;
+        if ("true".equalsIgnoreCase(value.trim())) return yesNoTrueValue;
+        if ("false".equalsIgnoreCase(value.trim())) return yesNoFalseValue;
+        return value;
     }
 
     static String unescapeHtml(String value) {
@@ -79,9 +129,18 @@ public class BundlesMapper {
 
         // Build a lookup: component internal name → cardinality from metadata
         Map<String, String> cardinalityByComponent = new HashMap<>();
+        // Build a set of field internal names that require yes/no translation
+        Set<String> yesNoFields = new HashSet<>();
         if (metadata.getComponents() != null) {
             for (ComponentMetadata comp : metadata.getComponents()) {
                 cardinalityByComponent.put(comp.getInternalName(), comp.getCardinality());
+                if (yesNoTranslationEnabled && comp.getFields() != null) {
+                    for (FieldMetadata field : comp.getFields()) {
+                        if ("yesNoRadioButtons".equals(field.getDataType())) {
+                            yesNoFields.add(field.getInternalName());
+                        }
+                    }
+                }
             }
         }
 
@@ -91,7 +150,7 @@ public class BundlesMapper {
         for (int i = 0; i < rawRecords.size(); i++) {
             List<BundleFieldDto> rawFields = rawRecords.get(i);
             Long positionalTrackingId = usePositionalIds ? requestTrackingIds.get(i) : null;
-            BundleRecord record = mapRecord(rawFields, cardinalityByComponent, positionalTrackingId);
+            BundleRecord record = mapRecord(rawFields, cardinalityByComponent, positionalTrackingId, yesNoFields);
             records.add(record);
         }
 
@@ -101,7 +160,8 @@ public class BundlesMapper {
 
     private BundleRecord mapRecord(List<BundleFieldDto> rawFields,
                                     Map<String, String> cardinalityByComponent,
-                                    Long positionalTrackingId) {
+                                    Long positionalTrackingId,
+                                    Set<String> yesNoFields) {
         BundleRecord record = new BundleRecord();
 
         // Set tracking ID: prefer positional ID from request, fall back to response field
@@ -164,7 +224,10 @@ public class BundlesMapper {
                 for (List<BundleFieldDto> instanceFields : byInstanceId.values()) {
                     Map<String, String> row = new LinkedHashMap<>();
                     for (BundleFieldDto f : instanceFields) {
-                        row.put(f.getName(), applyDelimiterReplacement(normalizeValue(f.getName(), unescapeHtml(f.getValue()))));
+                        String val = applyDelimiterReplacement(normalizeValue(f.getName(), unescapeHtml(f.getValue())));
+                        val = applyYesNoTranslation(val, f.getDataType(), yesNoFields, f.getName());
+                        val = applyFieldValueMapping(f.getName(), val);
+                        row.put(f.getName(), val);
                     }
                     if (isAttachment) {
                         String filePath = row.get("serverFileName");
@@ -186,7 +249,10 @@ public class BundlesMapper {
                 Map<String, String> fields = new LinkedHashMap<>();
                 for (List<BundleFieldDto> instanceFields : byInstanceId.values()) {
                     for (BundleFieldDto f : instanceFields) {
-                        fields.put(f.getName(), applyDelimiterReplacement(normalizeValue(f.getName(), unescapeHtml(f.getValue()))));
+                        String val = applyDelimiterReplacement(normalizeValue(f.getName(), unescapeHtml(f.getValue())));
+                        val = applyYesNoTranslation(val, f.getDataType(), yesNoFields, f.getName());
+                        val = applyFieldValueMapping(f.getName(), val);
+                        fields.put(f.getName(), val);
                     }
                 }
 

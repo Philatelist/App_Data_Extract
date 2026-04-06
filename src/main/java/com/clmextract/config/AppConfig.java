@@ -1,7 +1,9 @@
 package com.clmextract.config;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AppConfig {
 
@@ -36,6 +38,8 @@ public class AppConfig {
     private boolean yesNoTranslationEnabled = false;
     private String yesNoTrueValue = "YES";
     private String yesNoFalseValue = "NO";
+    // fieldName → (rawValue → mappedValue)
+    private Map<String, Map<String, String>> fieldValueMappings = new LinkedHashMap<>();
 
     public AppConfig() {
     }
@@ -286,5 +290,13 @@ public class AppConfig {
 
     public void setYesNoFalseValue(String yesNoFalseValue) {
         this.yesNoFalseValue = yesNoFalseValue;
+    }
+
+    public Map<String, Map<String, String>> getFieldValueMappings() {
+        return fieldValueMappings;
+    }
+
+    public void setFieldValueMappings(Map<String, Map<String, String>> fieldValueMappings) {
+        this.fieldValueMappings = fieldValueMappings != null ? fieldValueMappings : new LinkedHashMap<>();
     }
 }

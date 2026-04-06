@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -93,6 +94,27 @@ public class ConfigLoader {
             config.setYesNoTranslationEnabled(getBooleanOrDefault(yesNoTranslation, "enabled", false));
             config.setYesNoTrueValue(getStringOrDefault(yesNoTranslation, "trueValue", "YES"));
             config.setYesNoFalseValue(getStringOrDefault(yesNoTranslation, "falseValue", "NO"));
+        }
+
+        // --- fieldValueMappings ---
+        Map<String, Object> rawMappings = getMap(root, "fieldValueMappings");
+        if (rawMappings != null) {
+            Map<String, Map<String, String>> fieldValueMappings = new LinkedHashMap<>();
+            for (Map.Entry<String, Object> fieldEntry : rawMappings.entrySet()) {
+                String fieldName = fieldEntry.getKey();
+                if (fieldEntry.getValue() instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<Object, Object> valueMap = (Map<Object, Object>) fieldEntry.getValue();
+                    Map<String, String> mappings = new LinkedHashMap<>();
+                    for (Map.Entry<Object, Object> e : valueMap.entrySet()) {
+                        if (e.getKey() != null && e.getValue() != null) {
+                            mappings.put(e.getKey().toString(), e.getValue().toString());
+                        }
+                    }
+                    fieldValueMappings.put(fieldName, mappings);
+                }
+            }
+            config.setFieldValueMappings(fieldValueMappings);
         }
 
         // --- additionalColumns ---
