@@ -52,6 +52,14 @@ public class ColumnResolver {
     }
 
     /**
+     * Returns {@code true} for components that are written exactly as-is: no tracking-ID
+     * column 0, no additional-column injection, and no field filtering beyond skipColumns.
+     */
+    public static boolean isExemptFromStandardColumns(String componentInternalName) {
+        return "ReqSubClause".equals(componentInternalName);
+    }
+
+    /**
      * Injects additional columns into an existing column list at their configured positions.
      * Positions are 1-indexed (1 = first column after Tracking #). Columns with a higher
      * position are inserted first to avoid index shifting.
@@ -197,12 +205,26 @@ public class ColumnResolver {
             }
         }
 
+        String compInternal = component.getInternalName();
+
+        // ReqSubClause is exempt from all post-processing rules except skipColumns filtering.
+        if ("ReqSubClause".equals(compInternal)) {
+            if (!skipColumns.isEmpty()) {
+                columns.removeIf(col -> {
+                    String header = col.getHeader();
+                    int dot = header.lastIndexOf('.');
+                    String fieldName = dot >= 0 ? header.substring(dot + 1) : header;
+                    return skipColumns.stream().anyMatch(skip -> skip.equalsIgnoreCase(fieldName));
+                });
+            }
+            return columns;
+        }
+
         // Always exclude the tracking number field — it is already the dedicated first column
         columns.removeIf(col -> "trackingNumber".equals(col.getFieldInternalName()));
 
         // serverFileName (File Path) must only appear in attachment components, always as the second column.
         // For all other components it is removed regardless of whether it came from metadata or order file.
-        String compInternal = component.getInternalName();
         boolean isAttachment = "ReqAttachment".equals(compInternal) || "ReqContractAttachment".equals(compInternal);
         if (isAttachment) {
             // Remove from wherever it is, then re-insert at position 0 to guarantee second column
@@ -226,6 +248,31 @@ public class ColumnResolver {
             columns.add(new ResolvedColumn(component.getDisplayName() + ".SFTP File Name", "sftpFileName", "sftpFileName"));
         }
 
+        // Copy all fields from ReqEmailConversation into ReqContractEmailWithConversation.
+        // Each copied column is tagged with its source component so writers can look up
+        // the field values from the correct BundleComponent at runtime.
+        if ("ReqContractEmailWithConversation".equals(compInternal)) {
+            for (ComponentMetadata otherComp : components) {
+                if ("ReqEmailConversation".equals(otherComp.getInternalName())) {
+                    String sourceDisplayName = otherComp.getDisplayName();
+                    String targetDisplayName = component.getDisplayName();
+                    List<ResolvedColumn> emailCols = resolveColumns(otherComp);
+                    for (ResolvedColumn col : emailCols) {
+                        // Replace the source component's display name prefix with the target's
+                        // so the header reads "Contract Email With Conversation.Subject" instead
+                        // of "Email Conversation.Subject".
+                        String newHeader = col.getHeader();
+                        if (sourceDisplayName != null && newHeader.startsWith(sourceDisplayName + ".")) {
+                            newHeader = targetDisplayName + newHeader.substring(sourceDisplayName.length());
+                        }
+                        columns.add(new ResolvedColumn(newHeader, col.getFieldInternalName(),
+                                col.getInstancePath(), col.isAdditional(), "ReqEmailConversation"));
+                    }
+                    break;
+                }
+            }
+        }
+
         return columns;
     }
 
@@ -244,16 +291,26 @@ public class ColumnResolver {
         private final String fieldInternalName;
         private final String instancePath;
         private final boolean additional;
+        /** Non-null when this column's field values must be read from a different component
+         *  than the one this column was added to (e.g. ReqEmailConversation fields copied
+         *  into ReqContractEmailWithConversation). */
+        private final String sourceComponentInternalName;
 
         public ResolvedColumn(String header, String fieldInternalName, String instancePath) {
-            this(header, fieldInternalName, instancePath, false);
+            this(header, fieldInternalName, instancePath, false, null);
         }
 
         public ResolvedColumn(String header, String fieldInternalName, String instancePath, boolean additional) {
+            this(header, fieldInternalName, instancePath, additional, null);
+        }
+
+        public ResolvedColumn(String header, String fieldInternalName, String instancePath,
+                              boolean additional, String sourceComponentInternalName) {
             this.header = header;
             this.fieldInternalName = fieldInternalName;
             this.instancePath = instancePath;
             this.additional = additional;
+            this.sourceComponentInternalName = sourceComponentInternalName;
         }
 
         public String getHeader() {
@@ -270,6 +327,10 @@ public class ColumnResolver {
 
         public boolean isAdditional() {
             return additional;
+        }
+
+        public String getSourceComponentInternalName() {
+            return sourceComponentInternalName;
         }
     }
 }

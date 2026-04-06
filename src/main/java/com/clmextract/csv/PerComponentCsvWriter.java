@@ -45,8 +45,11 @@ public class PerComponentCsvWriter implements CsvExportWriter {
     @Override
     public void writeHeaders() {
         for (ComponentMetadata comp : metadata.getComponents()) {
+            boolean exempt = ColumnResolver.isExemptFromStandardColumns(comp.getInternalName());
             List<ColumnResolver.ResolvedColumn> columns = columnResolver.resolveColumns(comp);
-            ColumnResolver.injectAdditionalColumns(columns, columnResolver.getAdditionalColumns());
+            if (!exempt) {
+                ColumnResolver.injectAdditionalColumns(columns, columnResolver.getAdditionalColumns());
+            }
             componentColumns.put(comp.getInternalName(), columns);
 
             String filename = filenameResolver.resolve(
@@ -59,11 +62,19 @@ public class PerComponentCsvWriter implements CsvExportWriter {
                         .build();
                 writers.put(comp.getInternalName(), writer);
 
-                // Build header: Tracking # + column headers
-                String[] header = new String[columns.size() + 1];
-                header[0] = columnResolver.resolveTrackingHeader();
-                for (int i = 0; i < columns.size(); i++) {
-                    header[i + 1] = columns.get(i).getHeader();
+                // Exempt components: no tracking-ID column 0, just their own columns
+                String[] header;
+                if (exempt) {
+                    header = new String[columns.size()];
+                    for (int i = 0; i < columns.size(); i++) {
+                        header[i] = columns.get(i).getHeader();
+                    }
+                } else {
+                    header = new String[columns.size() + 1];
+                    header[0] = columnResolver.resolveTrackingHeader();
+                    for (int i = 0; i < columns.size(); i++) {
+                        header[i + 1] = columns.get(i).getHeader();
+                    }
                 }
                 writer.writeNext(header, false);
 
@@ -77,6 +88,11 @@ public class PerComponentCsvWriter implements CsvExportWriter {
     @Override
     public void writeRecords(List<BundleRecord> records) {
         for (BundleRecord record : records) {
+            Map<String, BundleComponent> componentMap = new LinkedHashMap<>();
+            for (BundleComponent c : record.getComponents()) {
+                componentMap.put(c.getComponentInternalName(), c);
+            }
+
             for (BundleComponent comp : record.getComponents()) {
                 ICSVWriter writer = writers.get(comp.getComponentInternalName());
                 List<ColumnResolver.ResolvedColumn> columns =
@@ -86,35 +102,88 @@ public class PerComponentCsvWriter implements CsvExportWriter {
                     continue;
                 }
 
-                String trackingId = String.valueOf(record.getTrackingId());
+                boolean exempt = ColumnResolver.isExemptFromStandardColumns(comp.getComponentInternalName());
+                String trackingId = exempt ? null : String.valueOf(record.getTrackingId());
 
                 if (comp.isSingleCardinality()) {
-                    String[] row = new String[columns.size() + 1];
-                    row[0] = trackingId;
-                    Map<String, String> fields = comp.getFields();
-                    for (int i = 0; i < columns.size(); i++) {
-                        ColumnResolver.ResolvedColumn col = columns.get(i);
-                        row[i + 1] = col.isAdditional() ? ""
-                                : (fields != null ? fields.getOrDefault(col.getFieldInternalName(), "") : "");
-                    }
-                    writer.writeNext(row, false);
+                    writer.writeNext(buildRow(columns, comp, componentMap, -1, trackingId), false);
                 } else if (comp.isMultipleCardinality()) {
                     List<Map<String, String>> rows = comp.getRows();
                     if (rows != null) {
-                        for (Map<String, String> rowData : rows) {
-                            String[] row = new String[columns.size() + 1];
-                            row[0] = trackingId;
-                            for (int i = 0; i < columns.size(); i++) {
-                                ColumnResolver.ResolvedColumn col = columns.get(i);
-                                row[i + 1] = col.isAdditional() ? ""
-                                        : rowData.getOrDefault(col.getFieldInternalName(), "");
-                            }
-                            writer.writeNext(row, false);
+                        for (int rowIdx = 0; rowIdx < rows.size(); rowIdx++) {
+                            writer.writeNext(buildRow(columns, comp, componentMap, rowIdx, trackingId), false);
                         }
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Builds a CSV row. When {@code trackingId} is {@code null} the leading tracking-ID
+     * cell is omitted (exempt components).
+     */
+    private static String[] buildRow(List<ColumnResolver.ResolvedColumn> columns,
+                                     BundleComponent primaryComp,
+                                     Map<String, BundleComponent> componentMap,
+                                     int rowIdx,
+                                     String trackingId) {
+        int offset = trackingId != null ? 1 : 0;
+        String[] row = new String[columns.size() + offset];
+        if (trackingId != null) {
+            row[0] = trackingId;
+        }
+        for (int i = 0; i < columns.size(); i++) {
+            row[i + offset] = resolveValue(columns.get(i), primaryComp, componentMap, rowIdx);
+        }
+        return row;
+    }
+
+    /**
+     * Resolves a single cell value for the given column.
+     *
+     * @param col          the column descriptor
+     * @param primaryComp  the component whose CSV is being written
+     * @param componentMap all components in the current record, keyed by internal name
+     * @param rowIdx       row index within the component's rows list; {@code -1} for single-cardinality
+     */
+    private static String resolveValue(ColumnResolver.ResolvedColumn col,
+                                       BundleComponent primaryComp,
+                                       Map<String, BundleComponent> componentMap,
+                                       int rowIdx) {
+        if (col.isAdditional()) {
+            return "";
+        }
+        BundleComponent source = col.getSourceComponentInternalName() != null
+                ? componentMap.get(col.getSourceComponentInternalName())
+                : primaryComp;
+        if (source == null) {
+            return "";
+        }
+        if (rowIdx < 0) {
+            // Single-cardinality context
+            if (source.isSingleCardinality()) {
+                Map<String, String> fields = source.getFields();
+                return fields != null ? fields.getOrDefault(col.getFieldInternalName(), "") : "";
+            }
+            // Multi-cardinality source in a single-cardinality context: use first row
+            List<Map<String, String>> srcRows = source.getRows();
+            if (srcRows != null && !srcRows.isEmpty()) {
+                return srcRows.get(0).getOrDefault(col.getFieldInternalName(), "");
+            }
+            return "";
+        }
+        // Multi-cardinality context
+        if (source.isMultipleCardinality()) {
+            List<Map<String, String>> srcRows = source.getRows();
+            if (srcRows != null && rowIdx < srcRows.size()) {
+                return srcRows.get(rowIdx).getOrDefault(col.getFieldInternalName(), "");
+            }
+            return "";
+        }
+        // Single-cardinality source repeated across all rows
+        Map<String, String> fields = source.getFields();
+        return fields != null ? fields.getOrDefault(col.getFieldInternalName(), "") : "";
     }
 
     @Override

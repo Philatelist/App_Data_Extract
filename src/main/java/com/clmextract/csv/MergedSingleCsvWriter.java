@@ -88,8 +88,11 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
         // Open separate CSVs for multi-cardinality components
         for (ComponentMetadata comp : metadata.getComponents()) {
             if (comp.isMultipleCardinality()) {
+                boolean exempt = ColumnResolver.isExemptFromStandardColumns(comp.getInternalName());
                 List<ColumnResolver.ResolvedColumn> columns = columnResolver.resolveColumns(comp);
-                ColumnResolver.injectAdditionalColumns(columns, columnResolver.getAdditionalColumns());
+                if (!exempt) {
+                    ColumnResolver.injectAdditionalColumns(columns, columnResolver.getAdditionalColumns());
+                }
                 multiComponentColumns.put(comp.getInternalName(), columns);
 
                 String filename = filenameResolver.resolve(
@@ -101,10 +104,18 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
                             .build();
                     multiWriters.put(comp.getInternalName(), writer);
 
-                    String[] header = new String[columns.size() + 1];
-                    header[0] = columnResolver.resolveTrackingHeader();
-                    for (int i = 0; i < columns.size(); i++) {
-                        header[i + 1] = columns.get(i).getHeader();
+                    String[] header;
+                    if (exempt) {
+                        header = new String[columns.size()];
+                        for (int i = 0; i < columns.size(); i++) {
+                            header[i] = columns.get(i).getHeader();
+                        }
+                    } else {
+                        header = new String[columns.size() + 1];
+                        header[0] = columnResolver.resolveTrackingHeader();
+                        for (int i = 0; i < columns.size(); i++) {
+                            header[i + 1] = columns.get(i).getHeader();
+                        }
                     }
                     writer.writeNext(header, false);
                     logger.info("Opened multi-cardinality CSV for {}: {}", comp.getDisplayName(), filePath);
@@ -120,22 +131,25 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
         for (BundleRecord record : records) {
             String trackingId = String.valueOf(record.getTrackingId());
 
+            Map<String, BundleComponent> componentMap = new LinkedHashMap<>();
+            for (BundleComponent comp : record.getComponents()) {
+                componentMap.put(comp.getComponentInternalName(), comp);
+            }
+
             // Build merged single row
             if (mergedWriter != null && mergedColumns != null) {
                 String[] row = new String[mergedColumns.size() + 1];
                 row[0] = trackingId;
-
-                Map<String, BundleComponent> componentMap = new LinkedHashMap<>();
-                for (BundleComponent comp : record.getComponents()) {
-                    componentMap.put(comp.getComponentInternalName(), comp);
-                }
 
                 for (int i = 0; i < mergedColumns.size(); i++) {
                     MergedColumnEntry entry = mergedColumns.get(i);
                     if (entry.column.isAdditional()) {
                         row[i + 1] = "";
                     } else {
-                        BundleComponent comp = componentMap.get(entry.componentInternalName);
+                        String lookupName = entry.column.getSourceComponentInternalName() != null
+                                ? entry.column.getSourceComponentInternalName()
+                                : entry.componentInternalName;
+                        BundleComponent comp = componentMap.get(lookupName);
                         row[i + 1] = (comp != null && comp.getFields() != null)
                                 ? comp.getFields().getOrDefault(entry.column.getFieldInternalName(), "") : "";
                     }
@@ -154,13 +168,34 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
                 }
 
                 if (comp.getRows() != null) {
-                    for (Map<String, String> rowData : comp.getRows()) {
-                        String[] row = new String[columns.size() + 1];
-                        row[0] = trackingId;
+                    boolean exempt = ColumnResolver.isExemptFromStandardColumns(comp.getComponentInternalName());
+                    for (int rowIdx = 0; rowIdx < comp.getRows().size(); rowIdx++) {
+                        Map<String, String> rowData = comp.getRows().get(rowIdx);
+                        int offset = exempt ? 0 : 1;
+                        String[] row = new String[columns.size() + offset];
+                        if (!exempt) {
+                            row[0] = trackingId;
+                        }
                         for (int i = 0; i < columns.size(); i++) {
                             ColumnResolver.ResolvedColumn col = columns.get(i);
-                            row[i + 1] = col.isAdditional() ? ""
-                                    : rowData.getOrDefault(col.getFieldInternalName(), "");
+                            if (col.isAdditional()) {
+                                row[i + offset] = "";
+                            } else if (col.getSourceComponentInternalName() != null) {
+                                BundleComponent sourceComp = componentMap.get(col.getSourceComponentInternalName());
+                                if (sourceComp != null && sourceComp.isMultipleCardinality()
+                                        && sourceComp.getRows() != null
+                                        && rowIdx < sourceComp.getRows().size()) {
+                                    row[i + offset] = sourceComp.getRows().get(rowIdx)
+                                            .getOrDefault(col.getFieldInternalName(), "");
+                                } else if (sourceComp != null && sourceComp.isSingleCardinality()) {
+                                    row[i + offset] = sourceComp.getFields() != null
+                                            ? sourceComp.getFields().getOrDefault(col.getFieldInternalName(), "") : "";
+                                } else {
+                                    row[i + offset] = "";
+                                }
+                            } else {
+                                row[i + offset] = rowData.getOrDefault(col.getFieldInternalName(), "");
+                            }
                         }
                         writer.writeNext(row, false);
                     }
