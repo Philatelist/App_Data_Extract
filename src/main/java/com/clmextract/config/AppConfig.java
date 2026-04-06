@@ -33,6 +33,9 @@ public class AppConfig {
     private boolean delimiterReplacementEnabled = false;
     private String delimiterSubstituteChar = null;
     private List<AdditionalColumnConfig> additionalColumns = new ArrayList<>();
+    private boolean yesNoTranslationEnabled = false;
+    private String yesNoTrueValue = "YES";
+    private String yesNoFalseValue = "NO";
 
     public AppConfig() {
     }
@@ -259,5 +262,29 @@ public class AppConfig {
 
     public void setAdditionalColumns(List<AdditionalColumnConfig> additionalColumns) {
         this.additionalColumns = additionalColumns != null ? additionalColumns : new ArrayList<>();
+    }
+
+    public boolean isYesNoTranslationEnabled() {
+        return yesNoTranslationEnabled;
+    }
+
+    public void setYesNoTranslationEnabled(boolean yesNoTranslationEnabled) {
+        this.yesNoTranslationEnabled = yesNoTranslationEnabled;
+    }
+
+    public String getYesNoTrueValue() {
+        return yesNoTrueValue;
+    }
+
+    public void setYesNoTrueValue(String yesNoTrueValue) {
+        this.yesNoTrueValue = yesNoTrueValue;
+    }
+
+    public String getYesNoFalseValue() {
+        return yesNoFalseValue;
+    }
+
+    public void setYesNoFalseValue(String yesNoFalseValue) {
+        this.yesNoFalseValue = yesNoFalseValue;
     }
 }

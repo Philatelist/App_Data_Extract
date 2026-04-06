@@ -78,3 +78,8 @@ delimiterReplacement:
 additionalColumns:
   - header: "Mapped Sub-Clauses.Tracking Number"
     position: 1
+
+yesNoTranslation:
+  enabled: true
+  trueValue: "YES"
+  falseValue: "NO"

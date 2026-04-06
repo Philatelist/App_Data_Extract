@@ -8,6 +8,7 @@ import com.clmextract.export.BundleRecord;
 import com.clmextract.export.BundleResponse;
 import com.clmextract.metadata.BoMetadata;
 import com.clmextract.metadata.ComponentMetadata;
+import com.clmextract.metadata.FieldMetadata;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -20,19 +21,39 @@ public class BundlesMapper {
 
     private final char delimiter;
     private final String delimiterSubstituteChar;
+    private final boolean yesNoTranslationEnabled;
+    private final String yesNoTrueValue;
+    private final String yesNoFalseValue;
 
     public BundlesMapper() {
-        this(',', null);
+        this(',', null, false, "YES", "NO");
     }
 
     public BundlesMapper(char delimiter, String delimiterSubstituteChar) {
+        this(delimiter, delimiterSubstituteChar, false, "YES", "NO");
+    }
+
+    public BundlesMapper(char delimiter, String delimiterSubstituteChar,
+                         boolean yesNoTranslationEnabled, String yesNoTrueValue, String yesNoFalseValue) {
         this.delimiter = delimiter;
         this.delimiterSubstituteChar = delimiterSubstituteChar;
+        this.yesNoTranslationEnabled = yesNoTranslationEnabled;
+        this.yesNoTrueValue = yesNoTrueValue;
+        this.yesNoFalseValue = yesNoFalseValue;
     }
 
     private String applyDelimiterReplacement(String value) {
         if (delimiterSubstituteChar == null || value == null) return value;
         return value.replace(String.valueOf(delimiter), delimiterSubstituteChar);
+    }
+
+    private String applyYesNoTranslation(String value, String fieldType) {
+        if (!yesNoTranslationEnabled) return value;
+        if (!"yesNoRadioButtons".equals(fieldType) && !"genericBoolean".equals(fieldType)) return value;
+        if (value == null || value.isBlank()) return value;
+        if ("true".equalsIgnoreCase(value)) return yesNoTrueValue;
+        if ("false".equalsIgnoreCase(value)) return yesNoFalseValue;
+        return value;
     }
 
     static String unescapeHtml(String value) {
@@ -79,9 +100,18 @@ public class BundlesMapper {
 
         // Build a lookup: component internal name → cardinality from metadata
         Map<String, String> cardinalityByComponent = new HashMap<>();
+        // Build a lookup: component internal name → field internal name → dataType
+        Map<String, Map<String, String>> fieldTypeMap = new HashMap<>();
         if (metadata.getComponents() != null) {
             for (ComponentMetadata comp : metadata.getComponents()) {
                 cardinalityByComponent.put(comp.getInternalName(), comp.getCardinality());
+                if (comp.getFields() != null) {
+                    Map<String, String> fieldTypes = new HashMap<>();
+                    for (FieldMetadata field : comp.getFields()) {
+                        fieldTypes.put(field.getInternalName(), field.getDataType());
+                    }
+                    fieldTypeMap.put(comp.getInternalName(), fieldTypes);
+                }
             }
         }
 
@@ -91,7 +121,7 @@ public class BundlesMapper {
         for (int i = 0; i < rawRecords.size(); i++) {
             List<BundleFieldDto> rawFields = rawRecords.get(i);
             Long positionalTrackingId = usePositionalIds ? requestTrackingIds.get(i) : null;
-            BundleRecord record = mapRecord(rawFields, cardinalityByComponent, positionalTrackingId);
+            BundleRecord record = mapRecord(rawFields, cardinalityByComponent, fieldTypeMap, positionalTrackingId);
             records.add(record);
         }
 
@@ -101,6 +131,7 @@ public class BundlesMapper {
 
     private BundleRecord mapRecord(List<BundleFieldDto> rawFields,
                                     Map<String, String> cardinalityByComponent,
+                                    Map<String, Map<String, String>> fieldTypeMap,
                                     Long positionalTrackingId) {
         BundleRecord record = new BundleRecord();
 
@@ -164,7 +195,8 @@ public class BundlesMapper {
                 for (List<BundleFieldDto> instanceFields : byInstanceId.values()) {
                     Map<String, String> row = new LinkedHashMap<>();
                     for (BundleFieldDto f : instanceFields) {
-                        row.put(f.getName(), applyDelimiterReplacement(normalizeValue(f.getName(), unescapeHtml(f.getValue()))));
+                        String fieldType = fieldTypeMap.getOrDefault(componentName, Map.of()).get(f.getName());
+                        row.put(f.getName(), applyYesNoTranslation(applyDelimiterReplacement(normalizeValue(f.getName(), unescapeHtml(f.getValue()))), fieldType));
                     }
                     if (isAttachment) {
                         String filePath = row.get("serverFileName");
@@ -186,7 +218,8 @@ public class BundlesMapper {
                 Map<String, String> fields = new LinkedHashMap<>();
                 for (List<BundleFieldDto> instanceFields : byInstanceId.values()) {
                     for (BundleFieldDto f : instanceFields) {
-                        fields.put(f.getName(), applyDelimiterReplacement(normalizeValue(f.getName(), unescapeHtml(f.getValue()))));
+                        String fieldType = fieldTypeMap.getOrDefault(componentName, Map.of()).get(f.getName());
+                        fields.put(f.getName(), applyYesNoTranslation(applyDelimiterReplacement(normalizeValue(f.getName(), unescapeHtml(f.getValue()))), fieldType));
                     }
                 }
 

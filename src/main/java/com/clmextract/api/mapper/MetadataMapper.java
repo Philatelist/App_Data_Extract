@@ -56,7 +56,7 @@ public class MetadataMapper {
                 FieldMetadata field = new FieldMetadata();
                 field.setInternalName(findPropertyValue(node.getProperties(), "name"));
                 field.setDisplayName(findPropertyValue(node.getProperties(), "displayName"));
-                field.setDataType(findPropertyValue(node.getProperties(), "dataType"));
+                field.setDataType(findPropertyInternalValue(node.getProperties(), "dataType"));
 
                 // Use InstancePath from property (should be MCPDef:/Module/Component/Field)
                 if (node.getProperties() != null && !node.getProperties().isEmpty()) {
@@ -102,12 +102,20 @@ public class MetadataMapper {
     }
 
     private String findPropertyValue(List<PropertyDto> properties, String name) {
-        if (properties == null) {
-            return null;
-        }
+        if (properties == null) return null;
         for (PropertyDto prop : properties) {
             if (name.equals(prop.getName())) {
                 return prop.getValue();
+            }
+        }
+        return null;
+    }
+
+    private String findPropertyInternalValue(List<PropertyDto> properties, String name) {
+        if (properties == null) return null;
+        for (PropertyDto prop : properties) {
+            if (name.equals(prop.getName())) {
+                return prop.getInternalValue();
             }
         }
         return null;

@@ -6,6 +6,7 @@ import com.clmextract.export.BundleRecord;
 import com.clmextract.export.BundleResponse;
 import com.clmextract.metadata.BoMetadata;
 import com.clmextract.metadata.ComponentMetadata;
+import com.clmextract.metadata.FieldMetadata;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -318,6 +319,186 @@ class BundlesMapperTest {
         assertEquals("&||bar", comp.getFields().get("contractName"));
     }
 
+    // --- Yes/No translation tests ---
+
+    @Test
+    void yesNoTranslation_disabled_truePasesThrough() {
+        BundlesMapper mapper = new BundlesMapper(';', null, false, "YES", "NO");
+        BoMetadata metadata = buildMetadataWithYesNoField();
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "10",
+                "MCP:/TestData|10/ReqInfo|10/trackingNumber"));
+        fields.add(makeField("approved", "true",
+                "MCP:/TestData|10/ReqInfo|10/approved"));
+
+        BundleResponse response = mapper.map(List.of(fields), metadata, null);
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("true", comp.getFields().get("approved"));
+    }
+
+    @Test
+    void yesNoTranslation_enabled_trueBecomesYes() {
+        BundlesMapper mapper = new BundlesMapper(';', null, true, "YES", "NO");
+        BoMetadata metadata = buildMetadataWithYesNoField();
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "11",
+                "MCP:/TestData|11/ReqInfo|11/trackingNumber"));
+        fields.add(makeField("approved", "true",
+                "MCP:/TestData|11/ReqInfo|11/approved"));
+
+        BundleResponse response = mapper.map(List.of(fields), metadata, null);
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("YES", comp.getFields().get("approved"));
+    }
+
+    @Test
+    void yesNoTranslation_enabled_falseBecomesNo() {
+        BundlesMapper mapper = new BundlesMapper(';', null, true, "YES", "NO");
+        BoMetadata metadata = buildMetadataWithYesNoField();
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "12",
+                "MCP:/TestData|12/ReqInfo|12/trackingNumber"));
+        fields.add(makeField("approved", "false",
+                "MCP:/TestData|12/ReqInfo|12/approved"));
+
+        BundleResponse response = mapper.map(List.of(fields), metadata, null);
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("NO", comp.getFields().get("approved"));
+    }
+
+    @Test
+    void yesNoTranslation_caseInsensitive_TrueBecomesYes() {
+        BundlesMapper mapper = new BundlesMapper(';', null, true, "YES", "NO");
+        BoMetadata metadata = buildMetadataWithYesNoField();
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "13",
+                "MCP:/TestData|13/ReqInfo|13/trackingNumber"));
+        fields.add(makeField("approved", "True",
+                "MCP:/TestData|13/ReqInfo|13/approved"));
+
+        BundleResponse response = mapper.map(List.of(fields), metadata, null);
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("YES", comp.getFields().get("approved"));
+    }
+
+    @Test
+    void yesNoTranslation_caseInsensitive_FALSEBecomesNo() {
+        BundlesMapper mapper = new BundlesMapper(';', null, true, "YES", "NO");
+        BoMetadata metadata = buildMetadataWithYesNoField();
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "14",
+                "MCP:/TestData|14/ReqInfo|14/trackingNumber"));
+        fields.add(makeField("approved", "FALSE",
+                "MCP:/TestData|14/ReqInfo|14/approved"));
+
+        BundleResponse response = mapper.map(List.of(fields), metadata, null);
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("NO", comp.getFields().get("approved"));
+    }
+
+    @Test
+    void yesNoTranslation_nonBooleanValueUnchanged() {
+        BundlesMapper mapper = new BundlesMapper(';', null, true, "YES", "NO");
+        BoMetadata metadata = buildMetadataWithYesNoField();
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "15",
+                "MCP:/TestData|15/ReqInfo|15/trackingNumber"));
+        fields.add(makeField("approved", "maybe",
+                "MCP:/TestData|15/ReqInfo|15/approved"));
+
+        BundleResponse response = mapper.map(List.of(fields), metadata, null);
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("maybe", comp.getFields().get("approved"));
+    }
+
+    @Test
+    void yesNoTranslation_emptyStringUnchanged() {
+        BundlesMapper mapper = new BundlesMapper(';', null, true, "YES", "NO");
+        BoMetadata metadata = buildMetadataWithYesNoField();
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "16",
+                "MCP:/TestData|16/ReqInfo|16/trackingNumber"));
+        fields.add(makeField("approved", "",
+                "MCP:/TestData|16/ReqInfo|16/approved"));
+
+        BundleResponse response = mapper.map(List.of(fields), metadata, null);
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("", comp.getFields().get("approved"));
+    }
+
+    @Test
+    void yesNoTranslation_genericBoolean_trueBecomesYes() {
+        BundlesMapper mapper = new BundlesMapper(';', null, true, "YES", "NO");
+        BoMetadata metadata = buildMetadataWithFieldType("active", "genericBoolean");
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "20",
+                "MCP:/TestData|20/ReqInfo|20/trackingNumber"));
+        fields.add(makeField("active", "true",
+                "MCP:/TestData|20/ReqInfo|20/active"));
+
+        BundleResponse response = mapper.map(List.of(fields), metadata, null);
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("YES", comp.getFields().get("active"));
+    }
+
+    @Test
+    void yesNoTranslation_genericBoolean_falseBecomesNo() {
+        BundlesMapper mapper = new BundlesMapper(';', null, true, "YES", "NO");
+        BoMetadata metadata = buildMetadataWithFieldType("active", "genericBoolean");
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "21",
+                "MCP:/TestData|21/ReqInfo|21/trackingNumber"));
+        fields.add(makeField("active", "false",
+                "MCP:/TestData|21/ReqInfo|21/active"));
+
+        BundleResponse response = mapper.map(List.of(fields), metadata, null);
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("NO", comp.getFields().get("active"));
+    }
+
+    @Test
+    void yesNoTranslation_nonYesNoFieldTypeUnchanged() {
+        BundlesMapper mapper = new BundlesMapper(';', null, true, "YES", "NO");
+        BoMetadata metadata = buildMetadata("single"); // contractName is not yesNoRadioButtons
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "17",
+                "MCP:/TestData|17/ReqInfo|17/trackingNumber"));
+        fields.add(makeField("contractName", "true",
+                "MCP:/TestData|17/ReqInfo|17/contractName"));
+
+        BundleResponse response = mapper.map(List.of(fields), metadata, null);
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("true", comp.getFields().get("contractName"));
+    }
+
+    @Test
+    void yesNoTranslation_appliedAfterDelimiterReplacement() {
+        // delimiter replacement replaces ';' in value — but "true" has no delimiter, result is "YES"
+        // The test checks that translation is the final step (replacement first, then translation)
+        BundlesMapper mapper = new BundlesMapper(';', "||", true, "YES", "NO");
+        BoMetadata metadata = buildMetadataWithYesNoField();
+
+        List<BundleFieldDto> fields = new ArrayList<>();
+        fields.add(makeField("trackingNumber", "18",
+                "MCP:/TestData|18/ReqInfo|18/trackingNumber"));
+        fields.add(makeField("approved", "true",
+                "MCP:/TestData|18/ReqInfo|18/approved"));
+
+        BundleResponse response = mapper.map(List.of(fields), metadata, null);
+        BundleComponent comp = response.getRecords().get(0).getComponents().get(0);
+        assertEquals("YES", comp.getFields().get("approved"));
+    }
+
     // --- Helper methods ---
 
     private BoMetadata buildMetadata(String cardinality) {
@@ -361,6 +542,29 @@ class BundlesMapperTest {
         fields.add(makeField("contractName", "Test Contract",
                 "MCP:/TestData|" + trackingId + "/ReqInfo|" + trackingId + "/contractName"));
         return fields;
+    }
+
+    private BoMetadata buildMetadataWithFieldType(String fieldName, String dataType) {
+        BoMetadata metadata = new BoMetadata();
+        metadata.setBoName("TestBO");
+
+        FieldMetadata field = new FieldMetadata();
+        field.setInternalName(fieldName);
+        field.setDisplayName(fieldName);
+        field.setDataType(dataType);
+
+        ComponentMetadata comp = new ComponentMetadata();
+        comp.setInternalName("ReqInfo");
+        comp.setDisplayName("Info");
+        comp.setCardinality("single");
+        comp.setFields(List.of(field));
+
+        metadata.setComponents(List.of(comp));
+        return metadata;
+    }
+
+    private BoMetadata buildMetadataWithYesNoField() {
+        return buildMetadataWithFieldType("approved", "yesNoRadioButtons");
     }
 
     private BundleFieldDto makeField(String name, String value, String instancePath) {

@@ -27,7 +27,10 @@ public class BundleParser {
         this.objectMapper = new ObjectMapper();
         this.bundlesMapper = new BundlesMapper(
                 config.getDelimiter(),
-                config.isDelimiterReplacementEnabled() ? config.getDelimiterSubstituteChar() : null
+                config.isDelimiterReplacementEnabled() ? config.getDelimiterSubstituteChar() : null,
+                config.isYesNoTranslationEnabled(),
+                config.getYesNoTrueValue(),
+                config.getYesNoFalseValue()
         );
     }
 
