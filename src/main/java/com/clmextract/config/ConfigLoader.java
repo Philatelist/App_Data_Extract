@@ -87,6 +87,14 @@ public class ConfigLoader {
             config.setDelimiterSubstituteChar(getStringOrDefault(delimiterReplacement, "substituteChar", null));
         }
 
+        // --- yesNoTranslation section ---
+        Map<String, Object> yesNoTranslation = getMap(root, "yesNoTranslation");
+        if (yesNoTranslation != null) {
+            config.setYesNoTranslationEnabled(getBooleanOrDefault(yesNoTranslation, "enabled", false));
+            config.setYesNoTrueValue(getStringOrDefault(yesNoTranslation, "trueValue", "YES"));
+            config.setYesNoFalseValue(getStringOrDefault(yesNoTranslation, "falseValue", "NO"));
+        }
+
         // --- additionalColumns ---
         List<Map<String, Object>> addColsList = getListOfMaps(root, "additionalColumns");
         if (addColsList != null) {

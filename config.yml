@@ -75,6 +75,10 @@ delimiterReplacement:
   enabled: true          # false = quoting mode (default when section is absent)
   substituteChar: ","    # the character to replace the delimiter with in values
 
+yesNoTranslation:
+  enabled: true
+  trueValue: "YES"
+  falseValue: "NO"
 additionalColumns:
   - header: "Mapped Sub-Clauses.Tracking Number"
     position: 1
