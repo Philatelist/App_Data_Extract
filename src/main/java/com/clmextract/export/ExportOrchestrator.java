@@ -82,6 +82,17 @@ public class ExportOrchestrator {
                     }
                 }
             }
+            // Close the summary CSV before generating the manifest so that the file is
+            // fully flushed to disk and its size/checksum are correct.
+            if (summaryCsvWriter != null) {
+                try {
+                    summaryCsvWriter.close();
+                } catch (IOException e) {
+                    logger.warn("Error closing summary CSV writer: {}", e.getMessage());
+                }
+                summaryCsvWriter = null;
+            }
+
             // Generate manifest
             try {
                 String manifestFilename = filenameResolver.resolve("Manifest_{DDMMYYYY}_{HHMMSS}.csv", null, null);
