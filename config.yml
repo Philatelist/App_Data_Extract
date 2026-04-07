@@ -14,7 +14,7 @@ boTypes:
 
 # Optional: filter discovered BOs by usage type. Allowed: Directory, NonContract, Contract.
 # Only applies when boTypes is empty (discovery mode).
-# boUsageTypeFilter: Contract
+boUsageTypeFilter: Contract
 
 generateSummaryCsv: true
 # optional, default: Summary_{DDMMYYYY}_{HHMMSS}.csv

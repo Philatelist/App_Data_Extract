@@ -28,6 +28,8 @@ public class ColumnResolver {
     private List<String> orderFilePaths;
     // Outer key: component internal name, inner key: parameter internal name, value: display name
     private Map<String, Map<String, String>> displayNameOverrides;
+    // Components whose fields have been moved into another component (no standalone CSV)
+    private final Set<String> absorbedComponents = new HashSet<>();
 
     public ColumnResolver(List<ComponentMetadata> components, String boType) {
         this(components, boType, List.of(), List.of());
@@ -45,10 +47,27 @@ public class ColumnResolver {
         this.additionalColumns = additionalColumns != null ? additionalColumns : List.of();
         loadOrderFile();
         loadOverridesFile();
+        computeAbsorbedComponents();
+    }
+
+    /** Determines which components are absorbed into another and should not produce their own CSV. */
+    private void computeAbsorbedComponents() {
+        boolean hasTarget = components.stream()
+                .anyMatch(c -> "ReqContractEmailWithConversation".equals(c.getInternalName()));
+        boolean hasSource = components.stream()
+                .anyMatch(c -> "ReqEmailConversation".equals(c.getInternalName()));
+        if (hasTarget && hasSource) {
+            absorbedComponents.add("ReqEmailConversation");
+        }
     }
 
     public List<AdditionalColumnConfig> getAdditionalColumns() {
         return additionalColumns;
+    }
+
+    /** Returns internal names of components whose fields were moved into another component. */
+    public Set<String> getAbsorbedComponents() {
+        return absorbedComponents;
     }
 
     /**
@@ -161,6 +180,15 @@ public class ColumnResolver {
     }
 
     public List<ResolvedColumn> resolveColumns(ComponentMetadata component) {
+        // If this component's fields have been moved into another component, return no domain
+        // fields — the writer will still inject the standard tracking columns on top of this.
+        if (absorbedComponents.contains(component.getInternalName())) {
+            return new ArrayList<>();
+        }
+        return resolveColumnsInternal(component);
+    }
+
+    private List<ResolvedColumn> resolveColumnsInternal(ComponentMetadata component) {
         List<ResolvedColumn> columns = new ArrayList<>();
         List<FieldMetadata> fields = component.getFields();
 
@@ -248,15 +276,16 @@ public class ColumnResolver {
             columns.add(new ResolvedColumn(component.getDisplayName() + ".SFTP File Name", "sftpFileName", "sftpFileName"));
         }
 
-        // Copy all fields from ReqEmailConversation into ReqContractEmailWithConversation.
-        // Each copied column is tagged with its source component so writers can look up
+        // Move all fields from ReqEmailConversation into ReqContractEmailWithConversation.
+        // Each moved column is tagged with its source component so writers can look up
         // the field values from the correct BundleComponent at runtime.
+        // ReqEmailConversation is registered as absorbed so it won't produce its own CSV.
         if ("ReqContractEmailWithConversation".equals(compInternal)) {
             for (ComponentMetadata otherComp : components) {
                 if ("ReqEmailConversation".equals(otherComp.getInternalName())) {
                     String sourceDisplayName = otherComp.getDisplayName();
                     String targetDisplayName = component.getDisplayName();
-                    List<ResolvedColumn> emailCols = resolveColumns(otherComp);
+                    List<ResolvedColumn> emailCols = resolveColumnsInternal(otherComp);
                     for (ResolvedColumn col : emailCols) {
                         // Replace the source component's display name prefix with the target's
                         // so the header reads "Contract Email With Conversation.Subject" instead
@@ -268,6 +297,7 @@ public class ColumnResolver {
                         columns.add(new ResolvedColumn(newHeader, col.getFieldInternalName(),
                                 col.getInstancePath(), col.isAdditional(), "ReqEmailConversation"));
                     }
+                    absorbedComponents.add("ReqEmailConversation");
                     break;
                 }
             }
@@ -292,7 +322,7 @@ public class ColumnResolver {
         private final String instancePath;
         private final boolean additional;
         /** Non-null when this column's field values must be read from a different component
-         *  than the one this column was added to (e.g. ReqEmailConversation fields copied
+         *  than the one this column was added to (e.g. ReqEmailConversation fields moved
          *  into ReqContractEmailWithConversation). */
         private final String sourceComponentInternalName;
 
