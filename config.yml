@@ -80,6 +80,12 @@ additionalColumns:
     position: 1
 
 yesNoTranslation:
-  enabled: true
+  enabled: false
   trueValue: "YES"
   falseValue: "NO"
+
+dateFormat:
+  inputFormat:          "MM/dd/yyyy"
+  outputFormat:         "dd/MM/yyyy"
+  inputDateTimeFormat:  "MM/dd/yyyy HH:mm:ss"
+  outputDateTimeFormat: "dd/MM/yyyy HH:mm:ss"
