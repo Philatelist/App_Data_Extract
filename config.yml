@@ -92,3 +92,9 @@ fieldValueMappings:
   approvedToMoveForwardCheckbox:
     "FALSE": "NO"
     "TRUE": "YES"
+
+dateFormat:
+  inputFormat:          "MM/dd/yyyy"
+  outputFormat:         "dd/MM/yyyy"
+  inputDateTimeFormat:  "MM/dd/yyyy HH:mm:ss"
+  outputDateTimeFormat: "dd/MM/yyyy HH:mm:ss"
