@@ -1,9 +1,9 @@
 # CLM Data Extract Configuration
 
 server:
-  url: https://..../services/rest/methods
-  username:
-  password:
+  url: https://rhi-stage.selectica.com/services/rest/methods
+  username: "mysupport@selectica.com"
+  password: "23_F|_5n-j4u6f"
 
 # Path to the endpoints definition file
 endpointsFile: inputs/endpoints.yml
@@ -63,7 +63,7 @@ retry:
   baseDelayMs: 1000
 
 # single report or multiple
-#reports: "Supplemental Report"
+reports: "Supplemental Report"
 
 skipComponents:
   - Account User Recipients
