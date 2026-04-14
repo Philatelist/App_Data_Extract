@@ -36,6 +36,7 @@ public class AppConfig {
     private boolean yesNoTranslationEnabled = false;
     private String yesNoTrueValue = "YES";
     private String yesNoFalseValue = "NO";
+    private DateFormatConfig dateFormat = null;
 
     public AppConfig() {
     }
@@ -286,5 +287,13 @@ public class AppConfig {
 
     public void setYesNoFalseValue(String yesNoFalseValue) {
         this.yesNoFalseValue = yesNoFalseValue;
+    }
+
+    public DateFormatConfig getDateFormat() {
+        return dateFormat;
+    }
+
+    public void setDateFormat(DateFormatConfig dateFormat) {
+        this.dateFormat = dateFormat;
     }
 }

@@ -13,6 +13,6 @@
   - [x] Add tests to `BundlesMapperTest`: (a) translation disabled → `"true"` on yesNoRadioButtons passes through, (b) enabled → `"true"`→`"YES"`, `"false"`→`"NO"`, (c) case-insensitive: `"True"`→`"YES"`, `"FALSE"`→`"NO"`, (d) non-boolean value on yesNoRadioButtons field → unchanged, (e) empty string → unchanged, (f) `"true"` on non-yesNoRadioButtons field → unchanged. **[Agent: general-purpose]**
   - [x] Run `mvn test -Dtest=BundlesMapperTest` and verify all new tests pass. **[Agent: general-purpose]**
 
-- [x] **Slice 3: End-to-end build and smoke test**
+- [x] **Slice 3: End-to-end build and smoke test** ✅
   - [x] Run `mvn package -DskipTests` and confirm the JAR builds cleanly. **[Agent: general-purpose]**
-  - [ ] Add `yesNoTranslation: {enabled: true}` to `config.yml`, run the JAR, and verify that at least one `YES` or `NO` value appears in the output CSV where a boolean field was expected. Confirm the run completes without error. **[Agent: general-purpose]**
+  - [x] Add `yesNoTranslation: {enabled: true}` to `config.yml`, run the JAR, and verify that at least one `YES` or `NO` value appears in the output CSV where a boolean field was expected. Confirm the run completes without error. **[Agent: general-purpose]**

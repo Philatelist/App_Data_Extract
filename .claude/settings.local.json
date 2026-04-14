@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn clean package:*)",
+      "Bash(python3:*)",
+      "Bash(java -jar:*)",
+      "Bash(echo:*)",
+      "Bash(mvn test:*)",
+      "Bash(.awos/scripts/create-spec-directory.sh bo-type-discovery-and-filtering:*)",
+      "Bash(mvn package:*)",
+      "Bash(ls /Users/alex/Work/CLM_Data_Extract/output/logs/*.log 2>/dev/null && cat /Users/alex/Work/CLM_Data_Extract/output/logs/*.log 2>&1 | tail -30 || echo \"No log files found\")",
+      "Bash(jar tf:*)",
+      "Bash(ls -t /Users/alex/Work/CLM_Data_Extract/output/logs/*.log | head -1 | xargs cat 2>&1)",
+      "Bash(java -Dlog4j2.debug=false -jar target/clm-data-extract-1.0.0.jar --config config-offline.yml; echo \"EXIT=$?\"; ls -la /Users/alex/Work/CLM_Data_Extract/output/MetaData/ 2>&1; ls -la /Users/alex/Work/CLM_Data_Extract/output/logs/*.log 2>&1 | tail -5)",
+      "Bash(java -Dlog4j2.debug=false -jar target/clm-data-extract-1.0.0.jar --config config-offline.yml 2>&1 | grep -E \"\\(Discover|discover|NAFBO|BO type|boTypes|Offline mode|No explicit|Starting|finish|All BO\\)\" 2>&1)",
+      "Bash(java -DLog4jContextSelector=org.apache.logging.log4j.core.selector.BasicContextSelector -jar target/clm-data-extract-1.0.0.jar --config config-offline.yml 2>&1 | grep -E \"^\\\\d{4}-\\\\d{2}-\\\\d{2}\" 2>&1)",
+      "Bash(mvn compile:*)",
+      "Bash(cp config.yml /tmp/test-dateformat-config.yml)",
+      "Bash(printf \"\\\\ndateFormat:\\\\n inputFormat: \\\\\"MM/dd/yyyy\\\\\"\\\\n\")",
+      "Bash(sed -i '' 's/offlineMode: false/offlineMode: true/' /tmp/test-offline-dateformat.yml)",
+      "Bash(sed -i '' 's/url: https:.*$/url: http:\\\\/\\\\/localhost/' /tmp/test-offline-dateformat.yml)",
+      "Bash(sed -i '' 's/username:$/username: test/' /tmp/test-offline-dateformat.yml)",
+      "Bash(sed -i '' 's/password:$/password: test/' /tmp/test-offline-dateformat.yml)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "awos-recruitment"
+  ]
+}

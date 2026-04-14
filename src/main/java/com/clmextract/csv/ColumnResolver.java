@@ -280,7 +280,8 @@ public class ColumnResolver {
             displayName = componentOverrides.get(field.getInternalName());
         }
         String header = componentDisplayName + "." + displayName;
-        return new ResolvedColumn(header, field.getInternalName(), field.getInstancePath());
+        return new ResolvedColumn(header, field.getInternalName(), field.getInstancePath(),
+                false, null, field.getDataType());
     }
 
     public static class ResolvedColumn {
@@ -292,22 +293,29 @@ public class ColumnResolver {
          *  than the one this column was added to (e.g. ReqEmailConversation fields copied
          *  into ReqContractEmailWithConversation). */
         private final String sourceComponentInternalName;
+        private final String dataType;
 
         public ResolvedColumn(String header, String fieldInternalName, String instancePath) {
-            this(header, fieldInternalName, instancePath, false, null);
+            this(header, fieldInternalName, instancePath, false, null, null);
         }
 
         public ResolvedColumn(String header, String fieldInternalName, String instancePath, boolean additional) {
-            this(header, fieldInternalName, instancePath, additional, null);
+            this(header, fieldInternalName, instancePath, additional, null, null);
         }
 
         public ResolvedColumn(String header, String fieldInternalName, String instancePath,
                               boolean additional, String sourceComponentInternalName) {
+            this(header, fieldInternalName, instancePath, additional, sourceComponentInternalName, null);
+        }
+
+        public ResolvedColumn(String header, String fieldInternalName, String instancePath,
+                              boolean additional, String sourceComponentInternalName, String dataType) {
             this.header = header;
             this.fieldInternalName = fieldInternalName;
             this.instancePath = instancePath;
             this.additional = additional;
             this.sourceComponentInternalName = sourceComponentInternalName;
+            this.dataType = dataType;
         }
 
         public String getHeader() { return header; }
@@ -315,5 +323,6 @@ public class ColumnResolver {
         public String getInstancePath() { return instancePath; }
         public boolean isAdditional() { return additional; }
         public String getSourceComponentInternalName() { return sourceComponentInternalName; }
+        public String getDataType() { return dataType; }
     }
 }

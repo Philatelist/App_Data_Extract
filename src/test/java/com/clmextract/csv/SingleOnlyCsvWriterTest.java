@@ -30,7 +30,7 @@ class SingleOnlyCsvWriterTest {
         SingleOnlyCsvWriter writer = new SingleOnlyCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.close();
@@ -58,7 +58,7 @@ class SingleOnlyCsvWriterTest {
         SingleOnlyCsvWriter writer = new SingleOnlyCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.close();
@@ -80,7 +80,7 @@ class SingleOnlyCsvWriterTest {
         SingleOnlyCsvWriter writer = new SingleOnlyCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.writeRecords(List.of(makeBundleRecord()));
@@ -102,7 +102,7 @@ class SingleOnlyCsvWriterTest {
         SingleOnlyCsvWriter writer = new SingleOnlyCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.writeRecords(List.of(makeBundleRecord()));

@@ -708,4 +708,179 @@ class ConfigLoaderTest {
         AppConfig config = ConfigLoader.load(path);
         assertFalse(config.isYesNoTranslationEnabled());
     }
+
+    // ------------------------------------------------------------------
+    // 31. dateFormat absent section => loads without error, getDateFormat() is null
+    // ------------------------------------------------------------------
+
+    @Test
+    void dateFormat_absentSection_dateFormatIsNull() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertNull(config.getDateFormat());
+    }
+
+    // ------------------------------------------------------------------
+    // 32. dateFormat both pairs fully configured => loads without error
+    // ------------------------------------------------------------------
+
+    @Test
+    void dateFormat_bothPairsFullyConfigured_loadsSuccessfully() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                dateFormat:
+                  inputFormat: "dd/MM/yyyy"
+                  outputFormat: "yyyy-MM-dd"
+                  inputDateTimeFormat: "dd/MM/yyyy HH:mm:ss"
+                  outputDateTimeFormat: "yyyy-MM-dd HH:mm:ss"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertNotNull(config.getDateFormat());
+    }
+
+    // ------------------------------------------------------------------
+    // 33. dateFormat only date pair configured => loads without error
+    // ------------------------------------------------------------------
+
+    @Test
+    void dateFormat_onlyDatePairConfigured_loadsSuccessfully() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                dateFormat:
+                  inputFormat: "dd/MM/yyyy"
+                  outputFormat: "yyyy-MM-dd"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertNotNull(config.getDateFormat());
+    }
+
+    // ------------------------------------------------------------------
+    // 34. dateFormat only datetime pair configured => loads without error
+    // ------------------------------------------------------------------
+
+    @Test
+    void dateFormat_onlyDateTimePairConfigured_loadsSuccessfully() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                dateFormat:
+                  inputDateTimeFormat: "dd/MM/yyyy HH:mm:ss"
+                  outputDateTimeFormat: "yyyy-MM-dd HH:mm:ss"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertNotNull(config.getDateFormat());
+    }
+
+    // ------------------------------------------------------------------
+    // 35. dateFormat partial date pair: inputFormat only => throws
+    // ------------------------------------------------------------------
+
+    @Test
+    void dateFormat_partialDatePair_inputFormatOnly_throws() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                dateFormat:
+                  inputFormat: "dd/MM/yyyy"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        ConfigValidationException ex = assertThrows(ConfigValidationException.class,
+                () -> ConfigLoader.load(path));
+        assertTrue(ex.getMessage().contains("dateFormat.outputFormat"));
+    }
+
+    // ------------------------------------------------------------------
+    // 36. dateFormat partial date pair: outputFormat only => throws
+    // ------------------------------------------------------------------
+
+    @Test
+    void dateFormat_partialDatePair_outputFormatOnly_throws() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                dateFormat:
+                  outputFormat: "yyyy-MM-dd"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        ConfigValidationException ex = assertThrows(ConfigValidationException.class,
+                () -> ConfigLoader.load(path));
+        assertTrue(ex.getMessage().contains("dateFormat.inputFormat"));
+    }
+
+    // ------------------------------------------------------------------
+    // 37. dateFormat partial datetime pair: inputDateTimeFormat only => throws
+    // ------------------------------------------------------------------
+
+    @Test
+    void dateFormat_partialDateTimePair_inputDateTimeFormatOnly_throws() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                dateFormat:
+                  inputDateTimeFormat: "dd/MM/yyyy HH:mm:ss"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        ConfigValidationException ex = assertThrows(ConfigValidationException.class,
+                () -> ConfigLoader.load(path));
+        assertTrue(ex.getMessage().contains("dateFormat.outputDateTimeFormat"));
+    }
+
+    // ------------------------------------------------------------------
+    // 38. dateFormat partial datetime pair: outputDateTimeFormat only => throws
+    // ------------------------------------------------------------------
+
+    @Test
+    void dateFormat_partialDateTimePair_outputDateTimeFormatOnly_throws() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                dateFormat:
+                  outputDateTimeFormat: "yyyy-MM-dd HH:mm:ss"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        ConfigValidationException ex = assertThrows(ConfigValidationException.class,
+                () -> ConfigLoader.load(path));
+        assertTrue(ex.getMessage().contains("dateFormat.inputDateTimeFormat"));
+    }
 }

@@ -93,7 +93,7 @@ public class BoPipeline {
 
         CsvExportWriter csvWriter = CsvWriterFactory.create(
                 config.getCsvMode(), metadata, columnResolver, filenameResolver,
-                template, outputDir, config.getDelimiter());
+                template, outputDir, config.getDelimiter(), config.getDateFormat());
 
         // Step 5b: Open downloads CSV writer
         Path downloadsDir = Path.of(config.getOutputRoot(), "downloads");

@@ -27,6 +27,7 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
     private final String filenameTemplate;
     private final Path outputDir;
     private final char delimiter;
+    private final DateFormatter dateFormatter;
 
     private ICSVWriter mergedWriter;
     private List<MergedColumnEntry> mergedColumns;
@@ -35,13 +36,14 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
 
     public MergedSingleCsvWriter(BoMetadata metadata, ColumnResolver columnResolver,
                                  FilenameResolver filenameResolver, String filenameTemplate,
-                                 Path outputDir, char delimiter) {
+                                 Path outputDir, char delimiter, DateFormatter dateFormatter) {
         this.metadata = metadata;
         this.columnResolver = columnResolver;
         this.filenameResolver = filenameResolver;
         this.filenameTemplate = filenameTemplate;
         this.outputDir = outputDir;
         this.delimiter = delimiter;
+        this.dateFormatter = dateFormatter;
     }
 
     @Override
@@ -150,8 +152,9 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
                                 ? entry.column.getSourceComponentInternalName()
                                 : entry.componentInternalName;
                         BundleComponent comp = componentMap.get(lookupName);
-                        row[i + 1] = (comp != null && comp.getFields() != null)
+                        String rawValue = (comp != null && comp.getFields() != null)
                                 ? comp.getFields().getOrDefault(entry.column.getFieldInternalName(), "") : "";
+                        row[i + 1] = dateFormatter.format(rawValue, entry.column.getDataType());
                     }
                 }
                 mergedWriter.writeNext(row, false);
@@ -180,21 +183,25 @@ public class MergedSingleCsvWriter implements CsvExportWriter {
                             ColumnResolver.ResolvedColumn col = columns.get(i);
                             if (col.isAdditional()) {
                                 row[i + offset] = "";
-                            } else if (col.getSourceComponentInternalName() != null) {
-                                BundleComponent sourceComp = componentMap.get(col.getSourceComponentInternalName());
-                                if (sourceComp != null && sourceComp.isMultipleCardinality()
-                                        && sourceComp.getRows() != null
-                                        && rowIdx < sourceComp.getRows().size()) {
-                                    row[i + offset] = sourceComp.getRows().get(rowIdx)
-                                            .getOrDefault(col.getFieldInternalName(), "");
-                                } else if (sourceComp != null && sourceComp.isSingleCardinality()) {
-                                    row[i + offset] = sourceComp.getFields() != null
-                                            ? sourceComp.getFields().getOrDefault(col.getFieldInternalName(), "") : "";
-                                } else {
-                                    row[i + offset] = "";
-                                }
                             } else {
-                                row[i + offset] = rowData.getOrDefault(col.getFieldInternalName(), "");
+                                String rawValue;
+                                if (col.getSourceComponentInternalName() != null) {
+                                    BundleComponent sourceComp = componentMap.get(col.getSourceComponentInternalName());
+                                    if (sourceComp != null && sourceComp.isMultipleCardinality()
+                                            && sourceComp.getRows() != null
+                                            && rowIdx < sourceComp.getRows().size()) {
+                                        rawValue = sourceComp.getRows().get(rowIdx)
+                                                .getOrDefault(col.getFieldInternalName(), "");
+                                    } else if (sourceComp != null && sourceComp.isSingleCardinality()) {
+                                        rawValue = sourceComp.getFields() != null
+                                                ? sourceComp.getFields().getOrDefault(col.getFieldInternalName(), "") : "";
+                                    } else {
+                                        rawValue = "";
+                                    }
+                                } else {
+                                    rawValue = rowData.getOrDefault(col.getFieldInternalName(), "");
+                                }
+                                row[i + offset] = dateFormatter.format(rawValue, col.getDataType());
                             }
                         }
                         writer.writeNext(row, false);

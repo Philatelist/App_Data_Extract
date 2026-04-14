@@ -29,7 +29,7 @@ class PerComponentCsvWriterTest {
         PerComponentCsvWriter writer = new PerComponentCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.close();
@@ -47,7 +47,7 @@ class PerComponentCsvWriterTest {
         PerComponentCsvWriter writer = new PerComponentCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.close();
@@ -67,7 +67,7 @@ class PerComponentCsvWriterTest {
         PerComponentCsvWriter writer = new PerComponentCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.close();
@@ -88,7 +88,7 @@ class PerComponentCsvWriterTest {
         PerComponentCsvWriter writer = new PerComponentCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.writeRecords(List.of(makeBundleRecord()));
@@ -111,7 +111,7 @@ class PerComponentCsvWriterTest {
         PerComponentCsvWriter writer = new PerComponentCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         // Create record with multiple attachment rows
         BundleRecord record = new BundleRecord();
@@ -160,7 +160,7 @@ class PerComponentCsvWriterTest {
         PerComponentCsvWriter writer = new PerComponentCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
 

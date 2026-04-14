@@ -111,6 +111,17 @@ public class ConfigLoader {
             config.setYesNoFalseValue(getStringOrDefault(yesNoTranslation, "falseValue", "NO"));
         }
 
+        // --- dateFormat section ---
+        Map<String, Object> dateFormat = getMap(root, "dateFormat");
+        if (dateFormat != null) {
+            DateFormatConfig dateFormatConfig = new DateFormatConfig();
+            dateFormatConfig.setInputFormat(getStringOrDefault(dateFormat, "inputFormat", null));
+            dateFormatConfig.setOutputFormat(getStringOrDefault(dateFormat, "outputFormat", null));
+            dateFormatConfig.setInputDateTimeFormat(getStringOrDefault(dateFormat, "inputDateTimeFormat", null));
+            dateFormatConfig.setOutputDateTimeFormat(getStringOrDefault(dateFormat, "outputDateTimeFormat", null));
+            config.setDateFormat(dateFormatConfig);
+        }
+
         // --- validation ---
         validate(config);
 
@@ -178,6 +189,27 @@ public class ConfigLoader {
                     throw new ConfigValidationException(
                         "delimiterReplacement.substituteChar must not contain the delimiter character ('" + delim + "')");
                 }
+            }
+        }
+
+        DateFormatConfig dateFormat = config.getDateFormat();
+        if (dateFormat != null) {
+            boolean hasInput = dateFormat.getInputFormat() != null && !dateFormat.getInputFormat().isEmpty();
+            boolean hasOutput = dateFormat.getOutputFormat() != null && !dateFormat.getOutputFormat().isEmpty();
+            if (hasInput && !hasOutput) {
+                throw new ConfigValidationException("dateFormat.outputFormat is required when dateFormat.inputFormat is set");
+            }
+            if (!hasInput && hasOutput) {
+                throw new ConfigValidationException("dateFormat.inputFormat is required when dateFormat.outputFormat is set");
+            }
+
+            boolean hasInputDt = dateFormat.getInputDateTimeFormat() != null && !dateFormat.getInputDateTimeFormat().isEmpty();
+            boolean hasOutputDt = dateFormat.getOutputDateTimeFormat() != null && !dateFormat.getOutputDateTimeFormat().isEmpty();
+            if (hasInputDt && !hasOutputDt) {
+                throw new ConfigValidationException("dateFormat.outputDateTimeFormat is required when dateFormat.inputDateTimeFormat is set");
+            }
+            if (!hasInputDt && hasOutputDt) {
+                throw new ConfigValidationException("dateFormat.inputDateTimeFormat is required when dateFormat.outputDateTimeFormat is set");
             }
         }
     }
