@@ -133,14 +133,6 @@ public class ConfigLoader {
             config.setAdditionalColumns(addCols);
         }
 
-        // --- yesNoTranslation section ---
-        Map<String, Object> yesNoTranslation = getMap(root, "yesNoTranslation");
-        if (yesNoTranslation != null) {
-            config.setYesNoTranslationEnabled(getBooleanOrDefault(yesNoTranslation, "enabled", false));
-            config.setYesNoTrueValue(getStringOrDefault(yesNoTranslation, "trueValue", "YES"));
-            config.setYesNoFalseValue(getStringOrDefault(yesNoTranslation, "falseValue", "NO"));
-        }
-
         // --- dateFormat section ---
         Map<String, Object> dateFormat = getMap(root, "dateFormat");
         if (dateFormat != null) {
