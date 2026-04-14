@@ -61,7 +61,7 @@ public class DateFormatter {
                 return date.format(formatter);
             }
         } catch (DateTimeParseException e) {
-            logger.warn("Could not parse date value '{}' using input format '{}'", value, inputFormat);
+            logger.debug("Could not parse date value '{}' using input format '{}', passing through as-is", value, inputFormat);
             return value;
         }
     }
