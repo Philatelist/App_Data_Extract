@@ -27,19 +27,21 @@ public class PerComponentCsvWriter implements CsvExportWriter {
     private final String filenameTemplate;
     private final Path outputDir;
     private final char delimiter;
+    private final DateFormatter dateFormatter;
 
     private final Map<String, ICSVWriter> writers = new LinkedHashMap<>();
     private final Map<String, List<ColumnResolver.ResolvedColumn>> componentColumns = new LinkedHashMap<>();
 
     public PerComponentCsvWriter(BoMetadata metadata, ColumnResolver columnResolver,
                                  FilenameResolver filenameResolver, String filenameTemplate,
-                                 Path outputDir, char delimiter) {
+                                 Path outputDir, char delimiter, DateFormatter dateFormatter) {
         this.metadata = metadata;
         this.columnResolver = columnResolver;
         this.filenameResolver = filenameResolver;
         this.filenameTemplate = filenameTemplate;
         this.outputDir = outputDir;
         this.delimiter = delimiter;
+        this.dateFormatter = dateFormatter;
     }
 
     @Override
@@ -123,11 +125,11 @@ public class PerComponentCsvWriter implements CsvExportWriter {
      * Builds a CSV row. When {@code trackingId} is {@code null} the leading tracking-ID
      * cell is omitted (exempt components).
      */
-    private static String[] buildRow(List<ColumnResolver.ResolvedColumn> columns,
-                                     BundleComponent primaryComp,
-                                     Map<String, BundleComponent> componentMap,
-                                     int rowIdx,
-                                     String trackingId) {
+    private String[] buildRow(List<ColumnResolver.ResolvedColumn> columns,
+                              BundleComponent primaryComp,
+                              Map<String, BundleComponent> componentMap,
+                              int rowIdx,
+                              String trackingId) {
         int offset = trackingId != null ? 1 : 0;
         String[] row = new String[columns.size() + offset];
         if (trackingId != null) {
@@ -147,10 +149,10 @@ public class PerComponentCsvWriter implements CsvExportWriter {
      * @param componentMap all components in the current record, keyed by internal name
      * @param rowIdx       row index within the component's rows list; {@code -1} for single-cardinality
      */
-    private static String resolveValue(ColumnResolver.ResolvedColumn col,
-                                       BundleComponent primaryComp,
-                                       Map<String, BundleComponent> componentMap,
-                                       int rowIdx) {
+    private String resolveValue(ColumnResolver.ResolvedColumn col,
+                                BundleComponent primaryComp,
+                                Map<String, BundleComponent> componentMap,
+                                int rowIdx) {
         if (col.isAdditional()) {
             return "";
         }
@@ -160,30 +162,32 @@ public class PerComponentCsvWriter implements CsvExportWriter {
         if (source == null) {
             return "";
         }
+        String rawValue;
         if (rowIdx < 0) {
             // Single-cardinality context
             if (source.isSingleCardinality()) {
                 Map<String, String> fields = source.getFields();
-                return fields != null ? fields.getOrDefault(col.getFieldInternalName(), "") : "";
+                rawValue = fields != null ? fields.getOrDefault(col.getFieldInternalName(), "") : "";
+            } else {
+                List<Map<String, String>> srcRows = source.getRows();
+                if (srcRows != null && !srcRows.isEmpty()) {
+                    rawValue = srcRows.get(0).getOrDefault(col.getFieldInternalName(), "");
+                } else {
+                    rawValue = "";
+                }
             }
-            // Multi-cardinality source in a single-cardinality context: use first row
-            List<Map<String, String>> srcRows = source.getRows();
-            if (srcRows != null && !srcRows.isEmpty()) {
-                return srcRows.get(0).getOrDefault(col.getFieldInternalName(), "");
-            }
-            return "";
-        }
-        // Multi-cardinality context
-        if (source.isMultipleCardinality()) {
+        } else if (source.isMultipleCardinality()) {
             List<Map<String, String>> srcRows = source.getRows();
             if (srcRows != null && rowIdx < srcRows.size()) {
-                return srcRows.get(rowIdx).getOrDefault(col.getFieldInternalName(), "");
+                rawValue = srcRows.get(rowIdx).getOrDefault(col.getFieldInternalName(), "");
+            } else {
+                rawValue = "";
             }
-            return "";
+        } else {
+            Map<String, String> fields = source.getFields();
+            rawValue = fields != null ? fields.getOrDefault(col.getFieldInternalName(), "") : "";
         }
-        // Single-cardinality source repeated across all rows
-        Map<String, String> fields = source.getFields();
-        return fields != null ? fields.getOrDefault(col.getFieldInternalName(), "") : "";
+        return dateFormatter.format(rawValue, col.getDataType());
     }
 
     @Override

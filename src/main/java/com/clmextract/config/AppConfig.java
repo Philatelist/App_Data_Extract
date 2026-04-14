@@ -40,6 +40,7 @@ public class AppConfig {
     private String yesNoFalseValue = "NO";
     // fieldName → (rawValue → mappedValue)
     private Map<String, Map<String, String>> fieldValueMappings = new LinkedHashMap<>();
+    private DateFormatConfig dateFormat = null;
 
     public AppConfig() {
     }
@@ -298,5 +299,13 @@ public class AppConfig {
 
     public void setFieldValueMappings(Map<String, Map<String, String>> fieldValueMappings) {
         this.fieldValueMappings = fieldValueMappings != null ? fieldValueMappings : new LinkedHashMap<>();
+    }
+
+    public DateFormatConfig getDateFormat() {
+        return dateFormat;
+    }
+
+    public void setDateFormat(DateFormatConfig dateFormat) {
+        this.dateFormat = dateFormat;
     }
 }

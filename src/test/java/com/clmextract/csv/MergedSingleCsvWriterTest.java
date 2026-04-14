@@ -29,7 +29,7 @@ class MergedSingleCsvWriterTest {
         MergedSingleCsvWriter writer = new MergedSingleCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.close();
@@ -47,7 +47,7 @@ class MergedSingleCsvWriterTest {
         MergedSingleCsvWriter writer = new MergedSingleCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.close();
@@ -65,7 +65,7 @@ class MergedSingleCsvWriterTest {
         MergedSingleCsvWriter writer = new MergedSingleCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.close();
@@ -86,7 +86,7 @@ class MergedSingleCsvWriterTest {
         MergedSingleCsvWriter writer = new MergedSingleCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.writeRecords(List.of(makeBundleRecord()));
@@ -108,7 +108,7 @@ class MergedSingleCsvWriterTest {
         MergedSingleCsvWriter writer = new MergedSingleCsvWriter(
                 metadata, resolver, fnResolver,
                 "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv",
-                tempDir, ',');
+                tempDir, ',', new DateFormatter(null));
 
         writer.writeHeaders();
         writer.writeRecords(List.of(makeBundleRecord()));

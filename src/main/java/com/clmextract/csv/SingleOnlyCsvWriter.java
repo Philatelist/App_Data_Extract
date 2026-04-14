@@ -27,19 +27,21 @@ public class SingleOnlyCsvWriter implements CsvExportWriter {
     private final String filenameTemplate;
     private final Path outputDir;
     private final char delimiter;
+    private final DateFormatter dateFormatter;
 
     private ICSVWriter writer;
     private List<MergedColumnEntry> mergedColumns;
 
     public SingleOnlyCsvWriter(BoMetadata metadata, ColumnResolver columnResolver,
                                FilenameResolver filenameResolver, String filenameTemplate,
-                               Path outputDir, char delimiter) {
+                               Path outputDir, char delimiter, DateFormatter dateFormatter) {
         this.metadata = metadata;
         this.columnResolver = columnResolver;
         this.filenameResolver = filenameResolver;
         this.filenameTemplate = filenameTemplate;
         this.outputDir = outputDir;
         this.delimiter = delimiter;
+        this.dateFormatter = dateFormatter;
     }
 
     @Override
@@ -108,8 +110,9 @@ public class SingleOnlyCsvWriter implements CsvExportWriter {
                     row[i + 1] = "";
                 } else {
                     BundleComponent comp = componentMap.get(entry.componentInternalName);
-                    row[i + 1] = (comp != null && comp.getFields() != null)
+                    String rawValue = (comp != null && comp.getFields() != null)
                             ? comp.getFields().getOrDefault(entry.column.getFieldInternalName(), "") : "";
+                    row[i + 1] = dateFormatter.format(rawValue, entry.column.getDataType());
                 }
             }
             writer.writeNext(row, false);
