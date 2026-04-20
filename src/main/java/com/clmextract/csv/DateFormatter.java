@@ -28,11 +28,11 @@ public class DateFormatter {
         String outputFormat;
         boolean isDateTime;
 
-        if ("genericDate".equals(dataType)) {
+        if ("genericDate".equals(dataType) || "modernDate".equals(dataType)) {
             inputFormat = config.getInputFormat();
             outputFormat = config.getOutputFormat();
             isDateTime = false;
-        } else if ("modernDate".equals(dataType)) {
+        } else if ("modernDateTime".equals(dataType)) {
             inputFormat = config.getInputDateTimeFormat();
             outputFormat = config.getOutputDateTimeFormat();
             isDateTime = true;
