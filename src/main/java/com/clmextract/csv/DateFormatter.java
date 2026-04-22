@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 
 public class DateFormatter {
 
@@ -24,23 +25,23 @@ public class DateFormatter {
             return value;
         }
 
-        String inputFormat;
+        List<String> inputFormats;
         String outputFormat;
         boolean isDateTime;
 
         if ("genericDate".equals(dataType) || "modernDate".equals(dataType)) {
-            inputFormat = config.getInputFormat();
+            inputFormats = config.getInputFormats();
             outputFormat = config.getOutputFormat();
             isDateTime = false;
         } else if ("modernDateTime".equals(dataType)) {
-            inputFormat = config.getInputDateTimeFormat();
+            inputFormats = config.getInputDateTimeFormats();
             outputFormat = config.getOutputDateTimeFormat();
             isDateTime = true;
         } else {
             return value;
         }
 
-        if (inputFormat == null || inputFormat.isEmpty() || outputFormat == null || outputFormat.isEmpty()) {
+        if (inputFormats == null || inputFormats.isEmpty() || outputFormat == null || outputFormat.isEmpty()) {
             return value;
         }
 
@@ -48,21 +49,21 @@ public class DateFormatter {
             return value;
         }
 
-        try {
-            if (isDateTime) {
+        DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern(outputFormat);
+        for (String inputFormat : inputFormats) {
+            try {
                 DateTimeFormatter parser = DateTimeFormatter.ofPattern(inputFormat);
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(outputFormat);
-                LocalDateTime dt = LocalDateTime.parse(value, parser);
-                return dt.format(formatter);
-            } else {
-                DateTimeFormatter parser = DateTimeFormatter.ofPattern(inputFormat);
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(outputFormat);
-                LocalDate date = LocalDate.parse(value, parser);
-                return date.format(formatter);
+                if (isDateTime) {
+                    return LocalDateTime.parse(value, parser).format(outputFormatter);
+                } else {
+                    return LocalDate.parse(value, parser).format(outputFormatter);
+                }
+            } catch (DateTimeParseException e) {
+                // try next format
             }
-        } catch (DateTimeParseException e) {
-            logger.debug("Could not parse date value '{}' using input format '{}', passing through as-is", value, inputFormat);
-            return value;
         }
+
+        logger.debug("Could not parse date value '{}' using any configured input format, passing through as-is", value);
+        return value;
     }
 }

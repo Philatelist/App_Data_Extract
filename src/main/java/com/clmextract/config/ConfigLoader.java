@@ -8,9 +8,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ConfigLoader {
 
@@ -137,9 +139,9 @@ public class ConfigLoader {
         Map<String, Object> dateFormat = getMap(root, "dateFormat");
         if (dateFormat != null) {
             DateFormatConfig dateFormatConfig = new DateFormatConfig();
-            dateFormatConfig.setInputFormat(getStringOrDefault(dateFormat, "inputFormat", null));
+            dateFormatConfig.setInputFormats(getStringListOrDefault(dateFormat, "inputFormats", null));
             dateFormatConfig.setOutputFormat(getStringOrDefault(dateFormat, "outputFormat", null));
-            dateFormatConfig.setInputDateTimeFormat(getStringOrDefault(dateFormat, "inputDateTimeFormat", null));
+            dateFormatConfig.setInputDateTimeFormats(getStringListOrDefault(dateFormat, "inputDateTimeFormats", null));
             dateFormatConfig.setOutputDateTimeFormat(getStringOrDefault(dateFormat, "outputDateTimeFormat", null));
             config.setDateFormat(dateFormatConfig);
         }
@@ -216,22 +218,22 @@ public class ConfigLoader {
 
         DateFormatConfig dateFormat = config.getDateFormat();
         if (dateFormat != null) {
-            boolean hasInput = dateFormat.getInputFormat() != null && !dateFormat.getInputFormat().isEmpty();
+            boolean hasInput = dateFormat.getInputFormats() != null && !dateFormat.getInputFormats().isEmpty();
             boolean hasOutput = dateFormat.getOutputFormat() != null && !dateFormat.getOutputFormat().isEmpty();
             if (hasInput && !hasOutput) {
-                throw new ConfigValidationException("dateFormat.outputFormat is required when dateFormat.inputFormat is set");
+                throw new ConfigValidationException("dateFormat.outputFormat is required when dateFormat.inputFormats is set");
             }
             if (!hasInput && hasOutput) {
-                throw new ConfigValidationException("dateFormat.inputFormat is required when dateFormat.outputFormat is set");
+                throw new ConfigValidationException("dateFormat.inputFormats is required when dateFormat.outputFormat is set");
             }
 
-            boolean hasInputDt = dateFormat.getInputDateTimeFormat() != null && !dateFormat.getInputDateTimeFormat().isEmpty();
+            boolean hasInputDt = dateFormat.getInputDateTimeFormats() != null && !dateFormat.getInputDateTimeFormats().isEmpty();
             boolean hasOutputDt = dateFormat.getOutputDateTimeFormat() != null && !dateFormat.getOutputDateTimeFormat().isEmpty();
             if (hasInputDt && !hasOutputDt) {
-                throw new ConfigValidationException("dateFormat.outputDateTimeFormat is required when dateFormat.inputDateTimeFormat is set");
+                throw new ConfigValidationException("dateFormat.outputDateTimeFormat is required when dateFormat.inputDateTimeFormats is set");
             }
             if (!hasInputDt && hasOutputDt) {
-                throw new ConfigValidationException("dateFormat.inputDateTimeFormat is required when dateFormat.outputDateTimeFormat is set");
+                throw new ConfigValidationException("dateFormat.inputDateTimeFormats is required when dateFormat.outputDateTimeFormat is set");
             }
         }
     }
@@ -272,6 +274,18 @@ public class ConfigLoader {
         Object value = map.get(key);
         if (value != null) {
             return value.toString();
+        }
+        return defaultValue;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<String> getStringListOrDefault(Map<String, Object> map, String key, List<String> defaultValue) {
+        Object value = map.get(key);
+        if (value instanceof List) {
+            return ((List<?>) value).stream().map(Object::toString).collect(Collectors.toList());
+        }
+        if (value != null) {
+            return Collections.singletonList(value.toString());
         }
         return defaultValue;
     }

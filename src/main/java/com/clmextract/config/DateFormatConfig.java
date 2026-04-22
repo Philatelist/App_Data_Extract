@@ -1,18 +1,20 @@
 package com.clmextract.config;
 
+import java.util.List;
+
 public class DateFormatConfig {
 
-    private String inputFormat;
+    private List<String> inputFormats;
     private String outputFormat;
-    private String inputDateTimeFormat;
+    private List<String> inputDateTimeFormats;
     private String outputDateTimeFormat;
 
-    public String getInputFormat() {
-        return inputFormat;
+    public List<String> getInputFormats() {
+        return inputFormats;
     }
 
-    public void setInputFormat(String inputFormat) {
-        this.inputFormat = inputFormat;
+    public void setInputFormats(List<String> inputFormats) {
+        this.inputFormats = inputFormats;
     }
 
     public String getOutputFormat() {
@@ -23,12 +25,12 @@ public class DateFormatConfig {
         this.outputFormat = outputFormat;
     }
 
-    public String getInputDateTimeFormat() {
-        return inputDateTimeFormat;
+    public List<String> getInputDateTimeFormats() {
+        return inputDateTimeFormats;
     }
 
-    public void setInputDateTimeFormat(String inputDateTimeFormat) {
-        this.inputDateTimeFormat = inputDateTimeFormat;
+    public void setInputDateTimeFormats(List<String> inputDateTimeFormats) {
+        this.inputDateTimeFormats = inputDateTimeFormats;
     }
 
     public String getOutputDateTimeFormat() {
