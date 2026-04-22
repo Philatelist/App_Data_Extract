@@ -14,7 +14,7 @@ boTypes:
 
 # Optional: filter discovered BOs by usage type. Allowed: Directory, NonContract, Contract.
 # Only applies when boTypes is empty (discovery mode).
-# boUsageTypeFilter: Contract
+boUsageTypeFilter: Contract
 
 generateSummaryCsv: true
 # optional, default: Summary_{DDMMYYYY}_{HHMMSS}.csv
@@ -61,7 +61,6 @@ offlineMode: false
 retry:
   maxAttempts: 3
   baseDelayMs: 1000
-
 # single report or multiple
 #reports: "Supplemental Report"
 
@@ -85,7 +84,11 @@ yesNoTranslation:
   falseValue: "NO"
 
 dateFormat:
-  inputFormat:          "MM/dd/yyyy"
+  inputFormats:
+    - "M/d/yyyy"
   outputFormat:         "dd/MM/yyyy"
-  inputDateTimeFormat:  "MM/dd/yyyy HH:mm:ss"
+  inputDateTimeFormats:
+    - "M/d/yyyy h:mm:ss a"
+    - "M/d/yyyy HH:mm:ss"
+    - "M/d/yyyy HH:mm"
   outputDateTimeFormat: "dd/MM/yyyy HH:mm:ss"

@@ -741,9 +741,12 @@ class ConfigLoaderTest {
                   password: "pass"
                 outputRoot: "out"
                 dateFormat:
-                  inputFormat: "dd/MM/yyyy"
+                  inputFormats:
+                    - "dd/MM/yyyy"
                   outputFormat: "yyyy-MM-dd"
-                  inputDateTimeFormat: "dd/MM/yyyy HH:mm:ss"
+                  inputDateTimeFormats:
+                    - "dd/MM/yyyy HH:mm:ss"
+                    - "dd/MM/yyyy h:mm:ss a"
                   outputDateTimeFormat: "yyyy-MM-dd HH:mm:ss"
                 """;
 
@@ -765,7 +768,8 @@ class ConfigLoaderTest {
                   password: "pass"
                 outputRoot: "out"
                 dateFormat:
-                  inputFormat: "dd/MM/yyyy"
+                  inputFormats:
+                    - "dd/MM/yyyy"
                   outputFormat: "yyyy-MM-dd"
                 """;
 
@@ -787,7 +791,9 @@ class ConfigLoaderTest {
                   password: "pass"
                 outputRoot: "out"
                 dateFormat:
-                  inputDateTimeFormat: "dd/MM/yyyy HH:mm:ss"
+                  inputDateTimeFormats:
+                    - "dd/MM/yyyy HH:mm:ss"
+                    - "dd/MM/yyyy h:mm:ss a"
                   outputDateTimeFormat: "yyyy-MM-dd HH:mm:ss"
                 """;
 
@@ -809,7 +815,8 @@ class ConfigLoaderTest {
                   password: "pass"
                 outputRoot: "out"
                 dateFormat:
-                  inputFormat: "dd/MM/yyyy"
+                  inputFormats:
+                    - "dd/MM/yyyy"
                 """;
 
         String path = writeYaml(tempDir, yaml);
@@ -837,7 +844,7 @@ class ConfigLoaderTest {
         String path = writeYaml(tempDir, yaml);
         ConfigValidationException ex = assertThrows(ConfigValidationException.class,
                 () -> ConfigLoader.load(path));
-        assertTrue(ex.getMessage().contains("dateFormat.inputFormat"));
+        assertTrue(ex.getMessage().contains("dateFormat.inputFormats"));
     }
 
     // ------------------------------------------------------------------
@@ -853,7 +860,8 @@ class ConfigLoaderTest {
                   password: "pass"
                 outputRoot: "out"
                 dateFormat:
-                  inputDateTimeFormat: "dd/MM/yyyy HH:mm:ss"
+                  inputDateTimeFormats:
+                    - "dd/MM/yyyy HH:mm:ss"
                 """;
 
         String path = writeYaml(tempDir, yaml);
@@ -881,6 +889,6 @@ class ConfigLoaderTest {
         String path = writeYaml(tempDir, yaml);
         ConfigValidationException ex = assertThrows(ConfigValidationException.class,
                 () -> ConfigLoader.load(path));
-        assertTrue(ex.getMessage().contains("dateFormat.inputDateTimeFormat"));
+        assertTrue(ex.getMessage().contains("dateFormat.inputDateTimeFormats"));
     }
 }
