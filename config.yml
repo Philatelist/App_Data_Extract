@@ -61,6 +61,7 @@ offlineMode: false
 retry:
   maxAttempts: 3
   baseDelayMs: 1000
+
 # single report or multiple
 reports: "Supplemental Report"
 
@@ -100,4 +101,4 @@ dateFormat:
     - "M/d/yyyy h:mm:ss a"
     - "M/d/yyyy HH:mm:ss"
     - "M/d/yyyy HH:mm"
-  outputDateTimeFormat: "dd/MM/yyyy HH:mm:ss"
+  outputDateTimeFormat: "dd/MM/yyyy h:mm:ss a"
