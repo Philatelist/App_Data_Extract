@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLM Data Extract — Admin Panel</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ===== NAV ===== -->
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">
+      ⬡ CLM Extract
+      <span class="nav-badge">Admin</span>
+    </a>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="index.html" class="btn-secondary btn-sm">Sign Out</a>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">☰</button>
+  </nav>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Configuration</div>
+      <a href="#server" class="sidebar-link active">Server Connection</a>
+      <a href="#api" class="sidebar-link">API &amp; Endpoints</a>
+      <a href="#bo-types" class="sidebar-link">BO Types</a>
+      <a href="#output" class="sidebar-link">Output &amp; Files</a>
+      <a href="#filtering" class="sidebar-link">Column &amp; Component Filtering</a>
+      <a href="#delimiter" class="sidebar-link">Delimiter Replacement</a>
+      <a href="#yesno" class="sidebar-link">Yes/No Translation</a>
+      <a href="#dateformat" class="sidebar-link">Date Format</a>
+      <a href="#sftp" class="sidebar-link">SFTP Connection</a>
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main-with-sidebar">
+    <div style="max-width:900px; margin: 0 auto;">
+
+      <div class="page-header">
+        <h1 class="page-title">Configuration</h1>
+        <p class="page-sub">All settings are written to config.yml on save.</p>
+      </div>
+
+      <!-- ===== SERVER CONNECTION ===== -->
+      <section id="server" class="card reveal">
+        <h2 class="section-title">Server Connection</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="server-url">Server URL <span class="required-star">*</span></label>
+            <input class="form-control" id="server-url" type="url" placeholder="https://clm.example.com/services/rest/methods" />
+          </div>
+          <div class="form-group">
+            <label for="server-username">Username <span class="required-star">*</span></label>
+            <input class="form-control" id="server-username" type="text" placeholder="Enter username" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="server-password">Password <span class="required-star">*</span></label>
+            <input class="form-control" id="server-password" type="password" placeholder="Enter password" autocomplete="new-password" />
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== API & ENDPOINTS ===== -->
+      <section id="api" class="card reveal">
+        <h2 class="section-title">API &amp; Endpoints</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="endpoints-file">Endpoints File</label>
+            <input class="form-control" id="endpoints-file" type="text" value="inputs/endpoints.yml" />
+            <span class="field-hint">Path to the YAML file listing API endpoints.</span>
+          </div>
+          <div class="form-group">
+            <label for="batch-size">Batch Size</label>
+            <input class="form-control" id="batch-size" type="number" min="1" value="30" />
+            <span class="field-hint">Number of records fetched per API request.</span>
+          </div>
+          <div class="form-group">
+            <label for="retry-attempts">Retry Attempts</label>
+            <input class="form-control" id="retry-attempts" type="number" min="0" value="3" />
+            <span class="field-hint">Number of retries on API failure (0 = no retry).</span>
+          </div>
+          <div class="form-group">
+            <label for="retry-delay">Retry Delay (ms)</label>
+            <input class="form-control" id="retry-delay" type="number" value="1000" />
+            <span class="field-hint">Milliseconds to wait between retry attempts.</span>
+          </div>
+        </div>
+        <div class="form-group form-group-toggle" style="margin-top: 1rem;">
+          <label class="toggle-label" for="offline-mode">
+            <div>
+              <span>Offline Mode</span>
+              <p class="field-hint">Skip all API calls; use cached data only.</p>
+            </div>
+            <span class="toggle-switch">
+              <input type="checkbox" id="offline-mode" />
+              <span class="toggle-slider"></span>
+            </span>
+          </label>
+        </div>
+      </section>
+
+      <!-- ===== BO TYPES ===== -->
+      <section id="bo-types" class="card reveal">
+        <h2 class="section-title">BO Types</h2>
+
+        <div class="form-group" style="margin-bottom:1.25rem;">
+          <label>BO Types to Export</label>
+          <div class="tag-list" id="bo-types-list">
+            <span class="tag">Contract <button class="tag-remove" type="button">×</button></span>
+            <span class="tag">Amendment <button class="tag-remove" type="button">×</button></span>
+          </div>
+          <div class="tag-add-row">
+            <input class="form-control form-control-sm" id="bo-type-input" type="text" placeholder="Add BO type…" style="max-width:220px;" />
+            <button class="btn-secondary btn-sm" id="bo-type-add" type="button">+ Add</button>
+          </div>
+          <span class="field-hint" style="margin-top:0.25rem;">Leave empty to export all available BO types.</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="bo-usage-filter">Usage Filter</label>
+            <select class="form-control" id="bo-usage-filter">
+              <option value="">(All)</option>
+              <option value="Contract">Contract</option>
+              <option value="NonContract">NonContract</option>
+              <option value="Directory">Directory</option>
+            </select>
+            <span class="field-hint">Filter BO types by their usage category.</span>
+          </div>
+          <div class="form-group">
+            <label for="tracking-filter">Tracking Filter</label>
+            <input class="form-control" id="tracking-filter" type="text" placeholder="e.g. ACTIVE" />
+            <span class="field-hint">Filter records by tracking status value.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== OUTPUT & FILES ===== -->
+      <section id="output" class="card reveal">
+        <h2 class="section-title">Output &amp; Files</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="output-root">Output Root Directory</label>
+            <input class="form-control" id="output-root" type="text" value="output" />
+            <span class="field-hint">Root folder where all output is written.</span>
+          </div>
+          <div class="form-group">
+            <label for="export-folder">Export Subfolder</label>
+            <input class="form-control" id="export-folder" type="text" value="MetaData" />
+            <span class="field-hint">Subfolder inside the output root for CSV exports.</span>
+          </div>
+          <div class="form-group">
+            <label for="backup-days">Backup Retention (days)</label>
+            <input class="form-control" id="backup-days" type="number" value="30" min="0" />
+            <span class="field-hint">How many days to keep previous export backups.</span>
+          </div>
+          <div class="form-group">
+            <label for="csv-mode">CSV Mode</label>
+            <select class="form-control" id="csv-mode">
+              <option value="per-component">Per Component</option>
+              <option value="merged-single">Merged Single File</option>
+              <option value="single-only">Single File Only</option>
+            </select>
+            <span class="field-hint">How CSV output files are structured.</span>
+          </div>
+          <div class="form-group">
+            <label for="delimiter">Delimiter Character</label>
+            <input class="form-control" id="delimiter" type="text" maxlength="1" value=";" />
+            <span class="field-hint">Single character used as the CSV column separator.</span>
+          </div>
+          <div class="form-group">
+            <label for="filename-template">Filename Template</label>
+            <input class="form-control" id="filename-template" type="text" placeholder="{boType}_{date}.csv" />
+            <span class="field-hint">Template for generated CSV file names.</span>
+          </div>
+          <div class="form-group">
+            <label for="downloads-template">Downloads Folder Template</label>
+            <input class="form-control" id="downloads-template" type="text" placeholder="{boType}/downloads" />
+            <span class="field-hint">Template for the downloaded attachments folder path.</span>
+          </div>
+        </div>
+
+        <!-- Generate Summary toggle -->
+        <div class="form-group form-group-toggle" style="margin-top:1.25rem;">
+          <label class="toggle-label" for="gen-summary">
+            <div>
+              <span>Generate Summary File</span>
+              <p class="field-hint">Produce a summary CSV alongside the main export.</p>
+            </div>
+            <span class="toggle-switch">
+              <input type="checkbox" id="gen-summary" checked />
+              <span class="toggle-slider"></span>
+            </span>
+          </label>
+        </div>
+        <div id="summary-template-group" class="form-group" style="margin-top:0.75rem; padding-left: 0.5rem;">
+          <label for="summary-template">Summary Filename Template</label>
+          <input class="form-control" id="summary-template" type="text" placeholder="{boType}_summary_{date}.csv" />
+          <span class="field-hint">Template for the summary file name.</span>
+        </div>
+
+        <!-- Generate Parent toggle -->
+        <div class="form-group form-group-toggle" style="margin-top:0.25rem;">
+          <label class="toggle-label" for="gen-parent">
+            <div>
+              <span>Generate Parent Linkage File</span>
+              <p class="field-hint">Export a separate file that maps child records to parent contracts.</p>
+            </div>
+            <span class="toggle-switch">
+              <input type="checkbox" id="gen-parent" />
+              <span class="toggle-slider"></span>
+            </span>
+          </label>
+        </div>
+        <div id="parent-template-group" class="form-group" style="margin-top:0.75rem; padding-left: 0.5rem; display:none;">
+          <label for="parent-template">Parent Linkage Filename Template</label>
+          <input class="form-control" id="parent-template" type="text" placeholder="{boType}_parent_links_{date}.csv" />
+          <span class="field-hint">Template for the parent linkage file name.</span>
+        </div>
+      </section>
+
+      <!-- ===== COLUMN & COMPONENT FILTERING ===== -->
+      <section id="filtering" class="card reveal">
+        <h2 class="section-title">Column &amp; Component Filtering</h2>
+
+        <!-- Skip Columns -->
+        <div class="form-group" style="margin-bottom:1.5rem;">
+          <label>Skip Columns</label>
+          <div class="tag-list" id="skip-columns-list">
+            <span class="tag">Component Id <button class="tag-remove" type="button">×</button></span>
+          </div>
+          <div class="tag-add-row">
+            <input class="form-control form-control-sm" id="skip-column-input" type="text" placeholder="Column header to skip…" style="max-width:260px;" />
+            <button class="btn-secondary btn-sm" id="skip-column-add" type="button">+ Add</button>
+          </div>
+          <span class="field-hint" style="margin-top:0.25rem;">Columns listed here will be omitted from all output CSVs.</span>
+        </div>
+
+        <!-- Skip Components -->
+        <div class="form-group" style="margin-bottom:1.5rem;">
+          <label>Skip Components</label>
+          <div class="tag-list" id="skip-components-list">
+            <span class="tag">Account User Recipients <button class="tag-remove" type="button">×</button></span>
+            <span class="tag">Approval Tasks <button class="tag-remove" type="button">×</button></span>
+          </div>
+          <div class="tag-add-row">
+            <input class="form-control form-control-sm" id="skip-component-input" type="text" placeholder="Component name to skip…" style="max-width:260px;" />
+            <button class="btn-secondary btn-sm" id="skip-component-add" type="button">+ Add</button>
+          </div>
+          <span class="field-hint" style="margin-top:0.25rem;">Components listed here will be excluded entirely from the export.</span>
+        </div>
+
+        <!-- Additional Columns -->
+        <div class="form-group">
+          <label>Additional Columns</label>
+          <span class="field-hint" style="margin-bottom:0.5rem;">Inject custom columns derived from nested data into the output.</span>
+          <div id="additional-cols-list">
+            <div class="additional-col-row">
+              <input class="form-control form-control-sm" type="text" placeholder="Header name" value="Mapped Sub-Clauses.Tracking Number" />
+              <input class="form-control form-control-sm" type="number" min="1" placeholder="Position" value="1" style="width:80px;" />
+              <button class="btn-secondary btn-sm btn-icon" type="button" id="remove-initial-col">×</button>
+            </div>
+          </div>
+          <button class="btn-secondary btn-sm" id="add-col-btn" type="button" style="margin-top:0.625rem;">+ Add Column</button>
+        </div>
+      </section>
+
+      <!-- ===== DELIMITER REPLACEMENT ===== -->
+      <section id="delimiter" class="card reveal">
+        <h2 class="section-title">Delimiter Replacement</h2>
+
+        <div class="form-group form-group-toggle">
+          <label class="toggle-label" for="delim-replace-enabled">
+            <div>
+              <span>Enable Delimiter Replacement</span>
+              <p class="field-hint">Replace occurrences of the delimiter character inside field values.</p>
+            </div>
+            <span class="toggle-switch">
+              <input type="checkbox" id="delim-replace-enabled" checked />
+              <span class="toggle-slider"></span>
+            </span>
+          </label>
+        </div>
+
+        <div id="delim-substitute-group" style="margin-top:1rem;">
+          <div class="form-group" style="max-width:200px;">
+            <label for="delim-substitute">Substitute Character</label>
+            <input class="form-control" id="delim-substitute" type="text" maxlength="1" value="," />
+            <span class="field-hint">Character used as a replacement when the delimiter appears in a value.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== YES/NO TRANSLATION ===== -->
+      <section id="yesno" class="card reveal">
+        <h2 class="section-title">Yes/No Translation</h2>
+
+        <div class="form-group form-group-toggle">
+          <label class="toggle-label" for="yesno-enabled">
+            <div>
+              <span>Enable Yes/No Translation</span>
+              <p class="field-hint">Translate boolean field values to human-readable Yes/No strings.</p>
+            </div>
+            <span class="toggle-switch">
+              <input type="checkbox" id="yesno-enabled" />
+              <span class="toggle-slider"></span>
+            </span>
+          </label>
+        </div>
+
+        <div id="yesno-values-group" style="margin-top:1rem; display:none;">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="yesno-true">True Value</label>
+              <input class="form-control" id="yesno-true" type="text" placeholder="Yes" />
+              <span class="field-hint">String to output when a boolean field is true.</span>
+            </div>
+            <div class="form-group">
+              <label for="yesno-false">False Value</label>
+              <input class="form-control" id="yesno-false" type="text" placeholder="No" />
+              <span class="field-hint">String to output when a boolean field is false.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== DATE FORMAT ===== -->
+      <section id="dateformat" class="card reveal">
+        <h2 class="section-title">Date Format</h2>
+
+        <!-- Input Date Formats -->
+        <div class="form-group" style="margin-bottom:1.5rem;">
+          <label>Input Date Formats</label>
+          <div class="tag-list" id="input-date-list">
+            <span class="tag">M/d/yyyy <button class="tag-remove" type="button">×</button></span>
+          </div>
+          <div class="tag-add-row">
+            <input class="form-control form-control-sm" id="input-date-input" type="text" placeholder="e.g. yyyy-MM-dd" style="max-width:220px;" />
+            <button class="btn-secondary btn-sm" id="input-date-add" type="button">+ Add</button>
+          </div>
+          <span class="field-hint" style="margin-top:0.25rem;">Patterns the parser tries when reading date-only fields.</span>
+        </div>
+
+        <!-- Output Date Format -->
+        <div class="form-grid" style="margin-bottom:1.5rem;">
+          <div class="form-group">
+            <label for="output-date">Output Date Format</label>
+            <input class="form-control" id="output-date" type="text" value="dd/MM/yyyy" />
+            <span class="field-hint">How date-only values are written to the CSV output.</span>
+          </div>
+        </div>
+
+        <!-- Input DateTime Formats -->
+        <div class="form-group" style="margin-bottom:1.5rem;">
+          <label>Input Date-Time Formats</label>
+          <div class="tag-list" id="input-datetime-list">
+            <span class="tag">M/d/yyyy h:mm:ss a <button class="tag-remove" type="button">×</button></span>
+          </div>
+          <div class="tag-add-row">
+            <input class="form-control form-control-sm" id="input-datetime-input" type="text" placeholder="e.g. yyyy-MM-dd HH:mm:ss" style="max-width:260px;" />
+            <button class="btn-secondary btn-sm" id="input-datetime-add" type="button">+ Add</button>
+          </div>
+          <span class="field-hint" style="margin-top:0.25rem;">Patterns the parser tries when reading datetime fields.</span>
+        </div>
+
+        <!-- Output DateTime Format -->
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="output-datetime">Output Date-Time Format</label>
+            <input class="form-control" id="output-datetime" type="text" value="dd/MM/yyyy HH:mm:ss" />
+            <span class="field-hint">How datetime values are written to the CSV output.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SFTP CONNECTION ===== -->
+      <section id="sftp" class="card reveal">
+        <h2 class="section-title">SFTP Connection</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="sftp-host">SFTP Host</label>
+            <input class="form-control" id="sftp-host" type="text" value="sftp.example.com" />
+          </div>
+          <div class="form-group">
+            <label for="sftp-port">SFTP Port</label>
+            <input class="form-control" id="sftp-port" type="number" value="22" min="1" max="65535" />
+          </div>
+          <div class="form-group">
+            <label for="sftp-username">SFTP Username</label>
+            <input class="form-control" id="sftp-username" type="text" placeholder="Enter SFTP username" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="sftp-password">SFTP Password</label>
+            <input class="form-control" id="sftp-password" type="password" placeholder="Enter SFTP password" autocomplete="new-password" />
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /max-width wrapper -->
+  </div><!-- /main-with-sidebar -->
+
+  <!-- ===== SAVE BAR ===== -->
+  <div class="save-bar">
+    <div class="save-status" id="save-status"></div>
+    <button class="btn-primary" id="save-btn" type="button">Save Configuration</button>
+  </div>
+
+  <script type="module" src="js/auth.js"></script>
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

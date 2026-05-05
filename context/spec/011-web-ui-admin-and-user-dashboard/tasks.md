@@ -9,20 +9,20 @@
 
 > `java -jar clm-extract.jar --config config.yml --serve` starts on port 8082 and serves three polished, navigable HTML pages. No API calls. No backend logic. Just great UI.
 
-- [ ] **Add Javalin and SLF4J dependencies to `pom.xml`** — add `io.javalin:javalin:6.4.0`, `org.slf4j:slf4j-api:2.0.x`, `org.apache.logging.log4j:log4j-slf4j2-impl:2.23.1`; add `ServicesResourceTransformer` to maven-shade-plugin. **[Agent: java-backend]**
+- [x] **Add Javalin and SLF4J dependencies to `pom.xml`** — add `io.javalin:javalin:6.4.0`, `org.slf4j:slf4j-api:2.0.x`, `org.apache.logging.log4j:log4j-slf4j2-impl:2.23.1`; add `ServicesResourceTransformer` to maven-shade-plugin. **[Agent: java-backend]**
 
-- [ ] **Add `--serve` mode to `App.java`** — detect `--serve` flag and `--port` flag (default 8082); branch to `WebServer.start(configPath, port)`. Existing CLI path is unchanged. **[Agent: java-backend]**
+- [x] **Add `--serve` mode to `App.java`** — detect `--serve` flag and `--port` flag (default 8082); branch to `WebServer.start(configPath, port)`. Existing CLI path is unchanged. **[Agent: java-backend]**
 
-- [ ] **Create `WebServer.java`** in `com.clmextract.web` — initializes `Javalin.create()` with static files from classpath `/static`; adds catch-all GET `/` redirect to `/index.html`; starts on given port. No routes yet. **[Agent: java-backend]**
+- [x] **Create `WebServer.java`** in `com.clmextract.web` — initializes `Javalin.create()` with static files from classpath `/static`; adds catch-all GET `/` redirect to `/index.html`; starts on given port. No routes yet. **[Agent: java-backend]**
 
-- [ ] **Create `index.html` — Login Page** with 2026 design:
+- [x] **Create `index.html` — Login Page** with 2026 design:
   - Split layout: left panel = product value proposition with animated headline and key stats trust block ("X contracts processed", "Y organizations trust it"); right panel = login form with username/password fields and a prominent "Sign In" CTA button
   - Scroll-reveal animation on the stats row using Intersection Observer API
   - Responsive: stacks vertically on mobile
   - Navigation links to admin and dashboard pages (no auth guard yet — for visual review)
   **[Agent: vanilla-frontend]**
 
-- [ ] **Create `admin.html` — Admin Panel** with 2026 design:
+- [x] **Create `admin.html` — Admin Panel** with 2026 design:
   - Sticky top navigation bar with logo, "Admin Panel" label, and "Sign Out" link
   - Sidebar navigation listing all config sections (Server, API & Endpoints, BO Types, Output & Files, Column Filtering, Delimiter Replacement, Yes/No Translation, Date Format, SFTP Connection)
   - Each section renders as a card that scrolls into view with a subtle fade-in (Intersection Observer)
@@ -31,7 +31,7 @@
   - Responsive: sidebar collapses to hamburger menu on mobile
   **[Agent: vanilla-frontend]**
 
-- [ ] **Create `dashboard.html` — Operator Dashboard** with 2026 design:
+- [x] **Create `dashboard.html` — Operator Dashboard** with 2026 design:
   - Top navigation bar with logo, "Export Dashboard" label, and "Sign Out" link
   - Hero section: bold headline ("Run your CLM export in one click") + subtext + large "Start Export" CTA button
   - **Export Configuration section** (scrolls in): BO selection checkboxes with placeholder last-run date badges, Frequency picker, Manual Override Date picker, SFTP Target Path field — all static HTML
@@ -40,7 +40,7 @@
   - Responsive: single column on mobile
   **[Agent: vanilla-frontend]**
 
-- [ ] **Create `css/style.css`** — shared design system:
+- [x] **Create `css/style.css`** — shared design system:
   - CSS custom properties for color palette, spacing, and typography
   - Base resets and responsive grid utilities
   - Component styles: `.nav`, `.sidebar`, `.card`, `.form-field`, `.btn-primary`, `.btn-secondary`, `.status-pill` (grey/pending, blue/in-progress, green/success, red/failed)
@@ -48,9 +48,9 @@
   - Media queries for mobile breakpoints
   **[Agent: vanilla-frontend]**
 
-- [ ] **Create stub JS files** — `js/auth.js`, `js/admin.js`, `js/dashboard.js` — valid ES6 modules with placeholder exported functions and `console.log` markers confirming which page loaded. No fetch calls yet. **[Agent: vanilla-frontend]**
+- [x] **Create stub JS files** — `js/auth.js`, `js/admin.js`, `js/dashboard.js` — valid ES6 modules with placeholder exported functions and `console.log` markers confirming which page loaded. No fetch calls yet. **[Agent: vanilla-frontend]**
 
-- [ ] **Build and smoke-test** — run `mvn package`, start with `java -jar target/clm-data-extract-1.0.0.jar --config config.yml --serve`, confirm `http://localhost:8082` loads login page, `http://localhost:8082/admin.html` loads admin panel, `http://localhost:8082/dashboard.html` loads dashboard. No 404s, no JS console errors. **[Agent: java-backend]**
+- [x] **Build and smoke-test** — run `mvn package`, start with `java -jar target/clm-data-extract-1.0.0.jar --config config.yml --serve`, confirm `http://localhost:8082` loads login page, `http://localhost:8082/admin.html` loads admin panel, `http://localhost:8082/dashboard.html` loads dashboard. No 404s, no JS console errors. **[Agent: java-backend]**
 
 ---
 

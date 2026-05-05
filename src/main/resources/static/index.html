@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLM Data Extract — Sign In</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="split-layout">
+    <div class="split-left">
+      <div class="split-left-content">
+        <div class="logo-mark">⬡ CLM Extract</div>
+        <h1 class="hero-headline">Export contracts.<br>Zero friction.</h1>
+        <p class="hero-sub">The only tool your CLM team needs to get structured contract data out — fast, repeatable, fully audited.</p>
+
+        <div class="stats-row reveal">
+          <div class="stat-item">
+            <span class="stat-number">30M+</span>
+            <span class="stat-label">Records exported</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">99.9%</span>
+            <span class="stat-label">Data accuracy</span>
+          </div>
+        </div>
+
+        <div class="testimonial reveal">
+          <p class="quote">"We migrated over 200,000 contracts in one weekend. No manual work, no errors."</p>
+          <div class="author">
+            <div class="avatar-circle">AU</div>
+            <div>
+              <strong>Alex Us</strong><br>
+              <span style="font-size:0.8rem;opacity:0.75;">CLM Administrator</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="split-right">
+      <div class="login-box">
+        <h2>Sign in to your workspace</h2>
+        <p class="login-sub">Admins and operators share the same login page.</p>
+
+        <form id="login-form">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input class="form-control" id="username" type="text" placeholder="Enter username" autocomplete="username" required />
+          </div>
+          <div class="form-group" style="margin-top: 1rem;">
+            <label for="password">Password</label>
+            <input class="form-control" id="password" type="password" placeholder="Enter password" autocomplete="current-password" required />
+          </div>
+          <div id="login-error" class="error-msg" style="display:none;margin-top:0.75rem;"></div>
+          <button type="submit" class="btn-primary btn-full" style="margin-top:1rem;">Sign In →</button>
+        </form>
+
+        <div class="preview-nav">
+          <span class="preview-label">Preview pages:</span>
+          <a href="admin.html">Admin Panel</a>
+          <a href="dashboard.html">Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>

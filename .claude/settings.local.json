@@ -20,7 +20,8 @@
       "Bash(sed -i '' 's/offlineMode: false/offlineMode: true/' /tmp/test-offline-dateformat.yml)",
       "Bash(sed -i '' 's/url: https:.*$/url: http:\\\\/\\\\/localhost/' /tmp/test-offline-dateformat.yml)",
       "Bash(sed -i '' 's/username:$/username: test/' /tmp/test-offline-dateformat.yml)",
-      "Bash(sed -i '' 's/password:$/password: test/' /tmp/test-offline-dateformat.yml)"
+      "Bash(sed -i '' 's/password:$/password: test/' /tmp/test-offline-dateformat.yml)",
+      "Bash(mvn dependency:resolve *)"
     ]
   },
   "enableAllProjectMcpServers": true,

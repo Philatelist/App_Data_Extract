@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Audit Report — 2026-04-16</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    a { color: #3b82f6; }
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 16px 64px; }
+
+    /* Header */
+    header { background: #1e293b; color: #f8fafc; padding: 36px 32px; border-radius: 12px; margin-bottom: 24px; }
+    header h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+    header .meta { font-size: 0.85rem; color: #94a3b8; margin-bottom: 24px; }
+    .score-block { display: flex; align-items: center; gap: 20px; }
+    .score-num { font-size: 4rem; font-weight: 800; line-height: 1; }
+    .grade-badge {
+      font-size: 2.5rem; font-weight: 800; width: 72px; height: 72px;
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    }
+    .grade-A { background: #22c55e; color: #fff; }
+    .grade-B { background: #3b82f6; color: #fff; }
+    .grade-C { background: #f97316; color: #fff; }
+    .grade-D { background: #ef4444; color: #fff; }
+    .grade-F { background: #7f1d1d; color: #fff; }
+    .score-label { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
+
+    /* Sticky toolbar */
+    .toolbar {
+      position: sticky; top: 0; z-index: 100;
+      background: #fff; border-bottom: 1px solid #e2e8f0;
+      padding: 10px 0; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .toolbar button {
+      background: #1e293b; color: #fff; border: none; border-radius: 6px;
+      padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    }
+    .toolbar button:hover { background: #334155; }
+    .toolbar .note { font-size: 0.8rem; color: #64748b; }
+
+    /* Filter */
+    body.issues-only tr[data-status='PASS'],
+    body.issues-only tr[data-status='SKIP'] { display: none; }
+
+    /* Section headings */
+    h2 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 32px 0 12px; }
+    h3 { font-size: 0.95rem; font-weight: 600; color: #334155; margin: 0; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.07); margin-bottom: 16px; }
+    thead tr { background: #f1f5f9; }
+    th { padding: 9px 12px; text-align: left; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #475569; white-space: nowrap; }
+    td { padding: 9px 12px; border-top: 1px solid #f1f5f9; vertical-align: top; }
+    tr:nth-child(even) td { background: #f8fafc; }
+    tr[data-status='FAIL'] td { background: #fff5f5 !important; }
+    tr[data-status='WARN'] td { background: #fffbeb !important; }
+    .dim-row-D td, .dim-row-F td { background: #fff5f5 !important; }
+
+    /* Status pills */
+    .status {
+      display: inline-block; padding: 2px 8px; border-radius: 12px;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: .04em;
+    }
+    .status-PASS { background: #dcfce7; color: #166534; }
+    .status-WARN { background: #fef9c3; color: #854d0e; }
+    .status-FAIL { background: #fee2e2; color: #991b1b; }
+    .status-SKIP { background: #f1f5f9; color: #64748b; }
+
+    /* Severity pills */
+    .sev {
+      display: inline-block; padding: 2px 7px; border-radius: 10px;
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+    }
+    .sev-critical { background: #fee2e2; color: #991b1b; }
+    .sev-high     { background: #ffedd5; color: #9a3412; }
+    .sev-medium   { background: #fef9c3; color: #713f12; }
+    .sev-low      { background: #f1f5f9; color: #475569; }
+
+    /* Grade inline */
+    .grade {
+      display: inline-block; padding: 2px 9px; border-radius: 8px;
+      font-size: 0.78rem; font-weight: 800;
+    }
+
+    /* Issue count dots */
+    .iss { display: inline-block; min-width: 20px; text-align: center; font-size: 0.8rem; font-weight: 600; }
+    .iss-crit { color: #991b1b; }
+    .iss-high { color: #9a3412; }
+    .iss-med  { color: #713f12; }
+    .iss-low  { color: #475569; }
+
+    /* Details / collapsible */
+    details { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+    details[open] { box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+    summary {
+      padding: 12px 16px; cursor: pointer; display: flex; align-items: center;
+      justify-content: space-between; user-select: none; list-style: none;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: '▸'; font-size: 0.8rem; color: #94a3b8; transition: transform .15s; }
+    details[open] summary::after { transform: rotate(90deg); }
+    .dim-header { display: flex; align-items: center; gap: 10px; }
+    .dim-score { font-size: 0.85rem; color: #64748b; }
+    .details-body { padding: 0 16px 16px; }
+
+    /* Recommendations */
+    .priority-P0 td:first-child { font-weight: 800; color: #991b1b; }
+    .priority-P1 td:first-child { font-weight: 700; color: #9a3412; }
+    .priority-P2 td:first-child { font-weight: 600; color: #64748b; }
+
+    /* Priority badges */
+    .p-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 800; }
+    .p-P0 { background: #fee2e2; color: #991b1b; }
+    .p-P1 { background: #ffedd5; color: #9a3412; }
+    .p-P2 { background: #f1f5f9; color: #475569; }
+
+    .effort-Low    { color: #166534; font-weight: 600; }
+    .effort-Medium { color: #854d0e; font-weight: 600; }
+    .effort-High   { color: #991b1b; font-weight: 600; }
+
+    /* Alert box */
+    .alert {
+      background: #fff5f5; border: 1px solid #fca5a5; border-radius: 8px;
+      padding: 14px 16px; margin-bottom: 24px; display: flex; gap: 10px;
+    }
+    .alert-icon { font-size: 1.3rem; flex-shrink: 0; }
+    .alert-body { font-size: 0.85rem; line-height: 1.5; }
+    .alert-body strong { color: #991b1b; }
+
+    /* Print */
+    @media print {
+      .toolbar { display: none; }
+      details { display: block; }
+      summary::after { display: none; }
+      body { background: #fff; }
+      header { border-radius: 0; }
+    }
+
+    @media (max-width: 600px) {
+      th, td { padding: 7px 8px; font-size: 0.75rem; }
+      .score-num { font-size: 2.8rem; }
+      .grade-badge { font-size: 1.8rem; width: 52px; height: 52px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <h1>CLM_Data_Extract — Code Audit Report</h1>
+    <div class="meta">2026-04-16 &nbsp;·&nbsp; All dimensions &nbsp;·&nbsp; No previous audit</div>
+    <div class="score-block">
+      <div>
+        <div class="score-num">74%</div>
+        <div class="score-label">Overall Score</div>
+      </div>
+      <div class="grade-badge grade-C">C</div>
+    </div>
+  </header>
+
+  <!-- CRITICAL ALERT -->
+  <div class="alert">
+    <div class="alert-icon">🔴</div>
+    <div class="alert-body">
+      <strong>Immediate action required:</strong> <code>config.yml</code> is committed to git and contains a plaintext production password for <code>exportuser@selectica.com</code> at <code>rhi.selectica.com</code>. Treat this credential as compromised — rotate it now, then follow the P0 security recommendations below.
+    </div>
+  </div>
+
+  <!-- STICKY TOOLBAR -->
+  <div class="toolbar">
+    <button onclick="document.body.classList.toggle('issues-only'); this.textContent = document.body.classList.contains('issues-only') ? 'Show all' : 'Show issues only'">Show issues only</button>
+    <span class="note">Toggle hides PASS and SKIP rows across all dimensions</span>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <h2>Summary</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Dimension</th>
+        <th>Score</th>
+        <th>Grade</th>
+        <th>Critical</th>
+        <th>High</th>
+        <th>Medium</th>
+        <th>Low</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Project Topology</td><td>100%</td><td><span class="grade grade-A">A</span></td><td><span class="iss iss-crit">—</span></td><td><span class="iss iss-high">—</span></td><td><span class="iss iss-med">—</span></td><td><span class="iss iss-low">—</span></td></tr>
+      <tr><td>2</td><td>Documentation</td><td>100%</td><td><span class="grade grade-A">A</span></td><td><span class="iss iss-crit">—</span></td><td><span class="iss iss-high">—</span></td><td><span class="iss iss-med">—</span></td><td><span class="iss iss-low">—</span></td></tr>
+      <tr><td>3</td><td>End-to-End Delivery</td><td>100%</td><td><span class="grade grade-A">A</span></td><td><span class="iss iss-crit">—</span></td><td><span class="iss iss-high">—</span></td><td><span class="iss iss-med">—</span></td><td><span class="iss iss-low">—</span></td></tr>
+      <tr><td>4</td><td>Spec-Driven Development</td><td>93%</td><td><span class="grade grade-A">A</span></td><td><span class="iss iss-crit">—</span></td><td><span class="iss iss-high">—</span></td><td><span class="iss iss-med">1</span></td><td><span class="iss iss-low">—</span></td></tr>
+      <tr><td>5</td><td>Code Architecture</td><td>89%</td><td><span class="grade grade-B">B</span></td><td><span class="iss iss-crit">—</span></td><td><span class="iss iss-high">1</span></td><td><span class="iss iss-med">—</span></td><td><span class="iss iss-low">—</span></td></tr>
+      <tr class="dim-row-D"><td>6</td><td>Software Best Practices</td><td>58%</td><td><span class="grade grade-D">D</span></td><td><span class="iss iss-crit">—</span></td><td><span class="iss iss-high">2</span></td><td><span class="iss iss-med">2</span></td><td><span class="iss iss-low">—</span></td></tr>
+      <tr class="dim-row-D"><td>7</td><td>AI Development Tooling</td><td>53%</td><td><span class="grade grade-D">D</span></td><td><span class="iss iss-crit">1</span></td><td><span class="iss iss-high">—</span></td><td><span class="iss iss-med">—</span></td><td><span class="iss iss-low">2</span></td></tr>
+      <tr class="dim-row-F"><td>8</td><td>Security Guardrails</td><td>0%</td><td><span class="grade grade-F">F</span></td><td><span class="iss iss-crit">3</span></td><td><span class="iss iss-high">1</span></td><td><span class="iss iss-med">—</span></td><td><span class="iss iss-low">—</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- DIMENSION DETAILS -->
+  <h2>Dimension Details</h2>
+
+  <!-- Project Topology -->
+  <details open>
+    <summary>
+      <div class="dim-header">
+        <span class="grade grade-A">A</span>
+        <h3>Project Topology</h3>
+        <span class="dim-score">100%</span>
+      </div>
+    </summary>
+    <div class="details-body">
+      <table>
+        <thead><tr><th>#</th><th>Check</th><th>Severity</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr data-status="PASS"><td>TOPO-01</td><td>Repository structure type</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-PASS">PASS</span></td><td>Single <code>pom.xml</code> at root → single-service CLI repo</td></tr>
+          <tr data-status="PASS"><td>TOPO-02</td><td>Application layer inventory</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-PASS">PASS</span></td><td>Data/ETL CLI: Java 17 + Maven at <code>/</code></td></tr>
+          <tr data-status="SKIP"><td>TOPO-03</td><td>Database and storage detection</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-SKIP">SKIP</span></td><td>No ORM, no migrations, no docker-compose, no DB client</td></tr>
+          <tr data-status="SKIP"><td>TOPO-04</td><td>Infrastructure layer detection</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-SKIP">SKIP</span></td><td>No Dockerfile, Terraform, Kubernetes, or serverless configs</td></tr>
+          <tr data-status="PASS"><td>TOPO-05</td><td>Language inventory</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-PASS">PASS</span></td><td>Java (79 files), XML (2 files), YAML (3 files)</td></tr>
+          <tr data-status="SKIP"><td>TOPO-06</td><td>Inter-layer communication patterns</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-SKIP">SKIP</span></td><td>Single-layer; outbound REST only via <code>inputs/endpoints.yml</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- Documentation -->
+  <details>
+    <summary>
+      <div class="dim-header">
+        <span class="grade grade-A">A</span>
+        <h3>Documentation Quality</h3>
+        <span class="dim-score">100%</span>
+      </div>
+    </summary>
+    <div class="details-body">
+      <table>
+        <thead><tr><th>#</th><th>Check</th><th>Severity</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr data-status="PASS"><td>DOC-01</td><td>Root README exists and is useful</td><td><span class="sev sev-critical">critical</span></td><td><span class="status status-PASS">PASS</span></td><td>152-line README with name, description, prerequisites, build, run, config table, exit codes</td></tr>
+          <tr data-status="PASS"><td>DOC-02</td><td>Service-level READMEs exist</td><td><span class="sev sev-high">high</span></td><td><span class="status status-PASS">PASS</span></td><td>Single-service; root README covers the service fully</td></tr>
+          <tr data-status="SKIP"><td>DOC-03</td><td>API documentation is available</td><td><span class="sev sev-high">high</span></td><td><span class="status status-SKIP">SKIP</span></td><td>No inbound API; outbound endpoints catalogued in <code>inputs/endpoints.yml</code></td></tr>
+          <tr data-status="PASS"><td>DOC-04</td><td>No stale documentation</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-PASS">PASS</span></td><td>All 5 sampled claims verified accurate (JAR path, <code>--config</code> flag, offline samples, config dirs)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- End-to-End Delivery -->
+  <details>
+    <summary>
+      <div class="dim-header">
+        <span class="grade grade-A">A</span>
+        <h3>End-to-End Delivery</h3>
+        <span class="dim-score">100%</span>
+      </div>
+    </summary>
+    <div class="details-body">
+      <table>
+        <thead><tr><th>#</th><th>Check</th><th>Severity</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr data-status="SKIP"><td>E2E-01</td><td>Cross-layer feature branches</td><td><span class="sev sev-high">high</span></td><td><span class="status status-SKIP">SKIP</span></td><td>Single-service repo — not applicable</td></tr>
+          <tr data-status="SKIP"><td>E2E-02</td><td>No layer-split branching pattern</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-SKIP">SKIP</span></td><td>Single-service repo — not applicable</td></tr>
+          <tr data-status="PASS"><td>E2E-03</td><td>Spec-to-delivery traceability</td><td><span class="sev sev-high">high</span></td><td><span class="status status-PASS">PASS</span></td><td>Bidirectional: 3 sampled branches simultaneously update <code>context/spec/*/tasks.md</code> and Java code</td></tr>
+          <tr data-status="SKIP"><td>E2E-04</td><td>No orphaned artifacts</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-SKIP">SKIP</span></td><td>Single layer — not applicable</td></tr>
+          <tr data-status="SKIP"><td>E2E-05</td><td>Shared ownership enablers</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-SKIP">SKIP</span></td><td>Single-service repo — not applicable</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- Spec-Driven Development -->
+  <details>
+    <summary>
+      <div class="dim-header">
+        <span class="grade grade-A">A</span>
+        <h3>Spec-Driven Development</h3>
+        <span class="dim-score">93%</span>
+      </div>
+    </summary>
+    <div class="details-body">
+      <table>
+        <thead><tr><th>#</th><th>Check</th><th>Severity</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr data-status="PASS"><td>SDD-01</td><td>AWOS is installed and set up</td><td><span class="sev sev-critical">critical</span></td><td><span class="status status-PASS">PASS</span></td><td>9 commands in <code>.awos/commands/</code>; 9 wrappers in <code>.claude/commands/awos/</code>; both context dirs exist</td></tr>
+          <tr data-status="PASS"><td>SDD-02</td><td>Product context documents complete</td><td><span class="sev sev-high">high</span></td><td><span class="status status-PASS">PASS</span></td><td>All 3 docs present: product-definition (vision + personas), roadmap (5 phases), architecture (11 modules)</td></tr>
+          <tr data-status="PASS"><td>SDD-03</td><td>Architecture reflects codebase</td><td><span class="sev sev-high">high</span></td><td><span class="status status-PASS">PASS</span></td><td>Java 17, Maven, SnakeYAML, Jackson, OpenCSV, Log4j2, java.net.http all confirmed in <code>pom.xml</code></td></tr>
+          <tr data-status="PASS"><td>SDD-04</td><td>Features implemented through specs</td><td><span class="sev sev-critical">critical</span></td><td><span class="status status-PASS">PASS</span></td><td>6/6 recent feature branches (005–010) touched <code>context/spec/</code> — 100% ratio</td></tr>
+          <tr data-status="PASS"><td>SDD-05</td><td>Spec directories structurally complete</td><td><span class="sev sev-high">high</span></td><td><span class="status status-PASS">PASS</span></td><td>9/10 spec dirs have full triad; <code>009-yes-no-translation</code> is partial</td></tr>
+          <tr data-status="PASS"><td>SDD-06</td><td>No stale or abandoned specs</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-PASS">PASS</span></td><td>All non-draft specs have fully completed task lists</td></tr>
+          <tr data-status="WARN"><td>SDD-07</td><td>Tasks have meaningful agent assignments</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-WARN">WARN</span></td><td>89% annotated, but 89% of annotations use <code>general-purpose</code> for Java implementation tasks; only spec 010 uses <code>java-backend</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- Code Architecture -->
+  <details>
+    <summary>
+      <div class="dim-header">
+        <span class="grade grade-B">B</span>
+        <h3>Code Architecture</h3>
+        <span class="dim-score">89%</span>
+      </div>
+    </summary>
+    <div class="details-body">
+      <table>
+        <thead><tr><th>#</th><th>Check</th><th>Severity</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr data-status="PASS"><td>ARCH-01</td><td>Recognizable architectural pattern</td><td><span class="sev sev-high">high</span></td><td><span class="status status-PASS">PASS</span></td><td>10 clearly-named packages form a coherent modular layered CLI pattern</td></tr>
+          <tr data-status="PASS"><td>ARCH-02</td><td>Module boundaries respected</td><td><span class="sev sev-high">high</span></td><td><span class="status status-PASS">PASS</span></td><td>Consistently top-down imports; no circular dependencies in 10-file sample</td></tr>
+          <tr data-status="PASS"><td>ARCH-03</td><td>SRP in modules</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-PASS">PASS</span></td><td>No god modules; largest package (<code>export/</code>) has 17 files, all focused</td></tr>
+          <tr data-status="WARN"><td>ARCH-04</td><td>Separation of concerns</td><td><span class="sev sev-high">high</span></td><td><span class="status status-WARN">WARN</span></td><td><code>MetadataParser.fetch()</code> blends HTTP I/O with domain parsing; <code>BoPipeline.execute()</code> mixes orchestration with business rule filtering</td></tr>
+          <tr data-status="PASS"><td>ARCH-05</td><td>Consistent naming conventions</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-PASS">PASS</span></td><td>All 57 Java files PascalCase; all directories lowercase — zero deviations</td></tr>
+          <tr data-status="PASS"><td>ARCH-06</td><td>Reasonable file sizes</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-PASS">PASS</span></td><td>0% of files exceed 500 lines; largest is <code>ColumnResolver.java</code> at 361 lines</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- Software Best Practices -->
+  <details>
+    <summary>
+      <div class="dim-header">
+        <span class="grade grade-D">D</span>
+        <h3>Software Best Practices</h3>
+        <span class="dim-score">58%</span>
+      </div>
+    </summary>
+    <div class="details-body">
+      <table>
+        <thead><tr><th>#</th><th>Check</th><th>Severity</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr data-status="FAIL"><td>SBP-01</td><td>Linting is configured and enforced</td><td><span class="sev sev-high">high</span></td><td><span class="status status-FAIL">FAIL</span></td><td>No Checkstyle, SpotBugs, or PMD plugin in <code>pom.xml</code></td></tr>
+          <tr data-status="FAIL"><td>SBP-02</td><td>Formatting is automated</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-FAIL">FAIL</span></td><td>No Spotless or google-java-format plugin; no pre-commit hooks</td></tr>
+          <tr data-status="PASS"><td>SBP-03</td><td>Type safety is enforced</td><td><span class="sev sev-high">high</span></td><td><span class="status status-PASS">PASS</span></td><td>Java 17 strongly typed; 7 <code>@SuppressWarnings("unchecked")</code> all justified by SnakeYAML/Jackson raw casts</td></tr>
+          <tr data-status="PASS"><td>SBP-04</td><td>Test infrastructure exists</td><td><span class="sev sev-critical">critical</span></td><td><span class="status status-PASS">PASS</span></td><td>18 <code>*Test.java</code> files; JUnit Jupiter 5.10.3 + maven-surefire 3.3.1 configured</td></tr>
+          <tr data-status="FAIL"><td>SBP-05</td><td>CI/CD pipeline exists</td><td><span class="sev sev-high">high</span></td><td><span class="status status-FAIL">FAIL</span></td><td>No <code>.github/workflows/</code>, <code>.gitlab-ci.yml</code>, <code>Jenkinsfile</code>, or equivalent CI config</td></tr>
+          <tr data-status="PASS"><td>SBP-06</td><td>Error handling patterns consistent</td><td><span class="sev sev-high">high</span></td><td><span class="status status-PASS">PASS</span></td><td>All sampled catch blocks log or re-throw; <code>interrupt()</code> correctly called; one silent swallow with comment</td></tr>
+          <tr data-status="WARN"><td>SBP-07</td><td>Dependencies are managed</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-WARN">WARN</span></td><td>Versions pinned in <code>pom.xml</code>; no Renovate/Dependabot configured</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- AI Development Tooling -->
+  <details>
+    <summary>
+      <div class="dim-header">
+        <span class="grade grade-D">D</span>
+        <h3>AI Development Tooling</h3>
+        <span class="dim-score">53%</span>
+      </div>
+    </summary>
+    <div class="details-body">
+      <table>
+        <thead><tr><th>#</th><th>Check</th><th>Severity</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr data-status="FAIL"><td>AI-01</td><td>CLAUDE.md ecosystem</td><td><span class="sev sev-critical">critical</span></td><td><span class="status status-FAIL">FAIL</span></td><td>No CLAUDE.md files anywhere in the repo</td></tr>
+          <tr data-status="PASS"><td>AI-02</td><td>Custom slash commands exist</td><td><span class="sev sev-medium">medium</span></td><td><span class="status status-PASS">PASS</span></td><td>9 custom commands under <code>.claude/commands/awos/</code></td></tr>
+          <tr data-status="FAIL"><td>AI-03</td><td>Skills are configured</td><td><span class="sev sev-low">low</span></td><td><span class="status status-FAIL">FAIL</span></td><td>No <code>.claude/skills/</code> directory or SKILL.md files</td></tr>
+          <tr data-status="PASS"><td>AI-04</td><td>MCP servers configured</td><td><span class="sev sev-low">low</span></td><td><span class="status status-PASS">PASS</span></td><td><code>.mcp.json</code> defines <code>awos-recruitment</code> MCP server</td></tr>
+          <tr data-status="FAIL"><td>AI-05</td><td>Hooks are configured</td><td><span class="sev sev-low">low</span></td><td><span class="status status-FAIL">FAIL</span></td><td>Neither settings file contains hooks configuration</td></tr>
+          <tr data-status="SKIP"><td>AI-06</td><td>CLAUDE.md files are meaningful</td><td><span class="sev sev-high">high</span></td><td><span class="status status-SKIP">SKIP</span></td><td>No CLAUDE.md files to evaluate</td></tr>
+          <tr data-status="PASS"><td>AI-07</td><td>Agent can run and observe app</td><td><span class="sev sev-critical">critical</span></td><td><span class="status status-PASS">PASS</span></td><td>README fully documents <code>mvn clean package</code> + <code>java -jar</code> run; offline mode documented</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- Security Guardrails -->
+  <details open>
+    <summary>
+      <div class="dim-header">
+        <span class="grade grade-F">F</span>
+        <h3>Security Guardrails</h3>
+        <span class="dim-score">0%</span>
+      </div>
+    </summary>
+    <div class="details-body">
+      <table>
+        <thead><tr><th>#</th><th>Check</th><th>Severity</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr data-status="FAIL"><td>SEC-01</td><td>.env files gitignored</td><td><span class="sev sev-critical">critical</span></td><td><span class="status status-FAIL">FAIL</span></td><td>No root <code>.gitignore</code> exists — no protection against committing secrets</td></tr>
+          <tr data-status="FAIL"><td>SEC-02</td><td>AI hooks restrict sensitive file access</td><td><span class="sev sev-critical">critical</span></td><td><span class="status status-FAIL">FAIL</span></td><td><code>.claude/settings.json</code> has no <code>hooks</code> key; agents can read all files including committed credentials</td></tr>
+          <tr data-status="SKIP"><td>SEC-03</td><td>.env.example or template exists</td><td><span class="sev sev-high">high</span></td><td><span class="status status-SKIP">SKIP</span></td><td>No environment variable usage detected in Java source</td></tr>
+          <tr data-status="FAIL"><td>SEC-04</td><td>No secrets in committed files</td><td><span class="sev sev-critical">critical</span></td><td><span class="status status-FAIL">FAIL</span></td><td><code>config.yml</code> (git-tracked) contains <code>password: "Temp12345"</code> for production server <code>rhi.selectica.com</code></td></tr>
+          <tr data-status="FAIL"><td>SEC-05</td><td>Sensitive files in .gitignore coverage</td><td><span class="sev sev-high">high</span></td><td><span class="status status-FAIL">FAIL</span></td><td>No root <code>.gitignore</code> — <code>target/</code>, <code>*.jks</code>, <code>*.p12</code>, <code>*.pem</code>, <code>.DS_Store</code> all unprotected</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <!-- RECOMMENDATIONS -->
+  <h2>Top Recommendations</h2>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Priority</th><th>Effort</th><th>Dimension</th><th>Recommendation</th></tr>
+    </thead>
+    <tbody>
+      <tr class="priority-P0"><td>1</td><td><span class="p-badge p-P0">P0</span></td><td><span class="effort-Low">Low</span></td><td>Security</td><td>Rotate the <code>exportuser@selectica.com</code> password — treat as compromised (in git history)</td></tr>
+      <tr class="priority-P0"><td>2</td><td><span class="p-badge p-P0">P0</span></td><td><span class="effort-Low">Low</span></td><td>Security</td><td>Create root <code>.gitignore</code> + <code>git rm --cached config.yml</code> to stop tracking credentials</td></tr>
+      <tr class="priority-P0"><td>3</td><td><span class="p-badge p-P0">P0</span></td><td><span class="effort-Low">Low</span></td><td>Security</td><td>Add <code>PreToolUse</code> hooks in <code>.claude/settings.json</code> blocking reads of <code>config.yml</code> and credential files</td></tr>
+      <tr class="priority-P0"><td>4</td><td><span class="p-badge p-P0">P0</span></td><td><span class="effort-Medium">Medium</span></td><td>AI Dev Tooling</td><td>Create root <code>CLAUDE.md</code> covering project purpose, commands, domain model, and conventions</td></tr>
+      <tr class="priority-P1"><td>5</td><td><span class="p-badge p-P1">P1</span></td><td><span class="effort-Low">Low</span></td><td>Software Best Practices</td><td>Add GitHub Actions CI (<code>.github/workflows/ci.yml</code>) running <code>mvn verify</code> on push</td></tr>
+      <tr class="priority-P1"><td>6</td><td><span class="p-badge p-P1">P1</span></td><td><span class="effort-Low">Low</span></td><td>Software Best Practices</td><td>Add <code>maven-checkstyle-plugin</code> + <code>spotless-maven-plugin</code> to <code>pom.xml</code> bound to <code>verify</code></td></tr>
+      <tr class="priority-P1"><td>7</td><td><span class="p-badge p-P1">P1</span></td><td><span class="effort-Low">Low</span></td><td>Security</td><td>Create <code>config.example.yml</code> with placeholder credentials</td></tr>
+      <tr class="priority-P2"><td>8</td><td><span class="p-badge p-P2">P2</span></td><td><span class="effort-Low">Low</span></td><td>Software Best Practices</td><td>Add <code>.github/dependabot.yml</code> for automated Maven dependency updates</td></tr>
+      <tr class="priority-P2"><td>9</td><td><span class="p-badge p-P2">P2</span></td><td><span class="effort-Medium">Medium</span></td><td>Spec-Driven Dev</td><td>Retrofit <code>java-backend</code> agent assignments to earlier specs (002–009)</td></tr>
+      <tr class="priority-P2"><td>10</td><td><span class="p-badge p-P2">P2</span></td><td><span class="effort-Medium">Medium</span></td><td>Code Architecture</td><td>Extract HTTP call out of <code>MetadataParser.fetch()</code> into the <code>http/</code> layer</td></tr>
+    </tbody>
+  </table>
+
+</div>
+
+<script>
+  // Filter toggle is handled inline in the button onclick above.
+  // Ensure all details are expanded on print.
+  window.addEventListener('beforeprint', function() {
+    document.querySelectorAll('details').forEach(function(d) { d.open = true; });
+  });
+</script>
+
+</body>
+</html>

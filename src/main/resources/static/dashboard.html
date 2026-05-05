@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLM Data Extract — Export Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ===== NAV ===== -->
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">⬡ CLM Extract</a>
+    <div class="nav-links">
+      <a href="admin.html">Admin</a>
+      <a href="index.html" class="btn-secondary btn-sm">Sign Out</a>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">☰</button>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-content">
+      <p class="hero-eyebrow">CLM Data Extract</p>
+      <h1 class="hero-title">Run your CLM export<br>in one click</h1>
+      <p class="hero-desc">Select business objects, set your date range, and push the data straight to SFTP. Fully audited, always repeatable.</p>
+      <a href="#export-config" class="btn-primary btn-lg">Configure &amp; Export ↓</a>
+    </div>
+  </section>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main-content">
+
+    <!-- ===== EXPORT CONFIGURATION ===== -->
+    <section id="export-config" class="card reveal">
+      <h2 class="section-title">Export Configuration</h2>
+
+      <!-- Business Objects -->
+      <div class="form-group" style="margin-bottom:1.5rem;">
+        <label>Business Objects <span class="field-hint">(leave all unchecked to export all)</span></label>
+        <div class="bo-grid" id="bo-list">
+
+          <label class="bo-card">
+            <input type="checkbox" name="bo" value="NAF" />
+            <div class="bo-card-body">
+              <span class="bo-name">NAF</span>
+              <span class="bo-last-run">Last run: May 1, 2025</span>
+            </div>
+          </label>
+
+          <label class="bo-card">
+            <input type="checkbox" name="bo" value="GPE" />
+            <div class="bo-card-body">
+              <span class="bo-name">GPE</span>
+              <span class="bo-last-run">Last run: —</span>
+            </div>
+          </label>
+
+          <label class="bo-card">
+            <input type="checkbox" name="bo" value="GPNY" />
+            <div class="bo-card-body">
+              <span class="bo-name">GPNY</span>
+              <span class="bo-last-run">Last run: Apr 28, 2025</span>
+            </div>
+          </label>
+
+          <label class="bo-card">
+            <input type="checkbox" name="bo" value="PGCS" />
+            <div class="bo-card-body">
+              <span class="bo-name">PGCS</span>
+              <span class="bo-last-run">Last run: —</span>
+            </div>
+          </label>
+
+        </div>
+      </div>
+
+      <!-- Run Options -->
+      <div class="form-row-3" style="margin-bottom:1.25rem;">
+        <div class="form-group">
+          <label for="frequency">Frequency</label>
+          <select class="form-control" id="frequency">
+            <option value="DAILY">Daily</option>
+            <option value="WEEKLY" selected>Weekly</option>
+            <option value="MONTHLY">Monthly</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="override-date">Override Date</label>
+          <input class="form-control" id="override-date" type="date" />
+          <span class="field-hint">Leave blank to use today's date.</span>
+        </div>
+        <div class="form-group">
+          <label for="sftp-path">SFTP Target Path <span class="required-star">*</span></label>
+          <input class="form-control" id="sftp-path" type="text" placeholder="/exports/clm/2025-q2" />
+          <span class="field-hint">Remote path where the export package is uploaded.</span>
+        </div>
+      </div>
+
+      <!-- Auto-Schedule Toggle -->
+      <div class="schedule-toggle form-group form-group-toggle">
+        <label class="toggle-label" for="auto-schedule">
+          <div>
+            <span>Enable Auto-Schedule</span>
+            <p class="field-hint">Runs automatically at the selected frequency</p>
+          </div>
+          <span class="toggle-switch">
+            <input type="checkbox" id="auto-schedule" />
+            <span class="toggle-slider"></span>
+          </span>
+        </label>
+      </div>
+
+      <!-- CTA -->
+      <div class="export-cta">
+        <button class="btn-primary btn-lg" id="start-export-btn" type="button">&#9654; Start Export</button>
+        <p class="cta-hint">Exports selected BOs. If none selected, all BOs are exported.</p>
+      </div>
+    </section>
+
+    <!-- ===== EXPORT STATUS ===== -->
+    <section id="status-panel" class="card reveal">
+      <h2 class="section-title">Export Status</h2>
+      <p class="status-intro">Start an export to see live progress.</p>
+
+      <div class="steps-list">
+
+        <div class="step-row" id="step-csv">
+          <div class="step-info">
+            <span class="step-icon">📄</span>
+            <span class="step-name">Export — CSV Metadata</span>
+          </div>
+          <span class="status-pill pending">Pending</span>
+        </div>
+
+        <div class="step-row" id="step-pdf">
+          <div class="step-info">
+            <span class="step-icon">📑</span>
+            <span class="step-name">Export — Signed PDFs</span>
+          </div>
+          <span class="status-pill pending">Pending</span>
+        </div>
+
+        <div class="step-row" id="step-attachments">
+          <div class="step-info">
+            <span class="step-icon">📎</span>
+            <span class="step-name">Export — Attachments</span>
+          </div>
+          <span class="status-pill pending">Pending</span>
+        </div>
+
+        <div class="step-row" id="step-packaging">
+          <div class="step-info">
+            <span class="step-icon">📦</span>
+            <span class="step-name">Packaging (ZIP)</span>
+          </div>
+          <span class="status-pill pending">Pending</span>
+        </div>
+
+        <div class="step-row" id="step-sftp">
+          <div class="step-info">
+            <span class="step-icon">☁️</span>
+            <span class="step-name">SFTP Upload</span>
+          </div>
+          <span class="status-pill pending">Pending</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== TRUST SECTION ===== -->
+    <div class="trust-section reveal">
+      <h2 class="section-title centered">Trusted by CLM teams worldwide</h2>
+
+      <div class="trust-card">
+        <div class="trust-card-header">
+          <span class="trust-tag">Case Study</span>
+          <h3>"Migrated 12,000 contracts in one weekend"</h3>
+        </div>
+        <p>A Fortune 500 legal operations team used CLM Data Extract to fully automate their contract migration. What previously required a dedicated team of five analysts over three months was reduced to a single weekend of automated processing — with complete audit trails and zero data loss.</p>
+        <p class="trust-meta">Legal &amp; Compliance · Contract Migration · 12,000 records</p>
+      </div>
+
+      <div class="stats-row reveal" style="justify-content:center; margin-top:2.5rem;">
+        <div class="stat-item">
+          <span class="stat-number stat-dark">30M+</span>
+          <span class="stat-label stat-label-dark">Records exported</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number stat-dark">99.9%</span>
+          <span class="stat-label stat-label-dark">Data accuracy</span>
+        </div>
+      </div>
+
+      <div class="testimonial testimonial-light reveal" style="margin-top:2rem;">
+        <p class="quote">"What used to take our team two weeks now takes 20 minutes. The tool just works."</p>
+        <div class="author">
+          <div class="avatar-circle avatar-green">MR</div>
+          <div>
+            <strong>Marco Reyes</strong><br>
+            <span class="text-secondary">Migration Lead, Enterprise Software Co.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script type="module" src="js/auth.js"></script>
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

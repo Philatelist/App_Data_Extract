@@ -43,6 +43,7 @@
                 <transformer>
                   <mainClass>com.clmextract.App</mainClass>
                 </transformer>
+                <transformer />
               </transformers>
             </configuration>
           </execution>
