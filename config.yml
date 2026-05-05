@@ -1,94 +1,33 @@
-# CLM Data Extract Configuration
-
-server:
-  url: https://..../services/rest/methods
-  username:
-  password:
-
-# Path to the endpoints definition file
+server: {url: 'https://pepsico-clone.auto-dev.selectica.com/services/rest/methods',
+  username: ausov@corcentric.com, password: Sel1234_}
 endpointsFile: inputs/endpoints.yml
-
-# BO types to export. If empty or omitted, all BO types are discovered automatically.
-boTypes:
-  - name:
-
-# Optional: filter discovered BOs by usage type. Allowed: Directory, NonContract, Contract.
-# Only applies when boTypes is empty (discovery mode).
-boUsageTypeFilter: Contract
-
-generateSummaryCsv: true
-# optional, default: Summary_{DDMMYYYY}_{HHMMSS}.csv
-summaryFilenameTemplate: "TotalPerBO_{DDMMYYYY}_{HHMMSS}.csv"
-
-trackingFilter: ""
-
-skipColumns:
-  - "Component Id"
-
-# CSV generation mode: per-component, merged-single, or single-only
-csvMode: per-component
-
-# CSV field delimiter
-delimiter: ";"
-
-# Filename template for export CSVs. Placeholders: {BO}, {Component}, {DDMMYYYY}, {HHMMSS}
-filenameTemplate: "{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv"
-
-# Filename template for download list CSVs
-downloadsFilenameTemplate: "{BO}_AttachmentsToDownload_{DDMMYYYY}_{HHMMSS}.csv"
-
-generateParentCsv: true
-
-# optional override:
-parentFilenameTemplate: "{BO}_RelationshipMapping_{DDMMYYYY}_{HHMMSS}.csv"
-
-# Base directory for all output
-outputRoot: output
-
-# Subdirectory name for export CSVs
-exportFolderName: MetaData
-
-# Number of tracking IDs per bundles API call
 batchSize: 30
-
-# Number of days to keep backup directories
+outputRoot: output
+exportFolderName: MetaData
 backupRetentionDays: 30
-
-# Set to true to run without a live server (uses sample JSON files)
 offlineMode: false
-
-# Retry settings for API calls
-retry:
-  maxAttempts: 3
-  baseDelayMs: 1000
-# single report or multiple
-#reports: "Supplemental Report"
-
-skipComponents:
-  - Account User Recipients
-  - External User Recipients
-  - Signature Document Details
-  - Approval Tasks
-
-delimiterReplacement:
-  enabled: true          # false = quoting mode (default when section is absent)
-  substituteChar: ","    # the character to replace the delimiter with in values
-
-additionalColumns:
-  - header: "Mapped Sub-Clauses.Tracking Number"
-    position: 1
-
-yesNoTranslation:
-  enabled: false
-  trueValue: "YES"
-  falseValue: "NO"
-
+csvMode: per-component
+delimiter: ;
+filenameTemplate: '{BO}_{Component}_{DDMMYYYY}_{HHMMSS}.csv'
+downloadsFilenameTemplate: '{BO}_AttachmentsToDownload_{DDMMYYYY}_{HHMMSS}.csv'
+generateParentCsv: false
+parentFilenameTemplate: '{BO}_BundleParent_{DDMMYYYY}_{HHMMSS}.csv'
+generateSummaryCsv: false
+summaryFilenameTemplate: Summary_{DDMMYYYY}_{HHMMSS}.csv
+boUsageTypeFilter: Contract
+trackingFilter: ''
+boTypes: []
+skipColumns: []
+skipComponents: []
+retry: {maxAttempts: 3, baseDelayMs: 1000}
+delimiterReplacement: {enabled: false, substituteChar: ''}
+additionalColumns: []
+yesNoTranslationEnabled: false
+yesNoTrueValue: 'YES'
+yesNoFalseValue: 'NO'
 dateFormat:
-  inputFormats:
-    - "M/d/yyyy"
-  outputFormat:         "dd/MM/yyyy"
-  inputDateTimeFormats:
-    - "M/d/yyyy h:mm:ss a"
-    - "M/d/yyyy HH:mm:ss"
-    - "M/d/yyyy HH:mm"
-  outputDateTimeFormat: "dd/MM/yyyy HH:mm:ss"
+  inputFormats: []
+  outputFormat: ''
+  inputDateTimeFormats: []
+  outputDateTimeFormat: ''
+sftp: {host: '', port: 22, username: '', password: ''}

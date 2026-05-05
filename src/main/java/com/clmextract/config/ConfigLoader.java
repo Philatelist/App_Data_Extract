@@ -21,9 +21,18 @@ public class ConfigLoader {
 
     private static final Set<String> VALID_BO_USAGE_TYPE_FILTERS = Set.of("Directory", "NonContract", "Contract");
 
+    public static AppConfig loadRaw(String configPath) {
+        return parse(parseYaml(configPath));
+    }
+
     public static AppConfig load(String configPath) {
         Map<String, Object> root = parseYaml(configPath);
+        AppConfig config = parse(root);
+        validate(config);
+        return config;
+    }
 
+    private static AppConfig parse(Map<String, Object> root) {
         AppConfig config = new AppConfig();
 
         // --- server section ---
@@ -116,8 +125,16 @@ public class ConfigLoader {
             config.setDateFormat(dateFormatConfig);
         }
 
-        // --- validation ---
-        validate(config);
+        // --- sftp section ---
+        Map<String, Object> sftp = getMap(root, "sftp");
+        if (sftp != null) {
+            AppConfig.SftpConfig sftpConfig = new AppConfig.SftpConfig();
+            sftpConfig.setHost(getStringOrDefault(sftp, "host", ""));
+            sftpConfig.setPort(getIntOrDefault(sftp, "port", 22));
+            sftpConfig.setUsername(getStringOrDefault(sftp, "username", ""));
+            sftpConfig.setPassword(getStringOrDefault(sftp, "password", ""));
+            config.setSftp(sftpConfig);
+        }
 
         return config;
     }

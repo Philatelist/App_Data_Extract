@@ -424,8 +424,16 @@ select.form-control {
 
 .save-status {
   font-size: 0.875rem;
-  color: var(--color-success);
   font-weight: 500;
+}
+.save-status--ok { color: var(--color-success); }
+.save-status--error { color: var(--color-danger); }
+
+.field-error {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-danger);
+  margin-top: 0.25rem;
 }
 
 /* ===== STATUS PILLS ===== */

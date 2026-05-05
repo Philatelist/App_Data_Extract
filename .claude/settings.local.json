@@ -23,7 +23,10 @@
       "Bash(sed -i '' 's/password:$/password: test/' /tmp/test-offline-dateformat.yml)",
       "Bash(mvn dependency:resolve *)",
       "Bash(pkill -f \"clm-data-extract\")",
-      "Bash(java -jar target/clm-data-extract-1.0.0.jar --config config.yml --serve --port 8082)"
+      "Bash(java -jar target/clm-data-extract-1.0.0.jar --config config.yml --serve --port 8082)",
+      "Bash(node --check /Users/alex/Work/CLM_Data_Extract/src/main/resources/static/js/admin.js)",
+      "Bash(lsof -ti:8082)",
+      "Bash(xargs kill *)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -71,9 +71,9 @@
 
 > Admin panel form fields are populated from the live `config.yml` on page load.
 
-- [ ] Implement `GET /api/config` in `ConfigController` — load `AppConfig` via `ConfigLoader`, serialize to JSON. **[Agent: java-backend]**
-- [ ] `admin.js` fetches `GET /api/config` on load and populates all form fields dynamically. **[Agent: vanilla-frontend]**
-- [ ] Verify: change a value in `config.yml`, restart, confirm admin panel reflects the new value. **[Agent: java-backend]**
+- [x] Implement `GET /api/config` in `ConfigController` — load `AppConfig` via `ConfigLoader`, serialize to JSON. **[Agent: java-backend]**
+- [x] `admin.js` fetches `GET /api/config` on load and populates all form fields dynamically. **[Agent: vanilla-frontend]**
+- [x] Verify: change a value in `config.yml`, restart, confirm admin panel reflects the new value. **[Agent: java-backend]**
 
 ---
 
@@ -81,11 +81,11 @@
 
 > Clicking "Save Configuration" validates and writes changes to `config.yml`.
 
-- [ ] Add `SftpConfig` inner class to `AppConfig` for `sftp.host`, `sftp.port`, `sftp.username`, `sftp.password`. **[Agent: java-backend]**
-- [ ] Implement `PUT /api/config` in `ConfigController` — validate all fields, serialize to YAML, write `config.yml`. **[Agent: java-backend]**
-- [ ] `admin.js` collects form values and POSTs to `PUT /api/config`; shows success toast or field-level validation errors. **[Agent: vanilla-frontend]**
-- [ ] Unit test: `ConfigControllerValidationTest` — required field missing, invalid delimiter (multi-char), valid round-trip. **[Agent: java-backend]**
-- [ ] Verify: change Server URL in admin form, save, read `config.yml` on disk — new value persists. **[Agent: java-backend]**
+- [x] Add `SftpConfig` inner class to `AppConfig` for `sftp.host`, `sftp.port`, `sftp.username`, `sftp.password`. **[Agent: java-backend]**
+- [x] Implement `PUT /api/config` in `ConfigController` — validate all fields, serialize to YAML, write `config.yml`. **[Agent: java-backend]**
+- [x] `admin.js` collects form values and POSTs to `PUT /api/config`; shows success toast or field-level validation errors. **[Agent: vanilla-frontend]**
+- [x] Unit test: `ConfigControllerValidationTest` — required field missing, invalid delimiter (multi-char), valid round-trip. **[Agent: java-backend]**
+- [x] Verify: change Server URL in admin form, save, read `config.yml` on disk — new value persists. **[Agent: java-backend]**
 
 ---
 

@@ -5,6 +5,8 @@ import com.clmextract.config.ConfigLoader;
 import com.clmextract.config.ConfigValidationException;
 import com.clmextract.endpoint.EndpointRegistry;
 import com.clmextract.web.api.AuthController;
+import com.clmextract.web.api.ConfigController;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
 import io.javalin.http.UnauthorizedResponse;
 import io.javalin.http.staticfiles.Location;
@@ -50,6 +52,7 @@ public class WebServer {
 
         // --- Build controllers ---
         AuthController authController = new AuthController(finalConfig, finalRegistry);
+        ConfigController configController = new ConfigController(configPath, new ObjectMapper());
 
         // --- Build Javalin app ---
         Javalin app = Javalin.create(cfg -> {
@@ -75,6 +78,10 @@ public class WebServer {
         // Auth routes
         app.post("/api/auth/login", authController::login);
         app.post("/api/auth/logout", authController::logout);
+
+        // Config routes
+        app.get("/api/config", configController::getConfig);
+        app.put("/api/config", configController::putConfig);
 
         // Root redirect (keep existing behaviour)
         app.get("/", ctx -> ctx.redirect("/index.html"));
