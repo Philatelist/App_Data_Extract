@@ -93,11 +93,11 @@
 
 > Dashboard checkboxes show real BO names with actual last-run dates from `ui-state.json`.
 
-- [ ] Implement `UiState` Jackson model and `StateStore` — read/write `ui-state.json` atomically (temp-file + `ATOMIC_MOVE`). **[Agent: java-backend]**
-- [ ] Implement `GET /api/bos` in `RunController` — returns `[{name, lastRunDate}]` from state. **[Agent: java-backend]**
-- [ ] `dashboard.js` fetches `/api/bos` on load and renders BO checkboxes with date badges. **[Agent: vanilla-frontend]**
-- [ ] Unit test: `StateStoreTest` — JSON round-trip, malformed JSON recovery → fresh empty state. **[Agent: java-backend]**
-- [ ] Verify: dashboard shows BO list from config; first load with no state file shows "—" for all dates. **[Agent: java-backend]**
+- [x] Implement `UiState` Jackson model and `StateStore` — read/write `ui-state.json` atomically (temp-file + `ATOMIC_MOVE`). **[Agent: java-backend]**
+- [x] Implement `GET /api/bos` in `RunController` — returns `[{name, lastRunDate}]` from state. **[Agent: java-backend]**
+- [x] `dashboard.js` fetches `/api/bos` on load and renders BO checkboxes with date badges. **[Agent: vanilla-frontend]**
+- [x] Unit test: `StateStoreTest` — JSON round-trip, malformed JSON recovery → fresh empty state. **[Agent: java-backend]**
+- [x] Verify: dashboard shows BO list from config; first load with no state file shows "—" for all dates. **[Agent: java-backend]**
 
 ---
 
@@ -105,12 +105,12 @@
 
 > Clicking "Start Export" runs a CSV export and the status panel updates in real time via polling.
 
-- [ ] Implement `RunStatus` enum (`PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`) and `RunExecutor` — async `SingleThreadExecutor` wrapping `ExportOrchestrator`; calls `StateStore.updateStep()` after each step. **[Agent: java-backend]**
-- [ ] Implement `POST /api/run/start` in `RunController` — validate not already running (409 if active), launch `RunExecutor`. **[Agent: java-backend]**
-- [ ] Implement `GET /api/run/status` in `RunController` — return `currentRun` from state. **[Agent: java-backend]**
-- [ ] `dashboard.js` — on Start Export click: disable button, begin 2s polling of `/api/run/status`, update each step row's status pill color and label. Stop polling when `completedAt` is non-null. **[Agent: vanilla-frontend]**
-- [ ] Unit test: `RunExecutorTest` — step transitions, 409 on concurrent start attempt. **[Agent: java-backend]**
-- [ ] Verify: trigger export from dashboard, watch CSV step turn green, check output directory for CSV files; verify concurrent start returns 409. **[Agent: java-backend]**
+- [x] Implement `RunStatus` enum (`PENDING`, `IN_PROGRESS`, `SUCCESS`, `FAILED`) and `RunExecutor` — async `SingleThreadExecutor` wrapping `ExportOrchestrator`; calls `StateStore.updateStep()` after each step. **[Agent: java-backend]**
+- [x] Implement `POST /api/run/start` in `RunController` — validate not already running (409 if active), launch `RunExecutor`. **[Agent: java-backend]**
+- [x] Implement `GET /api/run/status` in `RunController` — return `currentRun` from state. **[Agent: java-backend]**
+- [x] `dashboard.js` — on Start Export click: disable button, begin 2s polling of `/api/run/status`, update each step row's status pill color and label. Stop polling when `completedAt` is non-null. **[Agent: vanilla-frontend]**
+- [x] Unit test: `RunExecutorTest` — step transitions, 409 on concurrent start attempt. **[Agent: java-backend]**
+- [x] Verify: trigger export from dashboard, watch CSV step turn green, check output directory for CSV files; verify concurrent start returns 409. **[Agent: java-backend]**
 
 ---
 

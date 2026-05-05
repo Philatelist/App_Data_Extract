@@ -16,7 +16,8 @@ generateSummaryCsv: false
 summaryFilenameTemplate: Summary_{DDMMYYYY}_{HHMMSS}.csv
 boUsageTypeFilter: Contract
 trackingFilter: ''
-boTypes: []
+boTypes:
+- {name: GPEBO}
 skipColumns: []
 skipComponents: []
 retry: {maxAttempts: 3, baseDelayMs: 1000}
