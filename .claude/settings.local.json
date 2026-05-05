@@ -26,7 +26,19 @@
       "Bash(java -jar target/clm-data-extract-1.0.0.jar --config config.yml --serve --port 8082)",
       "Bash(node --check /Users/alex/Work/CLM_Data_Extract/src/main/resources/static/js/admin.js)",
       "Bash(lsof -ti:8082)",
-      "Bash(xargs kill *)"
+      "Bash(xargs kill *)",
+      "Bash(/usr/bin/curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8082/dashboard.html)",
+      "Bash(/usr/bin/curl -s -c /tmp/clm-dash.txt -X POST http://localhost:8082/api/auth/login -H 'Content-Type: application/json' --max-time 12 -d '{\"username\":\"ausov@corcentric.com\",\"password\":\"Sel1234_\"}')",
+      "Bash(/usr/bin/curl -s -c /tmp/clm-final.txt -X POST http://localhost:8082/api/auth/login -H 'Content-Type: application/json' --max-time 12 -d '{\"username\":\"ausov@corcentric.com\",\"password\":\"Sel1234_\"}')",
+      "Bash(/usr/bin/curl -s -c /tmp/clm-admin.txt -X POST http://localhost:8082/api/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"admin\"}')",
+      "Bash(/usr/bin/curl -s -b /tmp/clm-admin.txt http://localhost:8082/api/config)",
+      "Bash(/usr/bin/curl -s -c /tmp/clm-v2.txt -X POST http://localhost:8082/api/auth/login -H 'Content-Type: application/json' --max-time 12 -d '{\"username\":\"ausov@corcentric.com\",\"password\":\"Sel1234_\"}')",
+      "Bash(/usr/bin/curl -s -b /tmp/clm-v2.txt -X PUT http://localhost:8082/api/schedule -H 'Content-Type: application/json' -d '{\"enabled\":true,\"frequency\":\"WEEKLY\",\"dayOfWeek\":\"MONDAY\",\"timeOfDay\":\"03:00\",\"timezone\":\"Europe/Kiev\",\"selectedBos\":[\"GP_PWF\"],\"dateField\":\"lastModifiedDate\",\"dateFrom\":\"2025-01-01\",\"modifiedWithinPeriod\":false}')",
+      "Bash(/usr/bin/curl -s -b /tmp/clm-v2.txt http://localhost:8082/api/schedule)",
+      "Bash(/usr/bin/curl -s -b /tmp/clm-v2.txt -X POST http://localhost:8082/api/run/start -H 'Content-Type: application/json' -d '{\"boNames\":[\"GP_PWF\"],\"sftpTargetPath\":\"/test\"}')",
+      "Bash(/usr/bin/curl -s -b /tmp/clm-v2.txt http://localhost:8082/api/bos)",
+      "Bash(/usr/bin/curl -s -b /tmp/clm-v2.txt http://localhost:8082/api/run/status)",
+      "Bash(/usr/bin/curl -s -b /tmp/clm-v2.txt -X POST http://localhost:8082/api/run/start -H 'Content-Type: application/json' -d '{\"boNames\":[\"GPPWF_BO\",\"NAFBO\"],\"sftpTargetPath\":\"/test\"}')"
     ]
   },
   "enableAllProjectMcpServers": true,

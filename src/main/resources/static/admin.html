@@ -110,13 +110,15 @@
 
         <div class="form-group" style="margin-bottom:1.25rem;">
           <label>BO Types to Export</label>
-          <div class="tag-list" id="bo-types-list">
-            <span class="tag">Contract <button class="tag-remove" type="button">×</button></span>
-            <span class="tag">Amendment <button class="tag-remove" type="button">×</button></span>
+          <div class="bo-type-table" id="bo-types-list">
+            <div class="bo-type-header">
+              <span>Internal Name <span class="field-hint">(used by the export job)</span></span>
+              <span>Display Name <span class="field-hint">(shown on the dashboard)</span></span>
+              <span></span>
+            </div>
           </div>
-          <div class="tag-add-row">
-            <input class="form-control form-control-sm" id="bo-type-input" type="text" placeholder="Add BO type…" style="max-width:220px;" />
-            <button class="btn-secondary btn-sm" id="bo-type-add" type="button">+ Add</button>
+          <div class="tag-add-row" style="margin-top:0.5rem;">
+            <button class="btn-secondary btn-sm" id="bo-type-add" type="button">+ Add BO Type</button>
           </div>
           <span class="field-hint" style="margin-top:0.25rem;">Leave empty to export all available BO types.</span>
         </div>

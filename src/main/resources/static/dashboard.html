@@ -18,30 +18,88 @@
     <button class="hamburger" id="hamburger" aria-label="Toggle menu">☰</button>
   </nav>
 
-  <!-- ===== HERO ===== -->
-  <section class="hero">
-    <div class="hero-content">
-      <p class="hero-eyebrow">CLM Data Extract</p>
-      <h1 class="hero-title">Run your CLM export<br>in one click</h1>
-      <p class="hero-desc">Select business objects, set your date range, and push the data straight to SFTP. Fully audited, always repeatable.</p>
-      <a href="#export-config" class="btn-primary btn-lg">Configure &amp; Export ↓</a>
-    </div>
-  </section>
-
   <!-- ===== MAIN ===== -->
   <main class="main-content">
 
     <!-- ===== EXPORT CONFIGURATION ===== -->
     <section id="export-config" class="card reveal">
-      <h2 class="section-title">Export Configuration</h2>
+      <div class="section-title-row">
+        <h2 class="section-title">Export Configuration</h2>
+        <span class="running-badge" id="running-badge" style="display:none;">
+          <span class="green-dot"></span> Last job still running
+        </span>
+        <button class="btn-stop" id="stop-btn" type="button" style="display:none;">⏹ Stop</button>
+      </div>
 
-      <!-- Business Objects -->
-      <div class="form-group" style="margin-bottom:1.5rem;">
+      <!-- 1. Enable Auto-Schedule — top of form -->
+      <div class="schedule-toggle form-group form-group-toggle">
+        <label class="toggle-label" for="auto-schedule">
+          <div>
+            <span>Enable Auto-Schedule</span>
+            <p class="field-hint">Switch on to schedule recurring exports; off for a one-time manual run.</p>
+          </div>
+          <span class="toggle-switch">
+            <input type="checkbox" id="auto-schedule" />
+            <span class="toggle-slider"></span>
+          </span>
+        </label>
+      </div>
+
+      <!-- 2. Schedule settings — visible only when auto-schedule is on -->
+      <div id="schedule-settings" class="schedule-settings-group" style="display:none;">
+        <div class="form-row-3" style="margin-bottom:1rem;">
+          <div class="form-group">
+            <label for="frequency">Frequency</label>
+            <select class="form-control" id="frequency">
+              <option value="DAILY">Daily</option>
+              <option value="WEEKLY" selected>Weekly</option>
+              <option value="MONTHLY">Monthly</option>
+            </select>
+          </div>
+          <div class="form-group" id="day-of-week-group">
+            <label for="day-of-week">Day of Week</label>
+            <select class="form-control" id="day-of-week">
+              <option value="MONDAY">Monday</option>
+              <option value="TUESDAY">Tuesday</option>
+              <option value="WEDNESDAY">Wednesday</option>
+              <option value="THURSDAY">Thursday</option>
+              <option value="FRIDAY">Friday</option>
+              <option value="SATURDAY">Saturday</option>
+              <option value="SUNDAY">Sunday</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="hour-of-day">Time of Day</label>
+            <input class="form-control" id="hour-of-day" type="time" value="02:00" />
+          </div>
+        </div>
+        <div class="form-row-3" style="margin-bottom:0.5rem;">
+          <div class="form-group">
+            <label for="timezone">Time Zone</label>
+            <select class="form-control" id="timezone">
+              <option value="UTC">UTC</option>
+              <option value="America/New_York">America/New York (ET)</option>
+              <option value="America/Chicago">America/Chicago (CT)</option>
+              <option value="America/Denver">America/Denver (MT)</option>
+              <option value="America/Los_Angeles">America/Los Angeles (PT)</option>
+              <option value="Europe/London">Europe/London (GMT)</option>
+              <option value="Europe/Paris">Europe/Paris (CET)</option>
+              <option value="Europe/Kiev">Europe/Kyiv (EET)</option>
+              <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+              <option value="Asia/Shanghai">Asia/Shanghai (CST)</option>
+              <option value="Australia/Sydney">Australia/Sydney (AEDT)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Business Objects -->
+      <div class="form-group" style="margin-bottom:1rem;">
         <label>Business Objects <span class="field-hint">(leave all unchecked to export all)</span></label>
         <div class="bo-grid" id="bo-list">
 
           <label class="bo-card">
-            <input type="checkbox" name="bo" value="NAF" />
+            <input type="checkbox" class="bo-checkbox" value="NAF" />
             <div class="bo-card-body">
               <span class="bo-name">NAF</span>
               <span class="bo-last-run">Last run: May 1, 2025</span>
@@ -49,7 +107,7 @@
           </label>
 
           <label class="bo-card">
-            <input type="checkbox" name="bo" value="GPE" />
+            <input type="checkbox" class="bo-checkbox" value="GPE" />
             <div class="bo-card-body">
               <span class="bo-name">GPE</span>
               <span class="bo-last-run">Last run: —</span>
@@ -57,7 +115,7 @@
           </label>
 
           <label class="bo-card">
-            <input type="checkbox" name="bo" value="GPNY" />
+            <input type="checkbox" class="bo-checkbox" value="GPNY" />
             <div class="bo-card-body">
               <span class="bo-name">GPNY</span>
               <span class="bo-last-run">Last run: Apr 28, 2025</span>
@@ -65,7 +123,7 @@
           </label>
 
           <label class="bo-card">
-            <input type="checkbox" name="bo" value="PGCS" />
+            <input type="checkbox" class="bo-checkbox" value="PGCS" />
             <div class="bo-card-body">
               <span class="bo-name">PGCS</span>
               <span class="bo-last-run">Last run: —</span>
@@ -75,21 +133,46 @@
         </div>
       </div>
 
-      <!-- Run Options -->
-      <div class="form-row-3" style="margin-bottom:1.25rem;">
-        <div class="form-group">
-          <label for="frequency">Frequency</label>
-          <select class="form-control" id="frequency">
-            <option value="DAILY">Daily</option>
-            <option value="WEEKLY" selected>Weekly</option>
-            <option value="MONTHLY">Monthly</option>
-          </select>
+      <!-- 4. Date filter — changes based on auto-schedule toggle -->
+      <div id="date-filter-section" style="margin-bottom:1.5rem;">
+
+        <!-- Modified within the period — only shown when auto-schedule ON -->
+        <div id="modified-period-group" class="form-group form-group-toggle" style="display:none; margin-bottom:1rem;">
+          <label class="toggle-label" for="modified-period">
+            <div>
+              <span>Modified within the period</span>
+              <p class="field-hint">Only export contracts modified since the last scheduled run</p>
+            </div>
+            <span class="toggle-switch">
+              <input type="checkbox" id="modified-period" />
+              <span class="toggle-slider"></span>
+            </span>
+          </label>
         </div>
-        <div class="form-group">
-          <label for="override-date">Override Date</label>
-          <input class="form-control" id="override-date" type="date" />
-          <span class="field-hint">Leave blank to use today's date.</span>
+
+        <!-- Date field + Date From + Date To — conditional visibility -->
+        <div class="form-row-3" id="date-fields-row">
+          <div class="form-group" id="date-field-group">
+            <label for="date-field">Date Field</label>
+            <select class="form-control" id="date-field">
+              <option value="">— Select —</option>
+              <option value="createDate">Create Date</option>
+              <option value="lastModifiedDate">Last Modified Date</option>
+            </select>
+          </div>
+          <div class="form-group" id="date-from-group">
+            <label for="date-from">Date From</label>
+            <input class="form-control" id="date-from" type="date" />
+          </div>
+          <div class="form-group" id="date-to-group">
+            <label for="date-to">Date To</label>
+            <input class="form-control" id="date-to" type="date" />
+          </div>
         </div>
+      </div>
+
+      <!-- 5. SFTP Target Path -->
+      <div class="form-row-3" style="margin-bottom:1.5rem;">
         <div class="form-group">
           <label for="sftp-path">SFTP Target Path <span class="required-star">*</span></label>
           <input class="form-control" id="sftp-path" type="text" placeholder="/exports/clm/2025-q2" />
@@ -97,28 +180,14 @@
         </div>
       </div>
 
-      <!-- Auto-Schedule Toggle -->
-      <div class="schedule-toggle form-group form-group-toggle">
-        <label class="toggle-label" for="auto-schedule">
-          <div>
-            <span>Enable Auto-Schedule</span>
-            <p class="field-hint">Runs automatically at the selected frequency</p>
-          </div>
-          <span class="toggle-switch">
-            <input type="checkbox" id="auto-schedule" />
-            <span class="toggle-slider"></span>
-          </span>
-        </label>
-      </div>
-
-      <!-- CTA -->
+      <!-- 6. CTA -->
       <div class="export-cta">
         <button class="btn-primary btn-lg" id="start-export-btn" type="button">&#9654; Start Export</button>
-        <p class="cta-hint">Exports selected BOs. If none selected, all BOs are exported.</p>
+        <p class="cta-hint" id="cta-hint">Exports selected BOs. If none selected, all BOs are exported.</p>
       </div>
     </section>
 
-    <!-- ===== EXPORT STATUS ===== -->
+    <!-- ===== EXPORT STATUS — hidden when auto-schedule ON ===== -->
     <section id="status-panel" class="card reveal">
       <h2 class="section-title">Export Status</h2>
       <p class="status-intro">Start an export to see live progress.</p>
@@ -168,41 +237,26 @@
       </div>
     </section>
 
-    <!-- ===== TRUST SECTION ===== -->
-    <div class="trust-section reveal">
-      <h2 class="section-title centered">Trusted by CLM teams worldwide</h2>
-
-      <div class="trust-card">
-        <div class="trust-card-header">
-          <span class="trust-tag">Case Study</span>
-          <h3>"Migrated 12,000 contracts in one weekend"</h3>
-        </div>
-        <p>A Fortune 500 legal operations team used CLM Data Extract to fully automate their contract migration. What previously required a dedicated team of five analysts over three months was reduced to a single weekend of automated processing — with complete audit trails and zero data loss.</p>
-        <p class="trust-meta">Legal &amp; Compliance · Contract Migration · 12,000 records</p>
+    <!-- ===== SCHEDULED JOB INFO ===== -->
+    <section id="scheduled-job-panel" class="card reveal" style="display:none;">
+      <div class="section-title-row">
+        <h2 class="section-title">Scheduled Export</h2>
+        <span class="schedule-active-badge"><span class="green-dot"></span> Active</span>
       </div>
-
-      <div class="stats-row reveal" style="justify-content:center; margin-top:2.5rem;">
-        <div class="stat-item">
-          <span class="stat-number stat-dark">30M+</span>
-          <span class="stat-label stat-label-dark">Records exported</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number stat-dark">99.9%</span>
-          <span class="stat-label stat-label-dark">Data accuracy</span>
-        </div>
+      <div id="scheduled-job-details" class="scheduled-job-details">
+        <!-- populated by dashboard.js -->
       </div>
+    </section>
 
-      <div class="testimonial testimonial-light reveal" style="margin-top:2rem;">
-        <p class="quote">"What used to take our team two weeks now takes 20 minutes. The tool just works."</p>
-        <div class="author">
-          <div class="avatar-circle avatar-green">MR</div>
-          <div>
-            <strong>Marco Reyes</strong><br>
-            <span class="text-secondary">Migration Lead, Enterprise Software Co.</span>
-          </div>
-        </div>
+    <!-- ===== EXPORT HISTORY / LOGS ===== -->
+    <section id="logs-panel" class="card reveal">
+      <h2 class="section-title">Export History</h2>
+      <div id="logs-list">
+        <p class="status-intro" id="logs-empty">No export history yet.</p>
       </div>
-    </div>
+    </section>
+
+
 
   </main>
 

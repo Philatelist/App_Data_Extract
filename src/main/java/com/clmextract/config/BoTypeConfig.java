@@ -6,6 +6,7 @@ import java.util.List;
 public class BoTypeConfig {
 
     private String name;
+    private String localizedName;
     private String filenameTemplate;
     private List<AdditionalColumnConfig> additionalColumns = new ArrayList<>();
 
@@ -18,6 +19,14 @@ public class BoTypeConfig {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getLocalizedName() {
+        return localizedName;
+    }
+
+    public void setLocalizedName(String localizedName) {
+        this.localizedName = localizedName;
     }
 
     public String getFilenameTemplate() {

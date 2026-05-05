@@ -32,6 +32,37 @@ const setTagList = (listId, values) => {
   });
 };
 
+function addBoTypeRow(name, localizedName) {
+  const table = document.getElementById('bo-types-list');
+  if (!table) return;
+  const row = document.createElement('div');
+  row.className = 'bo-type-row';
+  row.innerHTML = `
+    <input class="form-control form-control-sm bo-type-name" type="text" value="${name || ''}" placeholder="e.g. NAF" />
+    <input class="form-control form-control-sm bo-type-localized" type="text" value="${localizedName || ''}" placeholder="e.g. North America Fleet" />
+    <button class="btn-secondary btn-sm btn-icon" type="button" aria-label="Remove">×</button>`;
+  row.querySelector('.btn-icon').addEventListener('click', () => row.remove());
+  table.appendChild(row);
+}
+
+function setBoTypeList(boTypes) {
+  const table = document.getElementById('bo-types-list');
+  if (!table) return;
+  table.querySelectorAll('.bo-type-row').forEach(r => r.remove());
+  (boTypes || []).forEach(bt => {
+    const name = typeof bt === 'string' ? bt : (bt.name || '');
+    const loc  = typeof bt === 'string' ? '' : (bt.localizedName || '');
+    addBoTypeRow(name, loc);
+  });
+}
+
+function getBoTypeList() {
+  return Array.from(document.querySelectorAll('#bo-types-list .bo-type-row')).map(row => ({
+    name: row.querySelector('.bo-type-name')?.value.trim() || '',
+    localizedName: row.querySelector('.bo-type-localized')?.value.trim() || '',
+  })).filter(bt => bt.name);
+}
+
 const setAdditionalCols = (cols) => {
   const list = document.getElementById('additional-cols-list');
   if (!list) return;
@@ -59,7 +90,7 @@ function populateForm(config) {
   setCheck('offline-mode', config.offlineMode);
 
   // BO Types
-  setTagList('bo-types-list', config.boTypes);
+  setBoTypeList(config.boTypes);
   setSelect('bo-usage-filter', config.boUsageTypeFilter);
   setVal('tracking-filter', config.trackingFilter);
 
@@ -154,7 +185,7 @@ function collectConfig() {
     retryMaxAttempts: num('retry-attempts'),
     retryBaseDelayMs: num('retry-delay'),
     offlineMode: bool('offline-mode'),
-    boTypes: getTagListValues('bo-types-list'),
+    boTypes: getBoTypeList(),
     boUsageTypeFilter: val('bo-usage-filter'),
     trackingFilter: val('tracking-filter'),
     outputRoot: val('output-root'),
@@ -281,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', addTag);
     input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } });
   };
-  wireTagAdd('bo-type-input', 'bo-type-add', 'bo-types-list');
+  document.getElementById('bo-type-add')?.addEventListener('click', () => addBoTypeRow('', ''));
   wireTagAdd('skip-column-input', 'skip-column-add', 'skip-columns-list');
   wireTagAdd('skip-component-input', 'skip-component-add', 'skip-components-list');
   wireTagAdd('input-date-input', 'input-date-add', 'input-date-list');

@@ -57,6 +57,7 @@ public class ConfigLoader {
             for (Map<String, Object> entry : boTypesList) {
                 BoTypeConfig bt = new BoTypeConfig();
                 bt.setName(getStringOrDefault(entry, "name", null));
+                bt.setLocalizedName(getStringOrDefault(entry, "localizedName", null));
                 bt.setFilenameTemplate(getStringOrDefault(entry, "filenameTemplate", null));
                 boTypes.add(bt);
             }

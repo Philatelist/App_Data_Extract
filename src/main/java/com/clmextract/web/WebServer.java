@@ -116,6 +116,11 @@ public class WebServer {
         app.get("/api/bos", runController::getBos);
         app.post("/api/run/start", runController::startRun);
         app.get("/api/run/status", runController::getRunStatus);
+        app.get("/api/run/history", runController::getRunHistory);
+        app.post("/api/run/stop", runController::stopRun);
+        app.get("/api/schedule", runController::getSchedule);
+        app.put("/api/schedule", runController::putSchedule);
+        app.delete("/api/schedule", runController::deleteSchedule);
 
         // Root redirect (keep existing behaviour)
         app.get("/", ctx -> ctx.redirect("/index.html"));
