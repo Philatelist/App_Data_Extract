@@ -21,7 +21,9 @@
       "Bash(sed -i '' 's/url: https:.*$/url: http:\\\\/\\\\/localhost/' /tmp/test-offline-dateformat.yml)",
       "Bash(sed -i '' 's/username:$/username: test/' /tmp/test-offline-dateformat.yml)",
       "Bash(sed -i '' 's/password:$/password: test/' /tmp/test-offline-dateformat.yml)",
-      "Bash(mvn dependency:resolve *)"
+      "Bash(mvn dependency:resolve *)",
+      "Bash(pkill -f \"clm-data-extract\")",
+      "Bash(java -jar target/clm-data-extract-1.0.0.jar --config config.yml --serve --port 8082)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -69,4 +69,14 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => { status.textContent = ''; }, 3000);
     }
   });
+
+  // Sign-out
+  const signOutLinks = document.querySelectorAll('a[href*="index.html"]');
+  signOutLinks.forEach(link => {
+    link.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+      window.location.href = '/index.html';
+    });
+  });
 });

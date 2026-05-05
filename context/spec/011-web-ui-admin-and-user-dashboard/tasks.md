@@ -58,12 +58,12 @@
 
 > Submitting the login form routes to the correct page and rejects bad credentials.
 
-- [ ] Implement `POST /api/auth/login` in `AuthController` — admin/admin check + CLM `SessionManager` call for operators; set session with role. **[Agent: java-backend]**
-- [ ] Implement `POST /api/auth/logout` in `AuthController` — clear session. **[Agent: java-backend]**
-- [ ] Add `before` filter to `WebServer` — protect all `/api/*` except `/api/auth/login` with 401; protect `admin.html` and `dashboard.html` with session role check, redirect to login if missing. **[Agent: java-backend]**
-- [ ] Wire `index.html` login form — `auth.js` POSTs credentials to `/api/auth/login` and redirects on success; shows inline error on failure. **[Agent: vanilla-frontend]**
-- [ ] Wire "Sign Out" links on both pages — call `POST /api/auth/logout` then redirect to login. **[Agent: vanilla-frontend]**
-- [ ] Verify: admin/admin → admin panel; valid CLM user → dashboard; bad credentials → error shown on login page. **[Agent: java-backend]**
+- [x] Implement `POST /api/auth/login` in `AuthController` — admin/admin check + CLM `SessionManager` call for operators; set session with role. **[Agent: java-backend]**
+- [x] Implement `POST /api/auth/logout` in `AuthController` — clear session. **[Agent: java-backend]**
+- [x] Add `before` filter to `WebServer` — protect all `/api/*` except `/api/auth/login` with 401; protect `admin.html` and `dashboard.html` with session role check, redirect to login if missing. **[Agent: java-backend]**
+- [x] Wire `index.html` login form — `auth.js` POSTs credentials to `/api/auth/login` and redirects on success; shows inline error on failure. **[Agent: vanilla-frontend]**
+- [x] Wire "Sign Out" links on both pages — call `POST /api/auth/logout` then redirect to login. **[Agent: vanilla-frontend]**
+- [x] Verify: admin/admin → admin panel; valid CLM user → dashboard; bad credentials → error shown on login page. **[Agent: java-backend]**
 
 ---
 
