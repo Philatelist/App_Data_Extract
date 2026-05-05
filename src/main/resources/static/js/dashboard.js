@@ -38,12 +38,7 @@ function resetStatusPanel() {
 
 function setConfigEditable(enabled) {
   const section = document.getElementById('export-config');
-  if (!section) return;
-  section.querySelectorAll('input, select, textarea').forEach(el => { el.disabled = !enabled; });
-  section.classList.toggle('config-locked', !enabled);
-  // Keep start button separate — it has its own state management
-  const startBtn = document.getElementById('start-export-btn');
-  if (startBtn) startBtn.disabled = !enabled;
+  if (section) section.style.display = enabled ? '' : 'none';
 }
 
 // ─── Polling ─────────────────────────────────────────────────────────────────
@@ -361,6 +356,7 @@ async function startExport() {
 
     document.getElementById('running-badge').style.display = '';
     document.getElementById('stop-btn').style.display = '';
+    document.getElementById('status-panel').style.display = '';
     setConfigEditable(false);
     stopPolling();
     pollInterval = setInterval(pollStatus, 2000);
@@ -472,9 +468,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!run.completedAt) {
         document.getElementById('running-badge').style.display = '';
         document.getElementById('stop-btn').style.display = '';
+        document.getElementById('status-panel').style.display = '';
         setConfigEditable(false);
-        const btn = document.getElementById('start-export-btn');
-        if (btn) { btn.disabled = true; btn.textContent = '⏳ Running…'; }
         pollInterval = setInterval(pollStatus, 2000);
       }
     })

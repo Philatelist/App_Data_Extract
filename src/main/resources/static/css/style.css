@@ -626,35 +626,6 @@ select.form-control {
   margin-bottom: 0;
 }
 
-/* Config locked overlay */
-.config-locked {
-  position: relative;
-}
-.config-locked::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(255,255,255,0.55);
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 1;
-}
-.config-locked input,
-.config-locked select,
-.config-locked textarea {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-.config-locked button:not(#stop-btn) {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-/* Stop button always stays fully interactive */
-#stop-btn {
-  position: relative;
-  z-index: 2;
-}
-
 /* Stop button */
 .btn-stop {
   display: inline-flex;

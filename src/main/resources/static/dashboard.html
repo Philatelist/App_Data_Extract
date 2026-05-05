@@ -25,10 +25,6 @@
     <section id="export-config" class="card reveal">
       <div class="section-title-row">
         <h2 class="section-title">Export Configuration</h2>
-        <span class="running-badge" id="running-badge" style="display:none;">
-          <span class="green-dot"></span> Last job still running
-        </span>
-        <button class="btn-stop" id="stop-btn" type="button" style="display:none;">⏹ Stop</button>
       </div>
 
       <!-- 1. Enable Auto-Schedule — top of form -->
@@ -189,7 +185,13 @@
 
     <!-- ===== EXPORT STATUS — hidden when auto-schedule ON ===== -->
     <section id="status-panel" class="card reveal">
-      <h2 class="section-title">Export Status</h2>
+      <div class="section-title-row">
+        <h2 class="section-title">Export Status</h2>
+        <span class="running-badge" id="running-badge" style="display:none;">
+          <span class="green-dot"></span> Last job still running
+        </span>
+        <button class="btn-stop" id="stop-btn" type="button" style="display:none;">⏹ Stop</button>
+      </div>
       <p class="status-intro">Start an export to see live progress.</p>
 
       <div class="steps-list">
