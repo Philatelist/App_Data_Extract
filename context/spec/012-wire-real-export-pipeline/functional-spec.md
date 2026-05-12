@@ -122,6 +122,7 @@ The CLM server exposes two custom endpoints for filtered tracking number retriev
 - [x] If the CLM API returns an authentication error during the export, the Export CSV step turns **red (Failed)** and the remaining steps are marked **red (Failed)** immediately.
 - [x] If one BO type fails (e.g. a metadata fetch error), the export logs the error and continues with the remaining BO types. The Export CSV step shows **green (Success)** if at least one BO exported successfully, with a warning note in the Export History entry for that run. [NEEDS CLARIFICATION: confirm this partial-success behaviour is acceptable, or if any BO failure should mark the whole step Failed.]
 - [x] If the export session expires mid-run, the Export CSV step reports failure with a message indicating session expiry.
+- [x] If the server is restarted while a run is in progress, the interrupted run is detected on startup: all IN_PROGRESS and PENDING steps are marked **red (Failed)**, `completedAt` is set, a warning "Run interrupted by server restart" is appended, and the run is moved to the Export History — so the dashboard does not show a phantom active run after restart.
 
 ---
 

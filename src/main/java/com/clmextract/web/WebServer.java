@@ -128,6 +128,7 @@ public class WebServer {
         app.get("/", ctx -> ctx.redirect("/index.html"));
 
         app.start(port);
+        runExecutor.recoverStaleRun();
         exportScheduler.start();
 
         System.out.println("Web server started on port " + port);

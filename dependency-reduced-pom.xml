@@ -78,13 +78,13 @@
     </dependency>
   </dependencies>
   <properties>
-    <opencsv.version>5.9</opencsv.version>
-    <maven.compiler.target>17</maven.compiler.target>
     <snakeyaml.version>2.2</snakeyaml.version>
     <maven.compiler.source>17</maven.compiler.source>
+    <jackson.version>2.17.2</jackson.version>
+    <opencsv.version>5.9</opencsv.version>
+    <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <log4j.version>2.23.1</log4j.version>
     <junit.version>5.10.3</junit.version>
-    <jackson.version>2.17.2</jackson.version>
   </properties>
 </project>

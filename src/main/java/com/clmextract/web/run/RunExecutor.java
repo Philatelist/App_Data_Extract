@@ -61,6 +61,33 @@ public class RunExecutor {
         this.stateStore = stateStore;
     }
 
+    /**
+     * Call once on server startup. If a previous run has no completedAt, the server
+     * was restarted mid-run — mark all IN_PROGRESS/PENDING steps as FAILED and
+     * move the run to history so the dashboard does not show a phantom active run.
+     */
+    public void recoverStaleRun() {
+        UiState state = stateStore.read();
+        UiState.RunState run = state.getCurrentRun();
+        if (run == null || run.getCompletedAt() != null) return;
+
+        LOG.warn("Detected incomplete run {} from before restart — marking as interrupted", run.getRunId());
+        run.getSteps().replaceAll((step, status) -> {
+            if (RunStatus.IN_PROGRESS.name().equals(status) || RunStatus.PENDING.name().equals(status))
+                return RunStatus.FAILED.name();
+            return status;
+        });
+        run.setCompletedAt(Instant.now().toString());
+        run.getWarnings().add("Run interrupted by server restart");
+
+        List<UiState.RunState> history = new ArrayList<>(state.getRunHistory());
+        history.add(0, run);
+        if (history.size() > 50) history = history.subList(0, 50);
+        state.setRunHistory(new ArrayList<>(history));
+        state.setCurrentRun(null);
+        stateStore.write(state);
+    }
+
     /** Returns false if already running (caller should 409). */
     public boolean startRun(List<String> selectedBos, String sftpTargetPath, String clmSessionId, DateFilter dateFilter) {
         if (!running.compareAndSet(false, true)) return false;
