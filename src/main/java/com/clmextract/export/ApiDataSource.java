@@ -99,7 +99,7 @@ public class ApiDataSource implements DataSource {
                     EndpointRegistry.GET_TRACKING_NUMBERS_AFTER_DATE);
             Map<String, String> headers = new HashMap<>();
             headers.put("session_id", sessionManager.getSessionId());
-            headers.put("boType", boType);
+            headers.put("boUsageType", boType);
             headers.put("dateTime", clmDate);
 
             String response = requestExecutor.execute(endpoint, headers, null);
@@ -123,7 +123,7 @@ public class ApiDataSource implements DataSource {
                     EndpointRegistry.GET_TRACKING_NUMBERS_IN_FLIGHT);
             Map<String, String> headers = new HashMap<>();
             headers.put("session_id", sessionManager.getSessionId());
-            headers.put("boType", boType);
+            headers.put("boUsageType", boType);
             headers.put("daysBeforeToday", String.valueOf(daysBeforeToday));
 
             String response = requestExecutor.execute(endpoint, headers, null);

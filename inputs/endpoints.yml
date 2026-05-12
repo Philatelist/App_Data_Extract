@@ -1595,7 +1595,7 @@ endpoints:
     headerName: session_id
   requestHeaders:
   - name: boType
-    valueFrom: boType
+    valueFrom: boUsageType
   - name: daysBeforeToday
     valueFrom: daysBeforeToday
   response:
@@ -1609,7 +1609,7 @@ endpoints:
     headerName: session_id
   requestHeaders:
   - name: boType
-    valueFrom: boType
+    valueFrom: boUsageType
   - name: dateTime
     valueFrom: dateTime
   response:
