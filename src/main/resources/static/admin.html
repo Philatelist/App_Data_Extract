@@ -383,7 +383,28 @@
       <!-- ===== SFTP CONNECTION ===== -->
       <section id="sftp" class="card reveal">
         <h2 class="section-title">SFTP Connection</h2>
-        <div class="form-grid">
+
+        <div class="form-group form-group-toggle" style="margin-bottom:1rem;">
+          <label class="toggle-label" for="enable-zip-packaging">
+            Enable ZIP Packaging
+            <span class="toggle-switch">
+              <input type="checkbox" id="enable-zip-packaging" checked />
+              <span class="slider"></span>
+            </span>
+          </label>
+        </div>
+
+        <div class="form-group form-group-toggle" style="margin-bottom:1rem;">
+          <label class="toggle-label" for="enable-sftp-upload">
+            Enable SFTP Upload
+            <span class="toggle-switch">
+              <input type="checkbox" id="enable-sftp-upload" checked />
+              <span class="slider"></span>
+            </span>
+          </label>
+        </div>
+
+        <div id="sftp-credentials" class="form-grid">
           <div class="form-group">
             <label for="sftp-host">SFTP Host</label>
             <input class="form-control" id="sftp-host" type="text" value="sftp.example.com" />

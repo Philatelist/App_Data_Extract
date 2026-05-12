@@ -38,6 +38,8 @@ public class AppConfig {
     private String yesNoFalseValue = "NO";
     private DateFormatConfig dateFormat = null;
     private SftpConfig sftp = new SftpConfig();
+    private boolean enableZipPackaging = true;
+    private boolean enableSftpUpload = true;
 
     public static class SftpConfig {
         private String host = "";
@@ -343,5 +345,21 @@ public class AppConfig {
 
     public void setSftp(SftpConfig sftp) {
         this.sftp = sftp;
+    }
+
+    public boolean isEnableZipPackaging() {
+        return enableZipPackaging;
+    }
+
+    public void setEnableZipPackaging(boolean enableZipPackaging) {
+        this.enableZipPackaging = enableZipPackaging;
+    }
+
+    public boolean isEnableSftpUpload() {
+        return enableSftpUpload;
+    }
+
+    public void setEnableSftpUpload(boolean enableSftpUpload) {
+        this.enableSftpUpload = enableSftpUpload;
     }
 }

@@ -469,6 +469,8 @@ select.form-control {
   color: #991b1b;
 }
 
+.status-pill.skipped { background: #e8e8e8; color: #777; }
+
 /* ===== STEPS LIST ===== */
 .steps-list {
   display: flex;

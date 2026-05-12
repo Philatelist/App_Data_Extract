@@ -23,6 +23,8 @@ public class EndpointRegistry {
     public static final String GET_REPORT_TEMPLATES = "GET_REPORT_TEMPLATES";
     public static final String CREATE_REPORT = "CREATE_REPORT";
     public static final String GET_ATTACHMENT_INFO = "GET_ATTACHMENT_INFO";
+    public static final String GET_TRACKING_NUMBERS_AFTER_DATE = "GET_TRACKING_NUMBERS_AFTER_DATE";
+    public static final String GET_TRACKING_NUMBERS_IN_FLIGHT = "GET_TRACKING_NUMBERS_IN_FLIGHT";
 
     private static final Map<String, String> OPERATION_NAME_MAP = new HashMap<>();
 
@@ -37,10 +39,13 @@ public class EndpointRegistry {
         OPERATION_NAME_MAP.put("reportsGetReportTemplates", GET_REPORT_TEMPLATES);
         OPERATION_NAME_MAP.put("reportsCreateReport", CREATE_REPORT);
         OPERATION_NAME_MAP.put("documentsAttachmentsGetAllAttachmentInfo", GET_ATTACHMENT_INFO);
+        OPERATION_NAME_MAP.put("trackingNumbersAfterDate", GET_TRACKING_NUMBERS_AFTER_DATE);
+        OPERATION_NAME_MAP.put("trackingNumbersInFlight", GET_TRACKING_NUMBERS_IN_FLIGHT);
     }
 
     private static final String[] REQUIRED_OPERATIONS = {
-            LOGIN, LOGOUT, GET_BO_METADATA, GET_TRACKING_NUMBERS, BUNDLES
+            LOGIN, LOGOUT, GET_BO_METADATA, GET_TRACKING_NUMBERS, BUNDLES,
+            GET_TRACKING_NUMBERS_AFTER_DATE, GET_TRACKING_NUMBERS_IN_FLIGHT
     };
 
     private final String endpointsFilePath;

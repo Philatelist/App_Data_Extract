@@ -14,6 +14,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -82,6 +84,54 @@ public class ApiDataSource implements DataSource {
     public List<Long> getTrackingNumbers(String boType) {
         return trackingNumberFetcher.fetch(boType, requestExecutor, endpointRegistry,
                 sessionManager.getSessionId());
+    }
+
+    @Override
+    public List<Long> getTrackingNumbersAfterDate(String boType, String dateTime) {
+        try {
+            // Convert ISO yyyy-MM-dd to CLM format dd-M-yyyy HH:mm:ss
+            LocalDate date = LocalDate.parse(dateTime);
+            String clmDate = date.atStartOfDay().format(DateTimeFormatter.ofPattern("dd-M-yyyy HH:mm:ss"));
+
+            EndpointDefinition endpoint = endpointRegistry.getEndpoint(
+                    EndpointRegistry.GET_TRACKING_NUMBERS_AFTER_DATE);
+            Map<String, String> headers = new HashMap<>();
+            headers.put("session_id", sessionManager.getSessionId());
+            headers.put("boType", boType);
+            headers.put("dateTime", clmDate);
+
+            String response = requestExecutor.execute(endpoint, headers, null);
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<String> stringIds = objectMapper.readValue(response,
+                    new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
+            return stringIds.stream()
+                    .map(Long::parseLong)
+                    .collect(java.util.stream.Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to fetch tracking numbers after date: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Long> getTrackingNumbersInFlight(String boType, int daysBeforeToday) {
+        try {
+            EndpointDefinition endpoint = endpointRegistry.getEndpoint(
+                    EndpointRegistry.GET_TRACKING_NUMBERS_IN_FLIGHT);
+            Map<String, String> headers = new HashMap<>();
+            headers.put("session_id", sessionManager.getSessionId());
+            headers.put("boType", boType);
+            headers.put("daysBeforeToday", String.valueOf(daysBeforeToday));
+
+            String response = requestExecutor.execute(endpoint, headers, null);
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<String> stringIds = objectMapper.readValue(response,
+                    new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
+            return stringIds.stream()
+                    .map(Long::parseLong)
+                    .collect(java.util.stream.Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to fetch in-flight tracking numbers: " + e.getMessage(), e);
+        }
     }
 
     @Override

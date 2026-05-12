@@ -18,6 +18,7 @@ const PILL = {
   IN_PROGRESS: { text: 'In Progress', cls: 'in-progress' },
   SUCCESS:     { text: 'Success',     cls: 'success' },
   FAILED:      { text: 'Failed',      cls: 'failed' },
+  SKIPPED:     { text: 'Skipped',     cls: 'skipped' },
 };
 
 function updateStepPill(stepKey, status) {

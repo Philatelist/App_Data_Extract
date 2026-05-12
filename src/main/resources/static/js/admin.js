@@ -135,6 +135,13 @@ function populateForm(config) {
   setVal('sftp-username', sftp.username);
   setVal('sftp-password', sftp.password);
 
+  // ZIP / SFTP toggles
+  const zipToggle = document.getElementById('enable-zip-packaging');
+  if (zipToggle) zipToggle.checked = config.enableZipPackaging !== false;
+  const sftpToggle = document.getElementById('enable-sftp-upload');
+  if (sftpToggle) sftpToggle.checked = config.enableSftpUpload !== false;
+  applySftpUploadToggle();
+
   // Re-trigger conditional visibility after populating checkboxes
   document.getElementById('gen-summary')?.dispatchEvent(new Event('change'));
   document.getElementById('gen-parent')?.dispatchEvent(new Event('change'));
@@ -219,6 +226,8 @@ function collectConfig() {
       username: val('sftp-username'),
       password: val('sftp-password'),
     },
+    enableZipPackaging: bool('enable-zip-packaging'),
+    enableSftpUpload: bool('enable-sftp-upload'),
   };
 }
 
@@ -276,6 +285,18 @@ async function saveConfig() {
     if (btn) { btn.disabled = false; btn.textContent = 'Save Configuration'; }
   }
 }
+
+function applySftpUploadToggle() {
+  const enabled = document.getElementById('enable-sftp-upload')?.checked ?? true;
+  const creds = document.getElementById('sftp-credentials');
+  if (!creds) return;
+  creds.querySelectorAll('input').forEach(input => {
+    input.disabled = !enabled;
+    input.style.opacity = enabled ? '' : '0.5';
+  });
+}
+
+document.getElementById('enable-sftp-upload')?.addEventListener('change', applySftpUploadToggle);
 
 document.addEventListener('DOMContentLoaded', () => {
   loadConfig();

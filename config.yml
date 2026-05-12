@@ -35,3 +35,5 @@ dateFormat:
   inputDateTimeFormats: []
   outputDateTimeFormat: ''
 sftp: {host: '', port: 22, username: '', password: ''}
+enableZipPackaging: false
+enableSftpUpload: false

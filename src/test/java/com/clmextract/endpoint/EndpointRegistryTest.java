@@ -159,13 +159,19 @@ class EndpointRegistryTest {
                 "  path: /trackingNumbers\n" +
                 "- name: bundles\n" +
                 "  method: POST\n" +
-                "  path: /bundles\n";
+                "  path: /bundles\n" +
+                "- name: trackingNumbersAfterDate\n" +
+                "  method: GET\n" +
+                "  path: /custom/trackingNumbersAfterDate\n" +
+                "- name: trackingNumbersInFlight\n" +
+                "  method: GET\n" +
+                "  path: /custom/trackingNumbersInFlight\n";
 
         String path = writeYaml(yaml);
         EndpointRegistry registry = new EndpointRegistry(path);
         registry.load();
 
-        assertEquals(5, registry.getAllEndpoints().size());
+        assertEquals(7, registry.getAllEndpoints().size());
         assertEquals("/api", registry.getBasePath());
         assertNotNull(registry.getEndpoint(EndpointRegistry.LOGIN));
         assertNotNull(registry.getEndpoint(EndpointRegistry.BUNDLES));
@@ -189,7 +195,13 @@ class EndpointRegistryTest {
                 "  path: /trackingNumbers\n" +
                 "- name: bundles\n" +
                 "  method: POST\n" +
-                "  path: /bundles\n";
+                "  path: /bundles\n" +
+                "- name: trackingNumbersAfterDate\n" +
+                "  method: GET\n" +
+                "  path: /custom/trackingNumbersAfterDate\n" +
+                "- name: trackingNumbersInFlight\n" +
+                "  method: GET\n" +
+                "  path: /custom/trackingNumbersInFlight\n";
 
         String path = writeYaml(yaml);
         EndpointRegistry registry = new EndpointRegistry(path);

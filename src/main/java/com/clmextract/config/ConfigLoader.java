@@ -137,6 +137,10 @@ public class ConfigLoader {
             config.setSftp(sftpConfig);
         }
 
+        // --- enableZipPackaging / enableSftpUpload ---
+        config.setEnableZipPackaging(getBooleanOrDefault(root, "enableZipPackaging", true));
+        config.setEnableSftpUpload(getBooleanOrDefault(root, "enableSftpUpload", true));
+
         return config;
     }
 

@@ -17,6 +17,14 @@ public interface DataSource {
 
     List<Long> getTrackingNumbers(String boType);
 
+    default List<Long> getTrackingNumbersAfterDate(String boType, String dateTime) {
+        return getTrackingNumbers(boType);
+    }
+
+    default List<Long> getTrackingNumbersInFlight(String boType, int daysBeforeToday) {
+        return getTrackingNumbers(boType);
+    }
+
     BundleResponse fetchBatch(List<Long> trackingIds, List<String> fieldPaths, BoMetadata metadata);
 
     default List<ParentRecord> fetchBundleParents(List<Long> trackingIds, int batchSize) {
