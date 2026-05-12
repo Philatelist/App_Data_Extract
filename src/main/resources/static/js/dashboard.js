@@ -244,11 +244,19 @@ async function loadScheduleInfo() {
       filterLine = fieldLabel + (s.dateFrom ? ` from ${s.dateFrom}` : '');
     }
 
+    const nextRunLine = s.nextRunAt
+      ? new Date(s.nextRunAt).toLocaleString()
+      : 'Computing…';
+
     detail.innerHTML = `
       <div class="schedule-info-grid">
         <div class="schedule-info-item">
           <span class="schedule-info-label">Frequency</span>
           <span class="schedule-info-value">${freqLine}${dowLine}${timeLine}${tzLine}</span>
+        </div>
+        <div class="schedule-info-item">
+          <span class="schedule-info-label">Next Run</span>
+          <span class="schedule-info-value schedule-next-run">${nextRunLine}</span>
         </div>
         <div class="schedule-info-item">
           <span class="schedule-info-label">Business Objects</span>

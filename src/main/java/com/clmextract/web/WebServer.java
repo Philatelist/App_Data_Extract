@@ -8,6 +8,7 @@ import com.clmextract.web.api.AuthController;
 import com.clmextract.web.api.ConfigController;
 import com.clmextract.web.api.RunController;
 import com.clmextract.web.run.RunExecutor;
+import com.clmextract.web.scheduler.ExportScheduler;
 import com.clmextract.web.state.StateStore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
@@ -61,11 +62,12 @@ public class WebServer {
         Path stateFilePath = configAbsPath.getParent().resolve("ui-state.json");
         StateStore stateStore = new StateStore(stateFilePath, objectMapper);
         RunExecutor runExecutor = new RunExecutor(configPath, stateStore);
+        ExportScheduler exportScheduler = new ExportScheduler(stateStore, runExecutor);
 
         // --- Build controllers ---
         AuthController authController = new AuthController(finalConfig, finalRegistry);
         ConfigController configController = new ConfigController(configPath, objectMapper);
-        RunController runController = new RunController(configPath, stateStore, runExecutor, objectMapper);
+        RunController runController = new RunController(configPath, stateStore, runExecutor, objectMapper, exportScheduler);
 
         // --- Build Javalin app ---
         Javalin app = Javalin.create(cfg -> {
@@ -126,6 +128,7 @@ public class WebServer {
         app.get("/", ctx -> ctx.redirect("/index.html"));
 
         app.start(port);
+        exportScheduler.start();
 
         System.out.println("Web server started on port " + port);
 

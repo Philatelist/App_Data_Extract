@@ -70,6 +70,11 @@ public class SessionManager implements SessionReLoginHandler {
         return sessionId;
     }
 
+    /** Directly injects an existing session ID, bypassing the login flow. */
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
     public void invalidateSession() {
         logger.info("Session invalidated, will re-login on next request");
         sessionId = null;

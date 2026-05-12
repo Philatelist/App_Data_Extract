@@ -14,6 +14,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
 
+
 public class RequestExecutor {
 
     private static final Logger logger = LogManager.getLogger(RequestExecutor.class);
@@ -159,5 +160,33 @@ public class RequestExecutor {
         }
 
         throw new ApiException(status, responseBody);
+    }
+
+    /**
+     * Downloads binary content from a fully-qualified URL using a raw session_id header.
+     * No retry — binary downloads are large and re-sending from scratch is expensive.
+     */
+    public byte[] executeBytes(String fullUrl, String sessionId) {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(fullUrl))
+                .header("session_id", sessionId)
+                .GET()
+                .build();
+
+        HttpResponse<byte[]> response;
+        try {
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("IO error during binary download: " + fullUrl, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Binary download interrupted: " + fullUrl, e);
+        }
+
+        int status = response.statusCode();
+        if (status < 200 || status >= 300) {
+            throw new RuntimeException("Binary download returned HTTP " + status + " for: " + fullUrl);
+        }
+        return response.body();
     }
 }

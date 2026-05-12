@@ -3,6 +3,7 @@ package com.clmextract.export;
 import com.clmextract.metadata.BoMetadata;
 
 import java.util.List;
+import java.util.Map;
 
 public interface DataSource {
 
@@ -24,5 +25,13 @@ public interface DataSource {
 
     default List<ReportResult> fetchReports(List<String> reportNames) {
         return List.of();
+    }
+
+    default List<Map<String, Object>> getAttachmentInfo(String trackingNumber) {
+        return List.of();
+    }
+
+    default byte[] downloadDocument(String encryptedUrl) {
+        return new byte[0];
     }
 }

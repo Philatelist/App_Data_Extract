@@ -12,6 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -97,5 +99,39 @@ public class ApiDataSource implements DataSource {
     @Override
     public List<ReportResult> fetchReports(List<String> reportNames) {
         return reportFetcher.fetch(reportNames, sessionManager.getSessionId());
+    }
+
+    /** Injects an already-authenticated CLM session ID, bypassing the normal login flow. */
+    public void injectSessionId(String sessionId) {
+        this.sessionManager.setSessionId(sessionId);
+    }
+
+    @Override
+    public List<Map<String, Object>> getAttachmentInfo(String trackingNumber) {
+        try {
+            EndpointDefinition endpoint = endpointRegistry.getEndpoint(
+                    EndpointRegistry.GET_ATTACHMENT_INFO);
+            Map<String, String> headers = new HashMap<>();
+            headers.put("session_id", sessionManager.getSessionId());
+            headers.put("trackingNumber", trackingNumber);
+            String response = requestExecutor.execute(endpoint, headers, null);
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(response, new TypeReference<List<Map<String, Object>>>() {});
+        } catch (Exception e) {
+            logger.warn("Failed to get attachment info for tracking number {}: {}", trackingNumber, e.getMessage());
+            return List.of();
+        }
+    }
+
+    @Override
+    public byte[] downloadDocument(String encryptedUrl) {
+        try {
+            String fullUrl = config.getBaseUrl() + "/document?url="
+                    + URLEncoder.encode(encryptedUrl, StandardCharsets.UTF_8);
+            return requestExecutor.executeBytes(fullUrl, sessionManager.getSessionId());
+        } catch (Exception e) {
+            logger.warn("Failed to download document for url {}: {}", encryptedUrl, e.getMessage());
+            return new byte[0];
+        }
     }
 }

@@ -71,6 +71,13 @@
             <version>${log4j.version}</version>
         </dependency>
 
+        <!-- SFTP client -->
+        <dependency>
+            <groupId>com.github.mwiede</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.2.21</version>
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

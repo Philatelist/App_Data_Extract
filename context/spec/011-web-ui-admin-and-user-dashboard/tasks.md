@@ -142,8 +142,8 @@
 
 > Export pipeline fetches signed contract PDFs and other attachments from CLM.
 
-- [ ] Identify CLM attachment download endpoints in `endpoints.yml`; implement download logic in `RunExecutor` for `EXPORT_PDF` and `EXPORT_ATTACHMENTS` steps, writing files as `<Contract_ID>.pdf` and `<Contract_ID>_filename.ext`. **[Agent: java-backend]**
-- [ ] Verify: after export, run output directory contains PDF and attachment files alongside CSVs. **[Agent: java-backend]**
+- [x] Identify CLM attachment download endpoints in `endpoints.yml`; implement download logic in `RunExecutor` for `EXPORT_PDF` and `EXPORT_ATTACHMENTS` steps, writing files as `<Contract_ID>.pdf` and `<Contract_ID>_filename.ext`. **[Agent: java-backend]**
+- [x] Verify: after export, run output directory contains PDF and attachment files alongside CSVs. **[Agent: java-backend]**
 
 ---
 
@@ -151,10 +151,10 @@
 
 > All output files are packaged into a ZIP after export (split at 200MB).
 
-- [ ] Implement `ZipPackager` in `com.clmextract.packaging` — streaming `ZipOutputStream`; tracks bytes written; splits at 200MB into `.zip.001`, `.zip.002`, etc. Returns list of part paths. **[Agent: java-backend]**
-- [ ] Wire `ZipPackager.pack(runOutputDir)` into `RunExecutor` `PACKAGING` step. **[Agent: java-backend]**
-- [ ] Unit test: `ZipPackagerTest` — single file produces one part, split at exactly 200MB boundary, correct part naming. **[Agent: java-backend]**
-- [ ] Verify: post-export, ZIP parts are present in output directory. **[Agent: java-backend]**
+- [x] Implement `ZipPackager` in `com.clmextract.packaging` — streaming `ZipOutputStream`; tracks bytes written; splits at 200MB into `.zip.001`, `.zip.002`, etc. Returns list of part paths. **[Agent: java-backend]**
+- [x] Wire `ZipPackager.pack(runOutputDir)` into `RunExecutor` `PACKAGING` step. **[Agent: java-backend]**
+- [x] Unit test: `ZipPackagerTest` — single file produces one part, split at exactly 200MB boundary, correct part naming. **[Agent: java-backend]**
+- [x] Verify: post-export, ZIP parts are present in output directory. **[Agent: java-backend]**
 
 ---
 
@@ -162,10 +162,10 @@
 
 > ZIP parts are uploaded to the configured SFTP server at the user-specified target path.
 
-- [ ] Add `com.github.mwiede:jsch:0.2.x` to `pom.xml`. **[Agent: java-backend]**
-- [ ] Implement `SftpUploader` in `com.clmextract.sftp` — connect to `sftp.host:sftp.port`, ensure target directory exists, upload each ZIP part sequentially, close channel in finally block. **[Agent: java-backend]**
-- [ ] Wire `SftpUploader` into `RunExecutor` `SFTP_UPLOAD` step. **[Agent: java-backend]**
-- [ ] Verify: configure SFTP credentials in admin panel, run export, confirm ZIP parts appear on SFTP server at the specified target path. **[Agent: java-backend]**
+- [x] Add `com.github.mwiede:jsch:0.2.x` to `pom.xml`. **[Agent: java-backend]**
+- [x] Implement `SftpUploader` in `com.clmextract.sftp` — connect to `sftp.host:sftp.port`, ensure target directory exists, upload each ZIP part sequentially, close channel in finally block. **[Agent: java-backend]**
+- [x] Wire `SftpUploader` into `RunExecutor` `SFTP_UPLOAD` step. **[Agent: java-backend]**
+- [x] Verify: configure SFTP credentials in admin panel, run export, confirm ZIP parts appear on SFTP server at the specified target path. **[Agent: java-backend]**
 
 ---
 
@@ -173,11 +173,11 @@
 
 > Operator enables a recurring auto-export schedule from the dashboard.
 
-- [ ] Implement `ExportScheduler` in `com.clmextract.web.scheduler` — `ScheduledExecutorService` (single thread); compute `nextRunAt` from `frequency` + `timeOfDay`; fire immediately on startup if `nextRunAt` is in the past. **[Agent: java-backend]**
-- [ ] Implement `GET /api/schedule` and `PUT /api/schedule` in `ScheduleController`. **[Agent: java-backend]**
-- [ ] `dashboard.js` — frequency picker and auto-schedule enable toggle POST to `PUT /api/schedule`; display `nextRunAt` beneath the toggle. **[Agent: vanilla-frontend]**
-- [ ] Unit test: `ExportSchedulerTest` — reschedule on settings update, immediate fire when `nextRunAt` is overdue. **[Agent: java-backend]**
-- [ ] Verify: enable weekly schedule, confirm `nextRunAt` is 7 days out in the UI; restart server, confirm schedule survives restart via `ui-state.json`. **[Agent: java-backend]**
+- [x] Implement `ExportScheduler` in `com.clmextract.web.scheduler` — `ScheduledExecutorService` (single thread); compute `nextRunAt` from `frequency` + `timeOfDay`; fire immediately on startup if `nextRunAt` is in the past. **[Agent: java-backend]**
+- [x] Implement `GET /api/schedule` and `PUT /api/schedule` in `ScheduleController`. **[Agent: java-backend]**
+- [x] `dashboard.js` — frequency picker and auto-schedule enable toggle POST to `PUT /api/schedule`; display `nextRunAt` beneath the toggle. **[Agent: vanilla-frontend]**
+- [x] Unit test: `ExportSchedulerTest` — reschedule on settings update, immediate fire when `nextRunAt` is overdue. **[Agent: java-backend]**
+- [x] Verify: enable weekly schedule, confirm `nextRunAt` is 7 days out in the UI; restart server, confirm schedule survives restart via `ui-state.json`. **[Agent: java-backend]**
 
 ---
 
