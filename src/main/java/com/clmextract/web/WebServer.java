@@ -4,6 +4,7 @@ import com.clmextract.config.AppConfig;
 import com.clmextract.config.ConfigLoader;
 import com.clmextract.config.ConfigValidationException;
 import com.clmextract.endpoint.EndpointRegistry;
+import com.clmextract.web.api.AdminController;
 import com.clmextract.web.api.AuthController;
 import com.clmextract.web.api.ConfigController;
 import com.clmextract.web.api.RunController;
@@ -68,6 +69,7 @@ public class WebServer {
         AuthController authController = new AuthController(finalConfig, finalRegistry);
         ConfigController configController = new ConfigController(configPath, objectMapper);
         RunController runController = new RunController(configPath, stateStore, runExecutor, objectMapper, exportScheduler);
+        AdminController adminController = new AdminController(configPath, finalConfig);
 
         // --- Build Javalin app ---
         Javalin app = Javalin.create(cfg -> {
@@ -96,7 +98,7 @@ public class WebServer {
             }
 
             // Allow login endpoint and non-API paths (static assets, HTML pages) through
-            if (path.equals("/api/auth/login") || !path.startsWith("/api/")) {
+            if (path.equals("/api/auth/login") || path.equals("/api/auth/check-admin") || !path.startsWith("/api/")) {
                 return;
             }
 
@@ -109,6 +111,7 @@ public class WebServer {
         // Auth routes
         app.post("/api/auth/login", authController::login);
         app.post("/api/auth/logout", authController::logout);
+        app.get("/api/auth/check-admin", authController::checkAdmin);
 
         // Config routes
         app.get("/api/config", configController::getConfig);
@@ -123,6 +126,12 @@ public class WebServer {
         app.get("/api/schedule", runController::getSchedule);
         app.put("/api/schedule", runController::putSchedule);
         app.delete("/api/schedule", runController::deleteSchedule);
+
+        // Admin routes
+        app.get("/api/admin/bo-types", adminController::getBoTypes);
+        app.get("/api/admin/bo-metadata/{boType}", adminController::getBoMetadata);
+        app.get("/api/admin/columns/{boType}", adminController::getColumns);
+        app.put("/api/admin/columns/{boType}", adminController::putColumns);
 
         // Root redirect (keep existing behaviour)
         app.get("/", ctx -> ctx.redirect("/index.html"));

@@ -31,6 +31,7 @@ function wireLoginForm() {
     e.preventDefault();
     const username = document.getElementById('username')?.value.trim() ?? '';
     const password = document.getElementById('password')?.value ?? '';
+    const asAdmin = document.getElementById('as-admin-toggle')?.checked ?? false;
     const submitBtn = form.querySelector('button[type=submit]');
     const errorDiv = document.getElementById('login-error');
 
@@ -41,7 +42,7 @@ function wireLoginForm() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password, asAdmin })
       });
 
       if (res.ok) {
@@ -62,6 +63,27 @@ function wireLoginForm() {
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Sign In →'; }
     }
   });
+
+  const usernameInput = document.getElementById('username');
+  const adminToggleRow = document.getElementById('admin-toggle-row');
+
+  if (usernameInput && adminToggleRow) {
+    let debounceTimer;
+    usernameInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        const email = usernameInput.value.trim();
+        if (!email) { adminToggleRow.style.display = 'none'; return; }
+        try {
+          const res = await fetch(`/api/auth/check-admin?email=${encodeURIComponent(email)}`);
+          if (res.ok) {
+            const data = await res.json();
+            adminToggleRow.style.display = data.isAdmin ? 'block' : 'none';
+          }
+        } catch { adminToggleRow.style.display = 'none'; }
+      }, 300);
+    });
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

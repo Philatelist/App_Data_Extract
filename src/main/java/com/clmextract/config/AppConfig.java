@@ -40,6 +40,7 @@ public class AppConfig {
     private SftpConfig sftp = new SftpConfig();
     private boolean enableZipPackaging = true;
     private boolean enableSftpUpload = true;
+    private List<String> adminEmails = new ArrayList<>();
 
     public static class SftpConfig {
         private String host = "";
@@ -361,5 +362,11 @@ public class AppConfig {
 
     public void setEnableSftpUpload(boolean enableSftpUpload) {
         this.enableSftpUpload = enableSftpUpload;
+    }
+
+    public List<String> getAdminEmails() { return adminEmails; }
+
+    public void setAdminEmails(List<String> adminEmails) {
+        this.adminEmails = adminEmails != null ? adminEmails : new ArrayList<>();
     }
 }

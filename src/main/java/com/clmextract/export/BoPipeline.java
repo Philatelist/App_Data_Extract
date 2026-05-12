@@ -173,7 +173,7 @@ public class BoPipeline {
         logger.info("=== Completed pipeline for BO type: {} ===", boType);
     }
 
-    public void execute(BoTypeConfig boTypeConfig, Path outputDir, DateFilter dateFilter) {
+    public List<Long> execute(BoTypeConfig boTypeConfig, Path outputDir, DateFilter dateFilter) {
         String boType = boTypeConfig.getName();
         logger.info("=== Starting pipeline for BO type: {} ===", boType);
 
@@ -223,7 +223,7 @@ public class BoPipeline {
 
         if (trackingIds.isEmpty()) {
             logger.info("No tracking IDs to process for BO type: {}", boType);
-            return;
+            return List.of();
         }
 
         // Step 3: Resolve columns
@@ -288,7 +288,7 @@ public class BoPipeline {
             } catch (Exception e) {
                 logger.warn("BO type {}: failed to fetch bundle parents. Reason: {}", boType, e.getMessage());
                 logger.info("=== Completed pipeline for BO type: {} ===", boType);
-                return;
+                return trackingIds;
             }
 
             if (config.isGenerateParentCsv()) {
@@ -316,6 +316,7 @@ public class BoPipeline {
         }
 
         logger.info("=== Completed pipeline for BO type: {} ===", boType);
+        return trackingIds;
     }
 
     private SummaryCsvWriter summaryCsvWriter;

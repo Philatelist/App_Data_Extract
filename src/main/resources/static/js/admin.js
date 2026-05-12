@@ -1,6 +1,8 @@
 // Admin panel — stub (API wiring in later slices)
 console.log('[admin.js] loaded');
 
+let clmBoData = null; // populated after "Load from CLM"; null = CLM not loaded
+
 // --- Config helpers ---
 
 const setVal = (id, val) => {
@@ -61,6 +63,173 @@ function getBoTypeList() {
     name: row.querySelector('.bo-type-name')?.value.trim() || '',
     localizedName: row.querySelector('.bo-type-localized')?.value.trim() || '',
   })).filter(bt => bt.name);
+}
+
+function escapeHtml(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderBoClmTable(rows) {
+  const tbody = document.getElementById('bo-clm-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  rows.forEach(bo => {
+    const tr = document.createElement('tr');
+    tr.dataset.internal = bo.internalName;
+    tr.innerHTML = `
+      <td><input type="checkbox" class="bo-clm-check" ${bo.checked ? 'checked' : ''} /></td>
+      <td><span class="bo-clm-internal">${escapeHtml(bo.internalName)}</span></td>
+      <td><input type="text" class="form-control form-control-sm bo-clm-localized"
+            value="${escapeHtml(bo.localizedName || bo.displayName)}"
+            placeholder="${escapeHtml(bo.displayName)}" /></td>
+      <td>${escapeHtml(bo.usageType || '')}</td>
+      <td><span class="bo-fields-badge" id="fields-badge-${escapeHtml(bo.internalName)}">—</span></td>
+      <td><button class="btn-secondary btn-sm bo-edit-fields" type="button"
+            data-bo="${escapeHtml(bo.internalName)}">Edit Fields</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function getBoClmList() {
+  return Array.from(document.querySelectorAll('#bo-clm-tbody tr')).map(tr => ({
+    name: tr.dataset.internal || '',
+    checked: tr.querySelector('.bo-clm-check')?.checked ?? false,
+    localizedName: tr.querySelector('.bo-clm-localized')?.value.trim() || '',
+  })).filter(bt => bt.name && bt.checked);
+}
+
+async function openFieldPicker(boType, anchorRow) {
+  // Remove any existing picker
+  document.querySelectorAll('.bo-field-picker-row').forEach(r => r.remove());
+
+  // Insert a new picker row after the anchor
+  const pickerRow = document.createElement('tr');
+  pickerRow.className = 'bo-field-picker-row';
+  pickerRow.innerHTML = `<td colspan="6"><div class="field-picker-wrap" id="field-picker-${escapeHtml(boType)}">
+    <span>Loading fields…</span>
+  </div></td>`;
+  anchorRow.insertAdjacentElement('afterend', pickerRow);
+
+  try {
+    const [metaRes, colRes] = await Promise.all([
+      fetch(`/api/admin/bo-metadata/${encodeURIComponent(boType)}`),
+      fetch(`/api/admin/columns/${encodeURIComponent(boType)}`),
+    ]);
+    if (metaRes.status === 401 || colRes.status === 401) { window.location.href = '/index.html'; return; }
+    if (!metaRes.ok) throw new Error('Metadata fetch failed');
+    if (!colRes.ok) throw new Error('Columns fetch failed');
+
+    const metadata = await metaRes.json();
+    const colData = await colRes.json();
+    const selectedPaths = colData.fieldPaths; // null = all selected; [] or [...] = explicit
+
+    renderFieldPicker(pickerRow.querySelector('.field-picker-wrap'), boType, metadata, selectedPaths);
+  } catch (err) {
+    const wrap = pickerRow.querySelector('.field-picker-wrap');
+    if (wrap) wrap.innerHTML = `<span class="error-msg">Failed to load fields: ${escapeHtml(err.message)}</span>`;
+  }
+}
+
+function renderFieldPicker(container, boType, metadata, selectedPaths) {
+  const allPaths = selectedPaths === null; // null means "select all"
+  const selectedSet = new Set(selectedPaths || []);
+  const collapseDefault = metadata.components.length > 5;
+
+  let html = `
+    <div class="fp-header">
+      <strong>Fields for ${escapeHtml(metadata.boDisplayName || boType)}</strong>
+      <input type="text" class="form-control form-control-sm fp-search" placeholder="Search fields…" style="max-width:220px;" />
+      <button class="btn-primary btn-sm fp-apply" type="button" data-bo="${escapeHtml(boType)}">Apply</button>
+      <button class="btn-secondary btn-sm fp-close" type="button">✕ Close</button>
+    </div>
+  `;
+
+  metadata.components.forEach((comp, idx) => {
+    const compId = `fp-comp-${escapeHtml(boType)}-${idx}`;
+    const collapsed = collapseDefault ? 'collapsed' : '';
+    html += `
+      <details class="fp-component ${collapsed}" ${collapseDefault ? '' : 'open'}>
+        <summary class="fp-comp-summary">
+          <span>${escapeHtml(comp.displayName || comp.internalName)}</span>
+          <span class="fp-cardinality">${escapeHtml(comp.cardinality || '')}</span>
+          <button class="btn-secondary btn-sm fp-select-all" type="button" data-comp="${idx}">Select All</button>
+          <button class="btn-secondary btn-sm fp-deselect-all" type="button" data-comp="${idx}">Deselect All</button>
+        </summary>
+        <div class="fp-fields" id="${compId}">
+    `;
+    (comp.fields || []).forEach(field => {
+      const checked = allPaths || selectedSet.has(field.instancePath);
+      html += `
+        <label class="fp-field-row" data-path="${escapeHtml(field.instancePath)}" data-display="${escapeHtml((field.displayName || '').toLowerCase())} ${escapeHtml((field.instancePath || '').toLowerCase())}">
+          <input type="checkbox" class="fp-field-check" data-path="${escapeHtml(field.instancePath)}" ${checked ? 'checked' : ''} />
+          <span class="fp-field-display">${escapeHtml(field.displayName || field.internalName)}</span>
+          <span class="fp-field-path">${escapeHtml(field.instancePath || '')}</span>
+          <span class="fp-field-type">${escapeHtml(field.dataType || '')}</span>
+        </label>
+      `;
+    });
+    html += `</div></details>`;
+  });
+
+  container.innerHTML = html;
+
+  // Wire search
+  container.querySelector('.fp-search')?.addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    container.querySelectorAll('.fp-field-row').forEach(row => {
+      row.style.display = (row.dataset.display || '').includes(q) ? '' : 'none';
+    });
+  });
+
+  // Wire Select All / Deselect All per component
+  container.querySelectorAll('.fp-select-all').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const idx = btn.dataset.comp;
+      container.querySelectorAll(`#fp-comp-${escapeHtml(boType)}-${idx} .fp-field-check`).forEach(cb => cb.checked = true);
+    });
+  });
+  container.querySelectorAll('.fp-deselect-all').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const idx = btn.dataset.comp;
+      container.querySelectorAll(`#fp-comp-${escapeHtml(boType)}-${idx} .fp-field-check`).forEach(cb => cb.checked = false);
+    });
+  });
+
+  // Wire Close
+  container.querySelector('.fp-close')?.addEventListener('click', () => {
+    container.closest('.bo-field-picker-row')?.remove();
+  });
+
+  // Wire Apply
+  container.querySelector('.fp-apply')?.addEventListener('click', async () => {
+    const checkedPaths = Array.from(container.querySelectorAll('.fp-field-check:checked'))
+      .map(cb => cb.dataset.path).filter(Boolean);
+
+    const applyBtn = container.querySelector('.fp-apply');
+    if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = 'Saving…'; }
+
+    try {
+      const res = await fetch(`/api/admin/columns/${encodeURIComponent(boType)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fieldPaths: checkedPaths }),
+      });
+      if (!res.ok) throw new Error('Save failed');
+
+      // Update badge
+      const badge = document.getElementById(`fields-badge-${boType}`);
+      if (badge) badge.textContent = `${checkedPaths.length} fields`;
+
+      // Close picker
+      container.closest('.bo-field-picker-row')?.remove();
+    } catch (err) {
+      if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
+      alert('Failed to save: ' + err.message);
+    }
+  });
 }
 
 const setAdditionalCols = (cols) => {
@@ -142,6 +311,12 @@ function populateForm(config) {
   if (sftpToggle) sftpToggle.checked = config.enableSftpUpload !== false;
   applySftpUploadToggle();
 
+  // Admin Emails
+  const adminEmailsEl = document.getElementById('admin-emails');
+  if (adminEmailsEl) {
+    adminEmailsEl.value = (config.adminEmails || []).join('\n');
+  }
+
   // Re-trigger conditional visibility after populating checkboxes
   document.getElementById('gen-summary')?.dispatchEvent(new Event('change'));
   document.getElementById('gen-parent')?.dispatchEvent(new Event('change'));
@@ -192,7 +367,7 @@ function collectConfig() {
     retryMaxAttempts: num('retry-attempts'),
     retryBaseDelayMs: num('retry-delay'),
     offlineMode: bool('offline-mode'),
-    boTypes: getBoTypeList(),
+    boTypes: clmBoData ? getBoClmList() : getBoTypeList(),
     boUsageTypeFilter: val('bo-usage-filter'),
     trackingFilter: val('tracking-filter'),
     outputRoot: val('output-root'),
@@ -228,6 +403,8 @@ function collectConfig() {
     },
     enableZipPackaging: bool('enable-zip-packaging'),
     enableSftpUpload: bool('enable-sftp-upload'),
+    adminEmails: (document.getElementById('admin-emails')?.value || '')
+      .split('\n').map(e => e.trim()).filter(Boolean),
   };
 }
 
@@ -357,6 +534,61 @@ document.addEventListener('DOMContentLoaded', () => {
   // Wire remove button on initial additional column row
   document.getElementById('remove-initial-col')?.addEventListener('click', function () {
     this.closest('.additional-col-row')?.remove();
+  });
+
+  // Load from CLM button
+  document.getElementById('bo-load-clm')?.addEventListener('click', async () => {
+    const spinner = document.getElementById('bo-load-spinner');
+    const errorEl = document.getElementById('bo-load-error');
+    const searchEl = document.getElementById('bo-search');
+    const tableWrap = document.getElementById('bo-clm-table-wrap');
+    const manualWrap = document.getElementById('bo-manual-wrap');
+
+    if (spinner) spinner.style.display = 'inline';
+    if (errorEl) errorEl.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/admin/bo-types');
+      if (res.status === 401) { window.location.href = '/index.html'; return; }
+      if (!res.ok) throw new Error(await res.text());
+      clmBoData = await res.json();
+      renderBoClmTable(clmBoData);
+      if (tableWrap) tableWrap.style.display = '';
+      if (manualWrap) manualWrap.style.display = 'none';
+      if (searchEl) searchEl.style.display = '';
+    } catch (err) {
+      if (errorEl) { errorEl.textContent = 'Failed to load BO types: ' + err.message; errorEl.style.display = 'inline'; }
+    } finally {
+      if (spinner) spinner.style.display = 'none';
+    }
+  });
+
+  // CLM table search filter
+  document.getElementById('bo-search')?.addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('#bo-clm-tbody tr').forEach(tr => {
+      const text = tr.textContent.toLowerCase();
+      tr.style.display = text.includes(q) ? '' : 'none';
+    });
+  });
+
+  // Field picker — event delegation (buttons are dynamically rendered in the CLM table)
+  document.getElementById('bo-clm-tbody')?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.bo-edit-fields');
+    if (!btn) return;
+    const boType = btn.dataset.bo;
+    if (!boType) return;
+    const anchorRow = btn.closest('tr');
+    if (!anchorRow) return;
+
+    // If picker already open for this BO, close it
+    const existingPicker = anchorRow.nextElementSibling;
+    if (existingPicker?.classList.contains('bo-field-picker-row')) {
+      existingPicker.remove();
+      return;
+    }
+
+    await openFieldPicker(boType, anchorRow);
   });
 
   document.getElementById('save-btn')?.addEventListener('click', saveConfig);

@@ -89,3 +89,28 @@ _Loop over all configured BO types, add backup management, logging, downloads li
   - [x] **ManifestCsvWriter:** New class that scans the MetaData output folder, computes SHA-256 checksums, and writes a `Manifest_{DDMMYYYY}_{HHMMSS}.csv` listing every file produced during the run (Filename, SHA256, SizeBytes, GeneratedAt).
   - [x] **Retry resilience:** Up to 3 attempts on I/O failure, with partial file cleanup between retries. Failure after 3 attempts is logged as a warning and does not fail the run.
   - [x] **Orchestrator integration:** Manifest generation is called automatically at the end of every run, after all other output is written, using the same FilenameResolver timestamp as the rest of the run's files.
+
+---
+
+### Phase 6 -- Web UI: Admin Panel & Operator Dashboard
+
+_Replace the CLI-only workflow with a self-contained web application. Administrators configure the export through a browser; operators trigger runs and monitor progress without touching config files._
+
+- [x] **Web Server & Operator Dashboard** *(spec 011)*
+  - [x] **Javalin web server:** Embedded HTTP server (port 8080) serving static HTML/JS/CSS and a JSON REST API under `/api/*`. Started alongside the CLI via a `--serve` flag.
+  - [x] **Operator login:** Session-based authentication. Operators log in with CLM credentials and receive an `OPERATOR` role; all dashboard routes are protected.
+  - [x] **Run control:** `POST /api/run/start` triggers an export in a background thread; `GET /api/run/status` streams live step progress (EXPORT_CSV → EXPORT_PDF → EXPORT_ATTACHMENTS → PACKAGING → SFTP_UPLOAD); `POST /api/run/stop` cancels the run.
+  - [x] **Export history:** Completed runs are persisted to `ui-state.json` and surfaced via `GET /api/run/history`.
+  - [x] **Admin Panel:** Separate ADMIN-role-only page (`/admin.html`) for managing all `config.yml` settings through a form UI — server connection, BO types, output paths, CSV options, SFTP, date format, and more.
+  - [x] **Scheduled exports:** Operators can configure a daily/weekly/monthly schedule; the server triggers automatic runs via `ExportScheduler`.
+- [x] **Real Export Pipeline Wiring** *(spec 012)*
+  - [x] **BoPipeline integration:** `RunExecutor` replaced stubs with real `BoPipeline.execute()` calls, passing the operator-selected BO list, output directory, and date filter.
+  - [x] **Date filtering:** Dashboard exposes "Create Date from" and "Modified within period" filters; `RunExecutor` routes to `getTrackingNumbersAfterDate()` or `getTrackingNumbersInFlight()` accordingly.
+  - [x] **SKIPPED step status:** ZIP packaging and SFTP upload steps can be individually disabled; disabled steps show a grey "Skipped" pill in the dashboard without failing the run.
+  - [x] **Attachment scope fix:** PDF and attachment download steps now use the tracking IDs collected during the CSV export step, not a separate unfiltered CLM call — so filtered runs (by date or BO) produce consistent output across all steps.
+- [x] **Admin Panel: CLM BO Discovery & Field Picker** *(spec 013)*
+  - [x] **CLM-credential admin login:** Admin email allow-list (`adminEmails` in `config.yml`). On the login page, entering a listed email reveals a "Sign in as Admin" toggle; submitting with the toggle ON authenticates against CLM and grants the `ADMIN` role. The hardcoded `admin/admin` shortcut is removed.
+  - [x] **BO type discovery:** "Load from CLM" button in the Admin Panel fetches all BO types from CLM, enriches them with display names and usage types via parallel metadata calls, and renders a searchable table. BOs already in config are pre-checked.
+  - [x] **Display name override:** Each BO row has an editable display name field; the value is saved as `localizedName` in `config.yml` and shown to operators on the dashboard.
+  - [x] **Field picker per BO:** "Edit Fields" opens an inline panel showing all components (collapsible when > 5) and their fields with checkboxes. Pre-populated from the existing `config/columns/<BoType>.csv` if present; otherwise all fields are pre-checked. Apply writes the selection immediately.
+  - [x] **Save configuration:** "Save Configuration" writes the checked BO list to `config.yml` via the existing `PUT /api/config` endpoint. Column files are written per-BO on Apply and are never deleted when a BO is unchecked.

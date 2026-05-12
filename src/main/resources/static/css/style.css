@@ -1094,3 +1094,23 @@ select.form-control {
   .bo-grid { grid-template-columns: 1fr 1fr; }
   .save-bar { padding: 1rem; }
 }
+
+/* ===== BO CLM DISCOVERY TABLE ===== */
+.bo-clm-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.bo-clm-table th, .bo-clm-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border, #e5e7eb); text-align: left; }
+.bo-clm-table th { font-weight: 600; background: var(--color-surface-alt, #f9fafb); }
+.bo-clm-table input[type=text] { width: 100%; }
+.error-msg { color: var(--color-danger, #ef4444); font-size: 0.875rem; }
+
+/* Field picker */
+.bo-field-picker-row td { padding: 0; }
+.field-picker-wrap { padding: 1rem; background: var(--surface-alt, #f9fafb); border-top: 1px solid var(--border, #e5e7eb); }
+.fp-header { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.fp-component { border: 1px solid var(--border, #e5e7eb); border-radius: 6px; margin-bottom: 0.5rem; overflow: hidden; }
+.fp-comp-summary { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; cursor: pointer; background: var(--surface, #fff); font-weight: 500; list-style: none; }
+.fp-comp-summary::-webkit-details-marker { display: none; }
+.fp-cardinality { font-size: 0.75rem; color: #6b7280; margin-right: auto; }
+.fp-fields { padding: 0.25rem 0.75rem 0.5rem; }
+.fp-field-row { display: grid; grid-template-columns: 1.5rem 1fr 2fr auto; gap: 0.5rem; align-items: center; padding: 0.25rem 0; border-bottom: 1px solid var(--border, #f3f4f6); font-size: 0.8125rem; cursor: pointer; }
+.fp-field-path { color: #6b7280; font-family: monospace; font-size: 0.75rem; }
+.fp-field-type { color: #9ca3af; font-size: 0.7rem; }

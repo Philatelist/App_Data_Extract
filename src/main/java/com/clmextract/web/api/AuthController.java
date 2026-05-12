@@ -25,22 +25,26 @@ public class AuthController {
         this.endpointRegistry = endpointRegistry;
     }
 
+    public void checkAdmin(Context ctx) throws Exception {
+        String email = ctx.queryParam("email");
+        if (email == null || email.isBlank() || config == null || config.getAdminEmails() == null) {
+            ctx.contentType("application/json").result(mapper.writeValueAsString(Map.of("isAdmin", false)));
+            return;
+        }
+        boolean isAdmin = config.getAdminEmails().stream()
+                .anyMatch(e -> e.equalsIgnoreCase(email.trim()));
+        ctx.contentType("application/json").result(mapper.writeValueAsString(Map.of("isAdmin", isAdmin)));
+    }
+
     public void login(Context ctx) throws Exception {
         Map<?, ?> body = ctx.bodyAsClass(Map.class);
         String username = body != null ? (String) body.get("username") : null;
         String password = body != null ? (String) body.get("password") : null;
-
-        // Admin shortcut
-        if ("admin".equals(username) && "admin".equals(password)) {
-            ctx.sessionAttribute("role", "ADMIN");
-            ctx.status(200).result(mapper.writeValueAsString(Map.of("role", "ADMIN")));
-            ctx.contentType("application/json");
-            return;
-        }
+        boolean asAdmin = body != null && Boolean.TRUE.equals(body.get("asAdmin"));
 
         // Attempt CLM login
         if (config == null || endpointRegistry == null) {
-            logger.warn("CLM config or endpoint registry not available; rejecting non-admin login");
+            logger.warn("CLM config or endpoint registry not available; rejecting login");
             ctx.status(401).result(mapper.writeValueAsString(Map.of("error", "Invalid credentials")));
             ctx.contentType("application/json");
             return;
@@ -55,9 +59,12 @@ public class AuthController {
             sessionManager.login();
             String sessionId = sessionManager.getSessionId();
 
-            ctx.sessionAttribute("role", "OPERATOR");
+            boolean isAdminEmail = asAdmin && config.getAdminEmails() != null
+                    && config.getAdminEmails().stream().anyMatch(e -> e.equalsIgnoreCase(username));
+            String role = isAdminEmail ? "ADMIN" : "OPERATOR";
+            ctx.sessionAttribute("role", role);
             ctx.sessionAttribute("clmSessionId", sessionId);
-            ctx.status(200).result(mapper.writeValueAsString(Map.of("role", "OPERATOR")));
+            ctx.status(200).result(mapper.writeValueAsString(Map.of("role", role)));
             ctx.contentType("application/json");
         } catch (Exception e) {
             logger.warn("CLM login failed: {}", e.getMessage());

@@ -110,6 +110,7 @@ public class ConfigController {
         response.put("sftp", sftp);
         response.put("enableZipPackaging", config.isEnableZipPackaging());
         response.put("enableSftpUpload", config.isEnableSftpUpload());
+        response.put("adminEmails", config.getAdminEmails());
 
         ctx.contentType("application/json");
         ctx.result(objectMapper.writeValueAsString(response));
@@ -343,6 +344,16 @@ public class ConfigController {
         JsonNode enableSftpNode = body.get("enableSftpUpload");
         if (enableSftpNode != null) config.setEnableSftpUpload(enableSftpNode.asBoolean(true));
 
+        JsonNode adminEmailsNode = body.get("adminEmails");
+        if (adminEmailsNode != null && adminEmailsNode.isArray()) {
+            List<String> adminEmails = new ArrayList<>();
+            for (JsonNode n : adminEmailsNode) {
+                String email = n.asText("").trim();
+                if (!email.isEmpty()) adminEmails.add(email);
+            }
+            config.setAdminEmails(adminEmails);
+        }
+
         // Build YAML map and write to file
         Map<String, Object> root = new LinkedHashMap<>();
 
@@ -436,6 +447,7 @@ public class ConfigController {
         root.put("sftp", sftpMap);
         root.put("enableZipPackaging", config.isEnableZipPackaging());
         root.put("enableSftpUpload", config.isEnableSftpUpload());
+        root.put("adminEmails", config.getAdminEmails());
 
         String yaml = new Yaml().dump(root);
         Files.writeString(Path.of(configPath), yaml);

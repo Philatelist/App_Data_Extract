@@ -6,10 +6,12 @@
 
 - **Runtime:** Java 17 (LTS)
 - **Build Tool:** Apache Maven with maven-shade-plugin for single runnable JAR packaging
-- **CLI Argument Parsing:** Manual `args[]` parsing (single `--config` flag)
+- **CLI Argument Parsing:** Manual `args[]` parsing (`--config` flag; `--serve` flag starts the web server)
+- **Web Server:** Javalin 6 -- embedded HTTP server serving the Admin Panel + Operator Dashboard on port 8080; session-based auth via Javalin's server-side session
+- **Frontend:** Vanilla HTML/JS/CSS served as classpath static resources -- no build step, no framework
 - **YAML Parsing:** SnakeYAML -- loads `config.yml` and `endpoints.yml` into Java maps/objects
-- **JSON Parsing:** Jackson Databind -- deserializes API responses (metadata, bundles) into typed models
-- **HTTP Client:** `java.net.http.HttpClient` (built-in since Java 11) -- synchronous requests for sequential API calls
+- **JSON Parsing:** Jackson Databind -- deserializes API responses (metadata, bundles) into typed models; serializes API responses from web controllers
+- **HTTP Client:** `java.net.http.HttpClient` (built-in since Java 11) -- synchronous requests for CLM API calls
 - **CSV Writing:** OpenCSV -- handles quoting, escaping, and header row generation for export files
 - **Logging:** Log4j2 -- dual-output logging to a per-run log file and console with configurable levels
 
@@ -17,19 +19,36 @@
 
 ## 2. Module Structure
 
-The application is organized into the following internal modules (Java packages). Business Objects are processed strictly sequentially, with full cleanup of in-memory state between each BO type.
+The application has two runtime modes — CLI batch mode and web serve mode — sharing the same export pipeline core.
 
-- **Configuration Loader** -- Parses and validates `config.yml` using SnakeYAML. Produces a strongly-typed config object covering server URL, credentials, BO type list, field filters, output directory, batch size, and backup retention count.
-- **Endpoints-File Adapter** -- Parses the user-provided `endpoints.yml` in its original format. Maps endpoint definitions to the five required operations: login, logout, getBoMetaData, getTrackingNumbers, and bundles. Validates completeness.
-- **Session Manager** -- Handles the authentication lifecycle: calls login to obtain a session ID, attaches it to subsequent requests, and ensures logout runs at shutdown (via try/finally or shutdown hook), even on error.
-- **API Client / Request Executor** -- A generic HTTP execution layer that constructs requests from endpoint definitions (method, path, headers, body) using `java.net.http.HttpClient`. Handles response status checking and error reporting.
-- **Export Orchestrator** -- The top-level run controller. Iterates over configured BO types sequentially, invoking the metadata-tracking-bundles-CSV pipeline for each. Clears all in-memory state between BO types.
-- **Metadata Model** -- Parses `/BOMetaData` responses into a structured representation of components and fields (internal name, display name, data type, cardinality, instance path). Resolves field paths for the bundles request.
-- **Batching & Filtering Logic** -- Splits tracking ID lists into configurable batch sizes. Applies include/exclude field filters from config to the metadata-derived field path list.
-- **CSV Writer** -- Flattens hierarchical bundle data into tabular rows using OpenCSV. Handles single-cardinality components (one row contribution) and multi-cardinality components (one row per instance). Writes one file per BO type.
-- **Downloads List Generator** -- Identifies attachment components during bundle processing and writes a separate CSV per BO type listing tracking number, server file path, and file name.
-- **Backups Manager** -- Creates timestamped output directories per run. After a successful run, counts existing directories and deletes the oldest beyond the configured retention limit.
-- **Logs Manager** -- Configures Log4j2 programmatically for each run: a file appender writing to the run directory and a console appender for stdout. Logs session events, per-BO progress, record counts, and errors.
+### 2a. Export Pipeline (shared by both modes)
+
+Business Objects are processed strictly sequentially, with full cleanup of in-memory state between each BO type.
+
+- **Configuration Loader (`ConfigLoader`)** -- Parses and validates `config.yml` using SnakeYAML. Produces a strongly-typed `AppConfig` covering server URL, credentials, BO type list, field filters, output directory, batch size, backup retention, admin email allow-list, SFTP settings, and feature flags.
+- **Endpoints-File Adapter (`EndpointRegistry`)** -- Parses the user-provided `endpoints.yml`. Maps endpoint definitions to the required CLM operations. Validates completeness at startup.
+- **Session Manager** -- Handles the CLM authentication lifecycle: login, session-ID attachment, and logout. Can be bypassed via `injectSessionId()` when a pre-authenticated CLM session (from the web UI) is reused.
+- **API Client / Request Executor (`RequestExecutor`)** -- A generic HTTP layer that constructs requests from endpoint definitions using `java.net.http.HttpClient`. Supports absolute-path endpoints (custom CLM REST paths that do not share the base URL prefix). `RetryPolicy` retries transient failures (5xx except 500, which is a CLM application error and is not retried).
+- **Export Pipeline (`BoPipeline`)** -- The per-BO pipeline: fetch metadata → resolve tracking IDs (with optional date filter routing) → batch fetch → write CSV. The three-argument overload `execute(BoTypeConfig, Path, DateFilter)` returns `List<Long>` (the collected tracking IDs) so that callers can scope PDF/attachment downloads to the exported record set.
+- **Run Executor (`RunExecutor`)** -- Orchestrates a full export run in a background thread. Accumulates tracking IDs from the CSV step and passes them directly to the PDF and attachment download steps, ensuring filtered runs do not download outside the filter.
+- **Metadata Model** -- Parses `/BOMetaData` responses into `BoMetadata` / `ComponentMetadata` / `FieldMetadata` objects.
+- **Column Resolver (`ColumnResolver`)** -- Determines which fields to export per BO type. Reads an optional `config/columns/<BoType>.csv` (one field instance path per line); if absent, all fields from metadata are included.
+- **CSV Writers** -- `CsvExportWriter` (per-component, merged-single, or single-only mode), `SummaryCsvWriter`, `ParentCsvWriter`, `DownloadsCsvWriter`, `ManifestCsvWriter`.
+- **Backups Manager** -- Creates timestamped output directories per run and enforces retention by deleting the oldest run directories beyond the configured limit.
+
+### 2b. Web Server Layer
+
+- **`WebServer`** -- Entry point for serve mode. Builds the Javalin app, registers the `before` auth filter (role check; `/api/auth/login` and `/api/auth/check-admin` are unauthenticated), wires all route handlers, and starts the server.
+- **`AuthController`** -- Handles `POST /api/auth/login` and `POST /api/auth/logout`. Login accepts an optional `asAdmin` flag: if `true` and the submitted email is in `config.adminEmails`, CLM authenticates and the session receives the `ADMIN` role with the CLM session ID stored server-side; otherwise `OPERATOR`. `GET /api/auth/check-admin?email=` returns `{"isAdmin": true/false}` without authentication — used by the login page to show/hide the admin toggle.
+- **`ConfigController`** -- `GET /api/config` and `PUT /api/config` (ADMIN only). Reads and writes the full `config.yml`, including `adminEmails` and `boTypes` with `localizedName` overrides.
+- **`RunController`** -- `POST /api/run/start`, `GET /api/run/status`, `GET /api/run/history`, `POST /api/run/stop`, `GET /api/schedule`, `PUT /api/schedule`, `DELETE /api/schedule`.
+- **`AdminController`** -- ADMIN-only endpoints for live CLM discovery (requires the admin's CLM session stored at login):
+  - `GET /api/admin/bo-types` -- calls CLM `getBoTypes()`, then fetches display names and usage types in parallel (5-thread pool, 30 s per-call timeout, fallback to internal name on failure), and merges with the current `config.yml` state for `checked` and `localizedName`.
+  - `GET /api/admin/bo-metadata/{boType}` -- calls CLM `getMetadata()` and returns the full component/field structure with `instancePath` stripped of the `MCPDef:/` prefix.
+  - `GET /api/admin/columns/{boType}` -- reads `config/columns/<boType>.csv`; returns `{"fieldPaths": null}` if the file does not exist (signals "all fields selected").
+  - `PUT /api/admin/columns/{boType}` -- creates `config/columns/` if needed and writes the supplied field paths one per line, overwriting any existing file.
+- **`StateStore`** -- Reads/writes `ui-state.json` (run history, current run status, schedule) as a simple JSON file; no database.
+- **`ExportScheduler`** -- Background thread that fires automatic runs based on the schedule stored in `ui-state.json`.
 
 ---
 

@@ -108,8 +108,36 @@
       <section id="bo-types" class="card reveal">
         <h2 class="section-title">BO Types</h2>
 
-        <div class="form-group" style="margin-bottom:1.25rem;">
-          <label>BO Types to Export</label>
+        <!-- CLM Discovery -->
+        <div class="form-group" style="margin-bottom:1rem;">
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <button class="btn-secondary btn-sm" id="bo-load-clm" type="button">Load from CLM</button>
+            <input class="form-control" id="bo-search" type="text" placeholder="Search BO types…" style="max-width:260px;display:none;" />
+            <span id="bo-load-spinner" style="display:none;">Loading…</span>
+            <span id="bo-load-error" class="error-msg" style="display:none;"></span>
+          </div>
+        </div>
+
+        <!-- CLM Discovery Table (hidden until loaded) -->
+        <div id="bo-clm-table-wrap" style="display:none;margin-bottom:1.25rem;">
+          <table class="bo-clm-table" id="bo-clm-table">
+            <thead>
+              <tr>
+                <th style="width:2rem;"></th>
+                <th>Internal Name</th>
+                <th>Display Name</th>
+                <th>Usage Type</th>
+                <th style="width:8rem;">Fields</th>
+                <th style="width:8rem;"></th>
+              </tr>
+            </thead>
+            <tbody id="bo-clm-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Legacy manual list (visible when CLM not loaded) -->
+        <div id="bo-manual-wrap" class="form-group" style="margin-bottom:1.25rem;">
+          <label>BO Types to Export <span class="field-hint">(manual)</span></label>
           <div class="bo-type-table" id="bo-types-list">
             <div class="bo-type-header">
               <span>Internal Name <span class="field-hint">(used by the export job)</span></span>
@@ -120,7 +148,7 @@
           <div class="tag-add-row" style="margin-top:0.5rem;">
             <button class="btn-secondary btn-sm" id="bo-type-add" type="button">+ Add BO Type</button>
           </div>
-          <span class="field-hint" style="margin-top:0.25rem;">Leave empty to export all available BO types.</span>
+          <span class="field-hint" style="margin-top:0.25rem;">Leave empty to export all available BO types. Or use "Load from CLM" above to select from a live list.</span>
         </div>
 
         <div class="form-grid">
@@ -377,6 +405,16 @@
             <input class="form-control" id="output-datetime" type="text" value="dd/MM/yyyy HH:mm:ss" />
             <span class="field-hint">How datetime values are written to the CSV output.</span>
           </div>
+        </div>
+      </section>
+
+      <!-- ===== ADMIN ACCESS ===== -->
+      <section id="admin-access" class="card reveal">
+        <h2 class="section-title">Admin Access</h2>
+        <div class="form-group">
+          <label for="admin-emails">Admin Emails (one per line)</label>
+          <textarea id="admin-emails" class="form-control" rows="4" placeholder="admin@company.com"></textarea>
+          <small class="form-hint">Users whose email appears here can log in as admin using CLM credentials.</small>
         </div>
       </section>
 

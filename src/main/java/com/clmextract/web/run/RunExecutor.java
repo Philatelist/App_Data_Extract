@@ -139,6 +139,7 @@ public class RunExecutor {
                     runId);
 
             // EXPORT_CSV
+            List<Long> exportedIds = new ArrayList<>();
             updateStep(runId, STEP_EXPORT_CSV, RunStatus.IN_PROGRESS);
             try {
                 AppConfig csvConfig = ConfigLoader.loadRaw(configPath);
@@ -166,7 +167,7 @@ public class RunExecutor {
 
                 for (BoTypeConfig boTypeConfig : boTypes) {
                     try {
-                        pipeline.execute(boTypeConfig, outputDir, dateFilter);
+                        exportedIds.addAll(pipeline.execute(boTypeConfig, outputDir, dateFilter));
                         successCount++;
                     } catch (Exception e) {
                         String warning = "BO " + boTypeConfig.getName() + " failed: " + e.getMessage();
@@ -248,14 +249,8 @@ public class RunExecutor {
             // EXPORT_PDF
             updateStep(runId, STEP_EXPORT_PDF, RunStatus.IN_PROGRESS);
             try {
-                AppConfig stepConfig = ConfigLoader.loadRaw(configPath);
-                Path stepOutputDir = Path.of(
-                        stepConfig.getOutputRoot() != null ? stepConfig.getOutputRoot() : "output",
-                        stepConfig.getExportFolderName() != null ? stepConfig.getExportFolderName() : "export");
-                Files.createDirectories(stepOutputDir);
-                List<Long> trackingIds = resolveTrackingIds(selectedBos, dataSource, stepConfig);
-                AttachmentDownloader downloader = new AttachmentDownloader(dataSource, stepOutputDir);
-                int count = downloader.downloadPdfs(trackingIds);
+                AttachmentDownloader downloader = new AttachmentDownloader(dataSource, outputDir);
+                int count = downloader.downloadPdfs(exportedIds);
                 LOG.info("EXPORT_PDF: downloaded {} signed PDF(s)", count);
                 updateStep(runId, STEP_EXPORT_PDF, RunStatus.SUCCESS);
             } catch (Exception e) {
@@ -268,14 +263,8 @@ public class RunExecutor {
             // EXPORT_ATTACHMENTS
             updateStep(runId, STEP_EXPORT_ATTACHMENTS, RunStatus.IN_PROGRESS);
             try {
-                AppConfig stepConfig = ConfigLoader.loadRaw(configPath);
-                Path stepOutputDir = Path.of(
-                        stepConfig.getOutputRoot() != null ? stepConfig.getOutputRoot() : "output",
-                        stepConfig.getExportFolderName() != null ? stepConfig.getExportFolderName() : "export");
-                Files.createDirectories(stepOutputDir);
-                List<Long> trackingIds = resolveTrackingIds(selectedBos, dataSource, stepConfig);
-                AttachmentDownloader downloader = new AttachmentDownloader(dataSource, stepOutputDir);
-                int count = downloader.downloadAttachments(trackingIds);
+                AttachmentDownloader downloader = new AttachmentDownloader(dataSource, outputDir);
+                int count = downloader.downloadAttachments(exportedIds);
                 LOG.info("EXPORT_ATTACHMENTS: downloaded {} attachment(s)", count);
                 updateStep(runId, STEP_EXPORT_ATTACHMENTS, RunStatus.SUCCESS);
             } catch (Exception e) {
@@ -373,25 +362,6 @@ public class RunExecutor {
             }
             running.set(false);
         }
-    }
-
-    private List<Long> resolveTrackingIds(List<String> selectedBos, DataSource dataSource,
-                                          AppConfig config) {
-        List<Long> all = new ArrayList<>();
-        List<String> boNames = selectedBos.isEmpty()
-                ? config.getBoTypes().stream()
-                        .map(BoTypeConfig::getName)
-                        .filter(n -> n != null && !n.isBlank())
-                        .collect(Collectors.toList())
-                : selectedBos;
-        for (String bo : boNames) {
-            try {
-                all.addAll(dataSource.getTrackingNumbers(bo));
-            } catch (Exception e) {
-                LOG.warn("Could not get tracking numbers for BO {}: {}", bo, e.getMessage());
-            }
-        }
-        return all;
     }
 
     private void updateStep(String runId, String step, RunStatus status) {

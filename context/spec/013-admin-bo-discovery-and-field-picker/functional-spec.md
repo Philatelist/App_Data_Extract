@@ -1,7 +1,7 @@
 # Functional Specification: Admin Panel — CLM BO Discovery and Field Picker
 
 - **Roadmap Item:** Post-Spec-012 — replace manual BO type text entry and per-BO column CSV files with a live CLM-driven picker in the Admin Panel
-- **Status:** Approved
+- **Status:** Completed
 - **Author:** Alex
 
 ---
@@ -28,12 +28,12 @@ This feature makes the Admin Panel self-sufficient:
 **Background:** Today admin access requires entering `admin` / `admin`. This will be replaced by a config-driven email allow-list combined with real CLM authentication.
 
 **Acceptance Criteria:**
-- [ ] `config.yml` has a new top-level field `adminEmails` — a list of email addresses (e.g. `ausov@corcentric.com`) that are permitted admin access.
-- [ ] On the login page, when the user enters an email that matches one of the `adminEmails` values, a toggle labelled **"Sign in as Admin"** appears beneath the password field. The toggle is hidden for non-admin emails.
-- [ ] When the **Sign in as Admin** toggle is ON and the user submits the form, the server verifies the credentials against CLM (same flow as operator login). If CLM accepts them, the session is granted the `ADMIN` role and the CLM session ID is stored in the session.
-- [ ] If CLM rejects the credentials, the login page shows the same error message as a failed operator login — no indication of whether the email is on the admin list.
-- [ ] The existing hardcoded `admin` / `admin` shortcut is removed.
-- [ ] Operators (non-admin emails, or admin email with the toggle OFF) continue to log in exactly as before, receiving the `OPERATOR` role.
+- [x] `config.yml` has a new top-level field `adminEmails` — a list of email addresses (e.g. `ausov@corcentric.com`) that are permitted admin access.
+- [x] On the login page, when the user enters an email that matches one of the `adminEmails` values, a toggle labelled **"Sign in as Admin"** appears beneath the password field. The toggle is hidden for non-admin emails.
+- [x] When the **Sign in as Admin** toggle is ON and the user submits the form, the server verifies the credentials against CLM (same flow as operator login). If CLM accepts them, the session is granted the `ADMIN` role and the CLM session ID is stored in the session.
+- [x] If CLM rejects the credentials, the login page shows the same error message as a failed operator login — no indication of whether the email is on the admin list.
+- [x] The existing hardcoded `admin` / `admin` shortcut is removed.
+- [x] Operators (non-admin emails, or admin email with the toggle OFF) continue to log in exactly as before, receiving the `OPERATOR` role.
 
 ---
 
@@ -42,16 +42,16 @@ This feature makes the Admin Panel self-sufficient:
 **As an** administrator, **I want** to fetch the full list of BO types available in CLM with one click, **so that** I do not have to know or type their internal names.
 
 **Acceptance Criteria:**
-- [ ] The BO Types section of the Admin Panel has a **"Load from CLM"** button.
-- [ ] Clicking the button triggers a server-side call to CLM using the admin's active CLM session. The button shows a loading spinner while the call is in progress.
-- [ ] On success, the section displays a table of all BO types returned by CLM. Each row shows:
+- [x] The BO Types section of the Admin Panel has a **"Load from CLM"** button.
+- [x] Clicking the button triggers a server-side call to CLM using the admin's active CLM session. The button shows a loading spinner while the call is in progress.
+- [x] On success, the section displays a table of all BO types returned by CLM. Each row shows:
   - Internal name (used by the export pipeline)
   - Display name (human-readable label from CLM metadata)
   - Usage type (e.g. `Contract`, `NonContract`, `Directory`)
   - A checkbox indicating whether this BO is currently included in the export configuration
-- [ ] BO types already present in `config.yml` (`boTypes` list) are pre-checked. All others are unchecked by default.
-- [ ] If the CLM call fails (network error, session expired), an inline error message is shown beneath the button and the existing BO list is preserved.
-- [ ] The table supports text search/filtering so the admin can find a BO type by name without scrolling through the full list.
+- [x] BO types already present in `config.yml` (`boTypes` list) are pre-checked. All others are unchecked by default.
+- [x] If the CLM call fails (network error, session expired), an inline error message is shown beneath the button and the existing BO list is preserved.
+- [x] The table supports text search/filtering so the admin can find a BO type by name without scrolling through the full list.
 
 ---
 
@@ -60,9 +60,9 @@ This feature makes the Admin Panel self-sufficient:
 **As an** administrator, **I want** to set a custom display name (localized label) for each selected BO type, **so that** operators see friendly names in the dashboard BO list.
 
 **Acceptance Criteria:**
-- [ ] Each checked BO row in the table has an editable **Display Name** field, pre-filled with the CLM display name.
-- [ ] The admin can edit the display name freely. The edited value is stored as `localizedName` in the `boTypes` entry in `config.yml`.
-- [ ] If the display name is left blank, the internal name is used as the fallback.
+- [x] Each checked BO row in the table has an editable **Display Name** field, pre-filled with the CLM display name.
+- [x] The admin can edit the display name freely. The edited value is stored as `localizedName` in the `boTypes` entry in `config.yml`.
+- [x] If the display name is left blank, the internal name is used as the fallback.
 
 ---
 
@@ -71,17 +71,17 @@ This feature makes the Admin Panel self-sufficient:
 **As an** administrator, **I want** to see all available fields for a BO type and select exactly which ones to export, **so that** the CSV output contains only the columns my team needs.
 
 **Acceptance Criteria:**
-- [ ] Each BO row in the table has an **"Edit Fields"** button. Clicking it opens an expanded inline panel (or a slide-over drawer) for that BO.
-- [ ] The system fetches BO metadata from CLM using the `BOMetaData` endpoint (using the admin's CLM session). A loading state is shown during the fetch.
-- [ ] The field picker displays fields grouped by component. Each component is a collapsible section showing:
+- [x] Each BO row in the table has an **"Edit Fields"** button. Clicking it opens an expanded inline panel (or a slide-over drawer) for that BO.
+- [x] The system fetches BO metadata from CLM using the `BOMetaData` endpoint (using the admin's CLM session). A loading state is shown during the fetch.
+- [x] The field picker displays fields grouped by component. Each component is a collapsible section showing:
   - Component display name and cardinality (`single` or `multiple`)
   - A list of fields, each showing: display name, internal field path (e.g. `GPAMEA_Data/ReqGPAMEAInfo/agreementType`), and data type
   - A checkbox per field
   - A **Select All / Deselect All** toggle per component
-- [ ] If a `config/columns/<BoType>.csv` file already exists for this BO, fields listed in that file are pre-checked. All other fields are unchecked.
-- [ ] If no column file exists yet, **all fields are pre-checked** (export everything by default).
-- [ ] The admin can search/filter fields by display name or internal name within the picker.
-- [ ] Clicking **"Apply"** (or equivalent) closes the picker and marks the BO row as having custom field selection (visual indicator, e.g. a badge "N fields selected").
+- [x] If a `config/columns/<BoType>.csv` file already exists for this BO, fields listed in that file are pre-checked. All other fields are unchecked.
+- [x] If no column file exists yet, **all fields are pre-checked** (export everything by default).
+- [x] The admin can search/filter fields by display name or internal name within the picker.
+- [x] Clicking **"Apply"** (or equivalent) closes the picker and marks the BO row as having custom field selection (visual indicator, e.g. a badge "N fields selected").
 
 ---
 
@@ -90,13 +90,13 @@ This feature makes the Admin Panel self-sufficient:
 **As an** administrator, **I want** clicking "Save Configuration" to persist both the selected BO list and the field selections, **so that** the next export uses my choices without further manual file editing.
 
 **Acceptance Criteria:**
-- [ ] When the admin clicks **Save Configuration**, the server:
+- [x] When the admin clicks **Save Configuration**, the server:
   1. Writes the checked BO types (internal name + display name) to the `boTypes` list in `config.yml`.
-  2. For each BO that has a field selection (from the field picker), writes the selected field paths — one per line — to `config/columns/<BoType>.csv`, overwriting any existing file.
+  2. For each BO that has a field selection (from the field picker), writes the selected field paths — one per line — to `config/columns/<BoType>.csv`, overwriting any existing file. *(Note: column files are written immediately on "Apply" per the technical spec; Save Configuration persists the BO list only.)*
   3. For any BO whose field picker was never opened (no custom selection made), leaves the existing `config/columns/<BoType>.csv` untouched.
-- [ ] Unchecking a BO and saving removes it from the `boTypes` list in `config.yml`. Its column CSV file is **not** deleted (preserved for if it is re-added later).
-- [ ] A success toast is shown on save. If saving fails, a clear error message is displayed and no partial writes occur.
-- [ ] The operator dashboard BO list reflects the updated selection immediately after save (no server restart needed).
+- [x] Unchecking a BO and saving removes it from the `boTypes` list in `config.yml`. Its column CSV file is **not** deleted (preserved for if it is re-added later).
+- [x] A success toast is shown on save. If saving fails, a clear error message is displayed and no partial writes occur.
+- [x] The operator dashboard BO list reflects the updated selection immediately after save (no server restart needed).
 
 ---
 
@@ -105,9 +105,9 @@ This feature makes the Admin Panel self-sufficient:
 **As an** administrator, **I want** the BO and field picker to remain usable even when CLM has dozens of BO types and hundreds of fields per BO, **so that** I can configure the export without the page becoming slow or hard to navigate.
 
 **Acceptance Criteria:**
-- [ ] The BO type table is paginated or virtualised if CLM returns more than 50 BO types. [NEEDS CLARIFICATION: confirm an acceptable threshold — 50 is assumed.]
-- [ ] Within the field picker, components are collapsed by default when a BO has more than 5 components, requiring the admin to expand each one individually.
-- [ ] The "Load from CLM" call for BO types, and the per-BO metadata call for the field picker, each have a visible timeout indicator. If either call takes longer than 30 seconds, an error is shown with a retry option.
+- [ ] The BO type table is paginated or virtualised if CLM returns more than 50 BO types. [NEEDS CLARIFICATION: confirm an acceptable threshold — 50 is assumed.] *(Deferred — not implemented; the table renders all rows inline. Acceptable for known CLM deployments.)*
+- [x] Within the field picker, components are collapsed by default when a BO has more than 5 components, requiring the admin to expand each one individually.
+- [ ] The "Load from CLM" call for BO types, and the per-BO metadata call for the field picker, each have a visible timeout indicator. If either call takes longer than 30 seconds, an error is shown with a retry option. *(Partially met: 30 s timeout enforced server-side; error shown in UI; retry via "Load from CLM" button. No explicit countdown or "Retry" label.)*
 
 ---
 
@@ -118,11 +118,11 @@ This feature makes the Admin Panel self-sufficient:
 **Background:** Today `RunExecutor` calls `resolveTrackingIds()` independently for the EXPORT_PDF and EXPORT_ATTACHMENTS steps. That method always calls the unfiltered `getTrackingNumbers()` CLM endpoint regardless of the date filter set on the dashboard. The result is that a run filtered to "Create Date from 01-01-2026" exports only matching contracts to CSV but downloads PDFs and attachments for every contract in CLM.
 
 **Acceptance Criteria:**
-- [ ] The tracking IDs collected during the EXPORT_CSV step (after applying the date filter or any other active filter) are retained in memory for the duration of the run and reused as the input for the EXPORT_PDF and EXPORT_ATTACHMENTS steps.
-- [ ] The PDF download step processes only tracking numbers that were part of the CSV export in the same run — no extra CLM call to re-fetch tracking numbers is made for this step.
-- [ ] The attachment download step processes only the same set of tracking numbers — consistent with the CSV step.
-- [ ] If the CSV step produced zero exported records (all BOs returned empty), the PDF and attachment steps complete immediately with zero downloads and report Success (not an error).
-- [ ] The existing behaviour for unfiltered runs (no date filter, all BOs) is unchanged — all tracking numbers fetched during CSV export are used for PDF and attachment steps.
+- [x] The tracking IDs collected during the EXPORT_CSV step (after applying the date filter or any other active filter) are retained in memory for the duration of the run and reused as the input for the EXPORT_PDF and EXPORT_ATTACHMENTS steps.
+- [x] The PDF download step processes only tracking numbers that were part of the CSV export in the same run — no extra CLM call to re-fetch tracking numbers is made for this step.
+- [x] The attachment download step processes only the same set of tracking numbers — consistent with the CSV step.
+- [x] If the CSV step produced zero exported records (all BOs returned empty), the PDF and attachment steps complete immediately with zero downloads and report Success (not an error).
+- [x] The existing behaviour for unfiltered runs (no date filter, all BOs) is unchanged — all tracking numbers fetched during CSV export are used for PDF and attachment steps.
 
 ---
 

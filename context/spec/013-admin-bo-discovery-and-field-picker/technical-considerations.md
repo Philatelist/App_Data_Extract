@@ -1,7 +1,7 @@
 # Technical Specification: Admin Panel — CLM BO Discovery and Field Picker
 
 - **Functional Specification:** [013-admin-bo-discovery-and-field-picker/functional-spec.md](functional-spec.md)
-- **Status:** Approved
+- **Status:** Completed
 - **Author(s):** Alex
 
 ---
