@@ -44,5 +44,6 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "awos-recruitment"
-  ]
+  ],
+  "spinnerTipsEnabled": false
 }
