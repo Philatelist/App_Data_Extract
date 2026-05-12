@@ -73,7 +73,7 @@ When the admin clicks **Save**, the changes are validated and written to `config
 **BO Type Selection**
 | Field | Type | Config key |
 |---|---|---|
-| BO Types | Editable list of names (add/remove) | `boTypes[].name` |
+| BO Types | Editable table with two columns — **Internal Name** (used by the job runner to identify the BO in CLM API calls) and **Display Name** (localized label shown to operators on the dashboard) | `boTypes[].name` / `boTypes[].localizedName` |
 | BO Usage Type Filter | Dropdown (Directory / NonContract / Contract / [blank]) | `boUsageTypeFilter` |
 | Tracking Filter | Text | `trackingFilter` |
 
@@ -143,78 +143,100 @@ When the admin clicks **Save**, the changes are validated and written to `config
 
 **As an operator, I want a dashboard where I can select BO types, configure the export date range, trigger an export, and see the results — so that I can run and monitor exports without using the command line.**
 
-The dashboard is divided into three areas:
-1. **Export Configuration** — parameters for the next run
-2. **Export Trigger** — the action button
-3. **Status Panel** — live progress and final results
+The dashboard is divided into four sections:
+1. **Export Configuration** — parameters for the next run (hidden while a job is running)
+2. **Export Status** — live step-by-step progress
+3. **Scheduled Export** — active schedule info with management actions
+4. **Export History** — log of past runs
 
 #### Export Configuration Fields
 
+**Enable Auto-Schedule toggle** (top of form)
+- When **off**: one-time manual export mode. The CTA button reads "Start Export". Export Status panel is visible.
+- When **on**: schedule mode. Schedule settings appear. Export Status panel is hidden. The CTA button reads "Schedule".
+
+**Schedule Settings** (visible when Enable Auto-Schedule is on)
+| Field | Notes |
+|---|---|
+| Frequency | Daily / Weekly / Monthly |
+| Day of Week | Visible only when Frequency = Weekly |
+| Time of Day | 24-hour time picker |
+| Time Zone | Dropdown of common time zones |
+
 **BO Selection**
-- A list of checkboxes, one per available BO type (e.g., NAF, GPE, GPNY, PGCS — populated from the tool's known/configured BO types).
-- If no checkbox is selected, the export runs for all available BO types.
-- Next to each BO name, the **Last Successful Run Date** for that BO is displayed (read from the system's run history). [NEEDS CLARIFICATION: What format should this date be displayed in? e.g., DD/MM/YYYY or relative "3 days ago"?]
-- If no prior successful run exists for a BO, the date shows as "Never". [NEEDS CLARIFICATION: Preferred display text for a BO with no run history?]
+- A grid of cards, one per BO type populated from the tool config.
+- Each card shows the BO's **display name** (localized name configured in the Admin Panel) and the **last successful run date** for that BO. If no prior run exists the date shows as "—".
+- All cards are unchecked by default. If no card is checked, the export runs for all BOs.
+- After a job completes, last-run dates on the cards update automatically without a page refresh.
 
-**Frequency**
-- A picker allowing the user to select the export frequency: Daily, Weekly, Monthly. [NEEDS CLARIFICATION: Are these the complete set of frequency options, or should others be included?]
-- The selected frequency serves two purposes:
-  1. **Date calculation:** When computing the default export window, the frequency determines how far back from the last successful run date the export window extends.
-  2. **Auto-schedule (optional):** The user can enable an automatic scheduled export for the selected frequency. When enabled, exports run automatically at the configured interval without requiring the user to click the trigger button. [NEEDS CLARIFICATION: At what time of day should auto-scheduled exports run? Configurable or fixed midnight?]
+**Date Filter**
+- **Date Field** dropdown: Create Date / Last Modified Date.
+- **Date From**: date picker for the start of the filter window.
+- **Date To**: date picker for the end of the filter window. Hidden when Enable Auto-Schedule is on.
+- When Enable Auto-Schedule is on, a **Modified within the period** toggle appears. When checked, Date Field and Date From are also hidden; the export will include only contracts modified since the last scheduled run.
 
-**Manual Override Date**
-- A date picker field labeled "Override Last Run Date."
-- When filled in, this date is used as the "from" date for the export window instead of the system-tracked last successful run date.
-- When left blank, the system uses the stored last successful run date for each selected BO.
+**SFTP Target Path** (required)
+- Text field for the destination folder path on the SFTP server (e.g., `/exports/clm/q2-2025`).
+- Validation fires on Start Export click; the field receives focus if left blank.
 
-**SFTP Target Path**
-- A text field for the destination folder path on the SFTP server (e.g., `/exports/clm/q2-2025`).
-- This path is relative to / appended to the SFTP root configured in the Admin Panel.
-- This field is required before export can be triggered. [NEEDS CLARIFICATION: Should this field remember/pre-fill the last-used path?]
+#### Export Trigger / Schedule CTA
 
-#### Export Trigger
+- **Start Export** (auto-schedule off): validates SFTP path, fires `POST /api/run/start`, hides Export Configuration, shows Export Status with running badge and Stop button.
+- **Schedule** (auto-schedule on): saves the schedule via `PUT /api/schedule`, shows or updates the Scheduled Export panel.
+- **Stop** button: appears in the Export Status title row while a job is running; fires `POST /api/run/stop`.
 
-- A prominent **"Start Export"** button.
-- When clicked, the button is disabled and the Status Panel activates.
-- Export logic:
-  - If Manual Override Date is filled → use that date as the "from" date for all selected BOs.
-  - If Manual Override Date is empty → use the per-BO stored last successful run date as the "from" date.
-  - Contracts are included in the export if any field's modification date falls between the "from" date and the moment the export is triggered.
-  - The current state of each contract (not a diff) is exported.
-- If no BO is selected, the export runs for all available BOs.
+#### Running State
 
-#### Status Panel
+While a job is in progress:
+- The **Export Configuration** section is hidden entirely.
+- The **Export Status** section header shows a pulsing green **"Last job still running"** badge and an active **Stop** button.
+- On page reload, the running state is restored from `ui-state.json` and polling resumes automatically.
 
-Displays real-time progress during an export run, with a row per step. Each row has:
-- A step name
-- A status indicator: In Progress (spinner), Success (green), Failed (red), Pending (grey)
+#### Export Status Panel
 
-Steps displayed:
-1. **Export — CSV** (metadata per contract)
-2. **Export — PDF** (signed contract documents)
-3. **Export — Attachments** (other attached files)
-4. **Packaging** (ZIP creation; if > 200MB, split into ≤ 200MB parts)
-5. **SFTP Upload**
+Displays real-time progress, with a row per step. Each row has a step name and a status pill: Pending (grey) → In Progress (blue) → Success (green) / Failed (red).
 
-After the run completes, each step retains its final green/red status, giving the operator a clear success/failure summary.
+Steps:
+1. Export — CSV Metadata
+2. Export — Signed PDFs
+3. Export — Attachments
+4. Packaging (ZIP)
+5. SFTP Upload
 
-Generated file naming (displayed to operator as reference):
-- Metadata CSV: `Summary<Contract_ID>.CSV`
-- Signed Contract PDF: `<Contract_ID>.pdf`
-- Other attachments: `<Contract_ID>_filename.ext`
-- ZIP archive: `<YYYYMMDD><HH24MMSS>.zip` (split into numbered parts if > 200MB)
+After the job completes, Export Configuration reappears and BO last-run dates refresh.
+
+#### Scheduled Export Panel
+
+Visible only when an active schedule is saved. Displays:
+- Frequency (e.g., "Weekly, every Monday at 02:00 (America/New_York)")
+- Business Objects (display names, or "All BOs")
+- Date Filter summary
+
+Two action buttons:
+- **Edit**: re-fetches the saved schedule and fills all Export Configuration fields; scrolls to the form.
+- **Delete**: calls `DELETE /api/schedule`, resets the schedule state, hides the panel.
+
+#### Export History
+
+A list of past runs, newest first. Each entry shows:
+- Start date/time
+- Duration
+- Overall status pill (All Success / Failed / In Progress)
+- Per-step badge row
 
 **Acceptance Criteria:**
-- [ ] Given I am logged in as a valid CLM user, when I open the User Dashboard, then I see BO checkboxes with the last successful run date shown next to each.
+- [ ] Given I am logged in as a valid CLM user, when I open the User Dashboard, then I see BO cards showing localized display names and last-run dates.
 - [ ] Given I select 2 BOs and click Start Export, then only those 2 BOs are exported.
 - [ ] Given no BO is selected and I click Start Export, then all available BOs are exported.
-- [ ] Given I fill in the Manual Override Date, when the export runs, then that date is used as the "from" date for all selected BOs regardless of stored last-run dates.
-- [ ] Given I leave Manual Override Date blank, when the export runs, then each BO uses its own stored last successful run date.
-- [ ] The SFTP Target Path field must not be empty before the Start Export button is clickable (or a validation error is shown if clicked while empty).
-- [ ] During an export run, the Status Panel updates each step's indicator in real time (Pending → In Progress → Success/Failed).
-- [ ] After the run completes, the Status Panel shows a final green or red indicator per step.
-- [ ] After a successful run, the Last Successful Run Date next to each processed BO is updated to the current run's timestamp.
-- [ ] Given I enable auto-schedule with Weekly frequency, then the export runs automatically once per week without requiring manual trigger. [NEEDS CLARIFICATION: Should the auto-schedule be cancelable from the dashboard, and does it show the next scheduled run time?]
+- [ ] The SFTP Target Path field is required; clicking Start Export while it is blank shows a validation message.
+- [ ] While a job is running, the Export Configuration section is hidden and the Export Status header shows the running badge and Stop button.
+- [ ] Clicking Stop cancels the in-progress job.
+- [ ] During an export run, each step pill updates in real time (Pending → In Progress → Success/Failed) via 2-second polling.
+- [ ] After a successful run, BO last-run dates update on the dashboard without a page refresh.
+- [ ] Given Enable Auto-Schedule is on and I click Schedule, the Scheduled Export panel appears with the saved configuration.
+- [ ] Clicking Edit on the Scheduled Export panel fills all form fields from the saved schedule.
+- [ ] Clicking Delete on the Scheduled Export panel removes the schedule and hides the panel.
+- [ ] Export History shows all past runs with step-level status badges.
 
 ---
 

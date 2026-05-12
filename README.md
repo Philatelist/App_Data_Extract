@@ -18,7 +18,7 @@ This produces a self-contained shaded JAR at `target/clm-data-extract-1.0.0.jar`
 ## Run
 
 ```bash
-java -jar target/clm-data-extract-1.0.0.jar --config config.yml
+java -jar target/clm-data-extract-1.0.0.jar --config config.yml --serve --port 8082
 ```
 
 Running without `--config` prints usage and exits with code 1.

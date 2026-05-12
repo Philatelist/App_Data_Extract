@@ -114,6 +114,30 @@
 
 ---
 
+## Slice 6.5: Dashboard UX Refinements (post-Slice 6)
+
+> Implemented as incremental refinements after Slice 6 based on review feedback. No new backend pipeline steps — all changes are to dashboard UI, state management, and API surface.
+
+- [x] **BO dual-name support in Admin Panel** — replaced the single-column BO type tag list with a two-column table: Internal Name (used by the job runner) and Display Name (localized label shown on the dashboard). `admin.js` reads/writes `{name, localizedName}` objects; `GET /api/config` and `PUT /api/config` handle the dual-field structure. **[Agent: java-backend + vanilla-frontend]**
+
+- [x] **Auto-schedule toggle and schedule settings** — added Enable Auto-Schedule toggle at the top of Export Configuration. When on: schedule settings group appears (Frequency, Day of Week for weekly, Time of Day, Time Zone); Export Status panel is hidden; CTA button changes to "Schedule". When off: one-time manual mode, Export Status visible. `PUT /api/schedule` and `GET /api/schedule` persist the schedule to `ui-state.json`. **[Agent: java-backend + vanilla-frontend]**
+
+- [x] **Dashboard date filter** — replaced Manual Override Date with a three-field date filter: Date Field dropdown (Create Date / Last Modified Date), Date From, Date To. Date To is hidden when auto-schedule is on. A "Modified within the period" toggle appears when auto-schedule is on; when checked, Date Field and Date From are also hidden. **[Agent: vanilla-frontend]**
+
+- [x] **Export History section** — added log panel below Export Status showing past runs (newest first): start timestamp, duration, overall status pill, per-step badge row. `GET /api/run/history` returns `List<RunState>` capped at 50 entries from `ui-state.json`. **[Agent: java-backend + vanilla-frontend]**
+
+- [x] **Scheduled Export info panel** — panel below Export History shows active schedule details (frequency, BOs in display names, date filter summary). Hidden when no schedule is saved. **[Agent: vanilla-frontend]**
+
+- [x] **Scheduled Export — Edit & Delete actions** — added Edit (✎) and Delete (🗑) buttons to the Scheduled Export panel. Edit re-fetches the latest schedule and populates all Export Configuration form fields; triggers change events to restore conditional visibility. Delete calls `DELETE /api/schedule` (new endpoint), resets `ScheduleState` to defaults, hides the panel. **[Agent: java-backend + vanilla-frontend]**
+
+- [x] **Localized BO names in Scheduled Export panel** — built a module-level `boDisplayNames` map (internal name → display name) populated by `loadBos()`; the Scheduled Export panel resolves internal names to display names when rendering the Business Objects line. **[Agent: vanilla-frontend]**
+
+- [x] **Live BO last-run date update** — `pollStatus()` completion handler now calls `loadBos()` in addition to `loadHistory()`, so BO card dates refresh automatically when a job finishes without requiring a manual page reload. **[Agent: vanilla-frontend]**
+
+- [x] **Running state UX overhaul** — removed config-locked overlay approach; while a job runs, the entire Export Configuration section is hidden (`display:none`). "Last job still running" badge and Stop button moved from the Export Configuration title row into the Export Status section title row. Export Configuration reappears when the job completes. Removed `.config-locked` CSS rules. **[Agent: vanilla-frontend]**
+
+---
+
 ## Slice 7: Binary File Download — PDFs & Attachments
 
 > Export pipeline fetches signed contract PDFs and other attachments from CLM.
