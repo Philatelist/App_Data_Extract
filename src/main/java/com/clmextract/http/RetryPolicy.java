@@ -28,7 +28,8 @@ public class RetryPolicy {
                 if (e instanceof SessionExpiredException) {
                     throw e;
                 }
-                if (e.getStatusCode() >= 400 && e.getStatusCode() < 500) {
+                // Don't retry client errors (4xx) or deterministic server errors (500)
+                if (e.getStatusCode() >= 400 && e.getStatusCode() < 500 || e.getStatusCode() == 500) {
                     throw e;
                 }
                 if (attempt >= maxAttempts) {

@@ -348,7 +348,13 @@ async function startExport() {
     const res = await fetch('/api/run/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ boNames: getSelectedBos(), sftpTargetPath: sftpPath }),
+      body: JSON.stringify({
+        boNames: getSelectedBos(),
+        sftpTargetPath: sftpPath,
+        dateField: document.getElementById('date-field')?.value || '',
+        dateFrom: document.getElementById('date-from')?.value || '',
+        modifiedWithinPeriod: document.getElementById('modified-period')?.checked ?? false,
+      }),
     });
 
     if (res.status === 401) { window.location.href = '/index.html'; return; }

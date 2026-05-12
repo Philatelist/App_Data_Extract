@@ -766,7 +766,7 @@ endpoints:
     headerName: session_id
   requestHeaders:
   - name: trackingNumber
-    value: '12345'
+    valueFrom: trackingNumber
   response:
     type: json
 - name: documentsAttachmentsCreateAttachment
@@ -1563,7 +1563,8 @@ endpoints:
     type: json
 - name: allApprovals
   method: GET
-  path: /custom/allApprovals/{trackingNumber}
+  path: /services/rest/custom/allApprovals/{trackingNumber}
+  absolutePath: true
   auth:
     type: sessionHeader
     headerName: session_id
@@ -1571,7 +1572,8 @@ endpoints:
     type: json
 - name: trackingNumbersPEP
   method: GET
-  path: /custom/trackingNumbersPEP
+  path: /services/rest/custom/trackingNumbersPEP
+  absolutePath: true
   auth:
     type: sessionHeader
     headerName: session_id
@@ -1586,33 +1588,36 @@ endpoints:
     type: jsonArrayOfStrings
 - name: trackingNumbersInFlight
   method: GET
-  path: /custom/trackingNumbersInFlight
+  path: /services/rest/custom/trackingNumbersInFlight
+  absolutePath: true
   auth:
     type: sessionHeader
     headerName: session_id
   requestHeaders:
   - name: boType
-    valueFrom: boUsageType
+    valueFrom: boType
   - name: daysBeforeToday
     valueFrom: daysBeforeToday
   response:
     type: jsonArrayOfStrings
 - name: trackingNumbersAfterDate
   method: GET
-  path: /custom/trackingNumbersAfterDate
+  path: /services/rest/custom/trackingNumbersAfterDate
+  absolutePath: true
   auth:
     type: sessionHeader
     headerName: session_id
   requestHeaders:
   - name: boType
-    valueFrom: boUsageType
+    valueFrom: boType
   - name: dateTime
     valueFrom: dateTime
   response:
     type: jsonArrayOfStrings
 - name: usersPEP
   method: GET
-  path: /custom/usersPEP
+  path: /services/rest/custom/usersPEP
+  absolutePath: true
   auth:
     type: sessionHeader
     headerName: session_id

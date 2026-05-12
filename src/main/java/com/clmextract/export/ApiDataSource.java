@@ -92,6 +92,8 @@ public class ApiDataSource implements DataSource {
             // Convert ISO yyyy-MM-dd to CLM format dd-M-yyyy HH:mm:ss
             LocalDate date = LocalDate.parse(dateTime);
             String clmDate = date.atStartOfDay().format(DateTimeFormatter.ofPattern("dd-M-yyyy HH:mm:ss"));
+            logger.info("getTrackingNumbersAfterDate: boType={}, dateFrom={} → CLM dateTime header='{}'",
+                    boType, dateTime, clmDate);
 
             EndpointDefinition endpoint = endpointRegistry.getEndpoint(
                     EndpointRegistry.GET_TRACKING_NUMBERS_AFTER_DATE);
@@ -101,9 +103,11 @@ public class ApiDataSource implements DataSource {
             headers.put("dateTime", clmDate);
 
             String response = requestExecutor.execute(endpoint, headers, null);
+            logger.info("getTrackingNumbersAfterDate: raw CLM response: {}", response);
             ObjectMapper objectMapper = new ObjectMapper();
             List<String> stringIds = objectMapper.readValue(response,
                     new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
+            logger.info("getTrackingNumbersAfterDate: parsed {} tracking number(s)", stringIds.size());
             return stringIds.stream()
                     .map(Long::parseLong)
                     .collect(java.util.stream.Collectors.toList());
