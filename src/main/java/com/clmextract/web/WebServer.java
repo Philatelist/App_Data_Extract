@@ -3,6 +3,7 @@ package com.clmextract.web;
 import com.clmextract.config.AppConfig;
 import com.clmextract.config.ConfigLoader;
 import com.clmextract.config.ConfigValidationException;
+import com.clmextract.config.CredentialEncryptor;
 import com.clmextract.endpoint.EndpointRegistry;
 import com.clmextract.web.api.AdminController;
 import com.clmextract.web.api.AuthController;
@@ -19,12 +20,45 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 public class WebServer {
 
     private static final Logger logger = LogManager.getLogger(WebServer.class);
 
+    /**
+     * Fails fast if any password field in {@code config} is stored as an ENC(...) token
+     * but the {@code CLM_EXTRACT_KEY} environment variable is not set.
+     * Package-private for unit testing.
+     */
+    static void checkEncryptedCredentials(AppConfig config) {
+        Optional<String> masterKey = CredentialEncryptor.getMasterKey();
+        if (masterKey.isEmpty()) {
+            boolean hasEncrypted =
+                CredentialEncryptor.isEncrypted(config.getPassword()) ||
+                (config.getSftp() != null && CredentialEncryptor.isEncrypted(config.getSftp().getPassword()));
+            if (hasEncrypted) {
+                throw new IllegalStateException(
+                    "Encrypted credentials found but CLM_EXTRACT_KEY is not set. " +
+                    "Set the CLM_EXTRACT_KEY environment variable and restart.");
+            }
+        }
+    }
+
     public static void start(String configPath, int port) {
+
+        // --- Fail fast if encrypted passwords are present but CLM_EXTRACT_KEY is not set ---
+        if (configPath != null) {
+            try {
+                AppConfig rawConfig = ConfigLoader.loadRaw(configPath);
+                checkEncryptedCredentials(rawConfig);
+            } catch (IllegalStateException e) {
+                throw e;
+            } catch (Exception e) {
+                // If raw config can't be loaded, let the regular load path handle the error
+                logger.warn("Could not perform encrypted-credentials pre-check: {}", e.getMessage());
+            }
+        }
 
         // --- Load config (best-effort; validation failures are non-fatal in serve mode) ---
         AppConfig config = null;

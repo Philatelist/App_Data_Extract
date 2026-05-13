@@ -1,7 +1,7 @@
 # Technical Specification: Encrypted Password Storage
 
 - **Functional Specification:** [014-encrypted-password-storage/functional-spec.md](functional-spec.md)
-- **Status:** Approved
+- **Status:** Completed
 - **Author(s):** Alex
 
 ---

@@ -38,7 +38,8 @@
       "Bash(/usr/bin/curl -s -b /tmp/clm-v2.txt -X POST http://localhost:8082/api/run/start -H 'Content-Type: application/json' -d '{\"boNames\":[\"GP_PWF\"],\"sftpTargetPath\":\"/test\"}')",
       "Bash(/usr/bin/curl -s -b /tmp/clm-v2.txt http://localhost:8082/api/bos)",
       "Bash(/usr/bin/curl -s -b /tmp/clm-v2.txt http://localhost:8082/api/run/status)",
-      "Bash(/usr/bin/curl -s -b /tmp/clm-v2.txt -X POST http://localhost:8082/api/run/start -H 'Content-Type: application/json' -d '{\"boNames\":[\"GPPWF_BO\",\"NAFBO\"],\"sftpTargetPath\":\"/test\"}')"
+      "Bash(/usr/bin/curl -s -b /tmp/clm-v2.txt -X POST http://localhost:8082/api/run/start -H 'Content-Type: application/json' -d '{\"boNames\":[\"GPPWF_BO\",\"NAFBO\"],\"sftpTargetPath\":\"/test\"}')",
+      "Bash(javap -classpath /Users/alex/.m2/repository/io/javalin/javalin/6.4.0/javalin-6.4.0.jar io.javalin.http.Context)"
     ]
   },
   "enableAllProjectMcpServers": true,

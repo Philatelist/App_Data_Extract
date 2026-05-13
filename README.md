@@ -51,6 +51,54 @@ All settings are defined in a YAML configuration file. See `config.yml` for a co
 | `retry.maxAttempts` | No | `3` | Max retry attempts for failed API calls |
 | `retry.baseDelayMs` | No | `1000` | Base delay in ms for exponential backoff |
 
+### Password Encryption
+
+By default, `server.password` and `sftp.password` are stored in plaintext. To encrypt them at rest, set the `CLM_EXTRACT_KEY` environment variable before starting the application. The key never touches `config.yml` — it is the only thing that can decrypt the stored passwords.
+
+#### 1. Generate and set the key
+
+Generate a strong random key:
+
+```bash
+openssl rand -hex 32
+```
+
+Add it to your shell profile (`~/.zshrc` or `~/.bashrc`) so it is set automatically on every login:
+
+```bash
+echo 'export CLM_EXTRACT_KEY=<your-generated-key>' >> ~/.zshrc
+source ~/.zshrc
+```
+
+> **Keep this key safe.** If you lose it, you will need to re-enter your passwords in the Admin Panel with a new key. Store it in a password manager or secrets vault.
+
+#### 2. Encrypt your passwords via the Admin Panel
+
+1. Start the application with `CLM_EXTRACT_KEY` set in the environment.
+2. Log in as admin and open the **Admin Panel**.
+3. Type your CLM server password into the **Server Password** field (the field is always blank — the server never sends the stored value to the browser).
+4. Click **Save Configuration**.
+
+The password is now stored in `config.yml` as an encrypted token:
+
+```yaml
+server:
+  password: ENC(aB3xQ9f2mN...)
+```
+
+The SFTP password works the same way. On subsequent Admin Panel loads the field shows **"Password is set (leave blank to keep)"** — leave it empty when saving other settings to preserve the encrypted value.
+
+#### 3. Behaviour reference
+
+| Situation | Result |
+|---|---|
+| `CLM_EXTRACT_KEY` set, password is `ENC(...)` | Decrypted transparently at startup |
+| `CLM_EXTRACT_KEY` not set, password is `ENC(...)` | Application refuses to start with error: *"Encrypted credentials found but CLM_EXTRACT_KEY is not set"* |
+| `CLM_EXTRACT_KEY` not set, password is plaintext | Application starts normally (backward compatible) |
+| `CLM_EXTRACT_KEY` set, password is plaintext | Application starts and logs a warning to encrypt via Admin Panel |
+
+---
+
 ### CSV Modes
 
 - **`per-component`** (default) — One CSV file per BO component. Each file contains a `Tracking #` column followed by that component's fields.

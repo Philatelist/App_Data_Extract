@@ -14,6 +14,7 @@
 - **HTTP Client:** `java.net.http.HttpClient` (built-in since Java 11) -- synchronous requests for CLM API calls
 - **CSV Writing:** OpenCSV -- handles quoting, escaping, and header row generation for export files
 - **Logging:** Log4j2 -- dual-output logging to a per-run log file and console with configurable levels
+- **Cryptography:** `javax.crypto` (built-in Java 17) -- AES-256-GCM symmetric encryption used by `CredentialEncryptor` to encrypt/decrypt passwords stored in `config.yml`; no additional Maven dependency required
 
 ---
 
@@ -25,7 +26,8 @@ The application has two runtime modes — CLI batch mode and web serve mode — 
 
 Business Objects are processed strictly sequentially, with full cleanup of in-memory state between each BO type.
 
-- **Configuration Loader (`ConfigLoader`)** -- Parses and validates `config.yml` using SnakeYAML. Produces a strongly-typed `AppConfig` covering server URL, credentials, BO type list, field filters, output directory, batch size, backup retention, admin email allow-list, SFTP settings, and feature flags.
+- **Configuration Loader (`ConfigLoader`)** -- Parses and validates `config.yml` using SnakeYAML. Produces a strongly-typed `AppConfig` covering server URL, credentials, BO type list, field filters, output directory, batch size, backup retention, admin email allow-list, SFTP settings, and feature flags. `load()` calls `resolvePasswords()` after parsing to transparently decrypt any `ENC(...)` password tokens before validation; throws `ConfigValidationException` if encrypted values are present but `CLM_EXTRACT_KEY` is not set. `loadRaw()` returns values unchanged (including raw `ENC(...)` tokens) for use by web controllers.
+- **Credential Encryptor (`CredentialEncryptor`)** -- Stateless utility in `com.clmextract.config`. Encrypts and decrypts `config.yml` password fields using AES-256-GCM. Token format: `ENC(Base64(IV_12 + ciphertext + GCM_tag_16))`. Derives the 256-bit AES key by SHA-256-hashing the master key string from the `CLM_EXTRACT_KEY` environment variable. Used by `ConfigLoader.resolvePasswords()` at load time and by `ConfigController.putConfig()` at save time.
 - **Endpoints-File Adapter (`EndpointRegistry`)** -- Parses the user-provided `endpoints.yml`. Maps endpoint definitions to the required CLM operations. Validates completeness at startup.
 - **Session Manager** -- Handles the CLM authentication lifecycle: login, session-ID attachment, and logout. Can be bypassed via `injectSessionId()` when a pre-authenticated CLM session (from the web UI) is reused.
 - **API Client / Request Executor (`RequestExecutor`)** -- A generic HTTP layer that constructs requests from endpoint definitions using `java.net.http.HttpClient`. Supports absolute-path endpoints (custom CLM REST paths that do not share the base URL prefix). `RetryPolicy` retries transient failures (5xx except 500, which is a CLM application error and is not retried).
@@ -38,9 +40,9 @@ Business Objects are processed strictly sequentially, with full cleanup of in-me
 
 ### 2b. Web Server Layer
 
-- **`WebServer`** -- Entry point for serve mode. Builds the Javalin app, registers the `before` auth filter (role check; `/api/auth/login` and `/api/auth/check-admin` are unauthenticated), wires all route handlers, and starts the server.
+- **`WebServer`** -- Entry point for serve mode. Builds the Javalin app, registers the `before` auth filter (role check; `/api/auth/login` and `/api/auth/check-admin` are unauthenticated), wires all route handlers, and starts the server. Calls `checkEncryptedCredentials()` during startup — throws `IllegalStateException` and aborts if `config.yml` contains `ENC(...)` passwords but `CLM_EXTRACT_KEY` is not set.
 - **`AuthController`** -- Handles `POST /api/auth/login` and `POST /api/auth/logout`. Login accepts an optional `asAdmin` flag: if `true` and the submitted email is in `config.adminEmails`, CLM authenticates and the session receives the `ADMIN` role with the CLM session ID stored server-side; otherwise `OPERATOR`. `GET /api/auth/check-admin?email=` returns `{"isAdmin": true/false}` without authentication — used by the login page to show/hide the admin toggle.
-- **`ConfigController`** -- `GET /api/config` and `PUT /api/config` (ADMIN only). Reads and writes the full `config.yml`, including `adminEmails` and `boTypes` with `localizedName` overrides.
+- **`ConfigController`** -- `GET /api/config` and `PUT /api/config` (ADMIN only). Reads and writes the full `config.yml`, including `adminEmails` and `boTypes` with `localizedName` overrides. `GET` never sends password values to the browser — returns `serverPasswordIsSet` / `sftp.passwordIsSet` boolean flags instead. `PUT` encrypts any newly submitted password via `CredentialEncryptor` when `CLM_EXTRACT_KEY` is set; preserves the existing stored value when the password field is submitted blank.
 - **`RunController`** -- `POST /api/run/start`, `GET /api/run/status`, `GET /api/run/history`, `POST /api/run/stop`, `GET /api/schedule`, `PUT /api/schedule`, `DELETE /api/schedule`.
 - **`AdminController`** -- ADMIN-only endpoints for live CLM discovery (requires the admin's CLM session stored at login):
   - `GET /api/admin/bo-types` -- calls CLM `getBoTypes()`, then fetches display names and usage types in parallel (5-thread pool, 30 s per-call timeout, fallback to internal name on failure), and merges with the current `config.yml` state for `checked` and `localizedName`.
@@ -55,7 +57,7 @@ Business Objects are processed strictly sequentially, with full cleanup of in-me
 ## 3. Data & File I/O
 
 - **Input Files:**
-  - `config.yml` -- user-provided run configuration (SnakeYAML)
+  - `config.yml` -- user-provided run configuration (SnakeYAML). Password fields (`server.password`, `sftp.password`) may be stored as `ENC(...)` tokens; decrypted transparently at load time by `CredentialEncryptor` when `CLM_EXTRACT_KEY` is set in the environment.
   - `endpoints.yml` -- SCLM REST API endpoint definitions (SnakeYAML)
   - Sample JSON files (`boMetaData.sample.json`, `bundles.sample.json`) -- used in offline test mode
 - **Output Files (per run, in timestamped directory):**

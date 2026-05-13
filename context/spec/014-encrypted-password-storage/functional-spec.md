@@ -1,7 +1,7 @@
 # Functional Specification: Encrypted Password Storage
 
 - **Roadmap Item:** Credential Security — encrypt passwords stored in `config.yml`
-- **Status:** Approved
+- **Status:** Completed
 - **Author:** Alex
 
 ---
@@ -23,8 +23,8 @@ This feature encrypts those passwords before writing them to disk. The encrypted
 Both `server.password` (CLM REST API) and `sftp.password` (SFTP upload) are encrypted at rest.
 
 **Acceptance Criteria:**
-- [ ] After a save, both password fields in `config.yml` contain `ENC(...)` values, not plaintext.
-- [ ] No other config fields are encrypted.
+- [x] After a save, both password fields in `config.yml` contain `ENC(...)` values, not plaintext.
+- [x] No other config fields are encrypted.
 
 ---
 
@@ -33,9 +33,9 @@ Both `server.password` (CLM REST API) and `sftp.password` (SFTP upload) are encr
 The master key is supplied as `CLM_EXTRACT_KEY` in the environment. It is never written to `config.yml` or any other application file.
 
 **Acceptance Criteria:**
-- [ ] If `CLM_EXTRACT_KEY` is set, the application decrypts `ENC(...)` values at startup.
-- [ ] If `CLM_EXTRACT_KEY` is not set and the config contains at least one `ENC(...)` value, the application logs a clear error ("Encrypted credentials found but CLM_EXTRACT_KEY is not set") and refuses to start.
-- [ ] If `CLM_EXTRACT_KEY` is not set and no `ENC(...)` values exist, the application starts normally (plaintext-only mode — for first-time setup before a key is configured).
+- [x] If `CLM_EXTRACT_KEY` is set, the application decrypts `ENC(...)` values at startup.
+- [x] If `CLM_EXTRACT_KEY` is not set and the config contains at least one `ENC(...)` value, the application logs a clear error ("Encrypted credentials found but CLM_EXTRACT_KEY is not set") and refuses to start.
+- [x] If `CLM_EXTRACT_KEY` is not set and no `ENC(...)` values exist, the application starts normally (plaintext-only mode — for first-time setup before a key is configured).
 
 ---
 
@@ -44,9 +44,9 @@ The master key is supplied as `CLM_EXTRACT_KEY` in the environment. It is never 
 Existing `config.yml` files that contain a plaintext password continue to work without any migration step.
 
 **Acceptance Criteria:**
-- [ ] A plaintext password (no `ENC(...)` prefix) is used as-is.
-- [ ] The application logs a warning when it detects a plaintext password: "server.password is stored in plaintext — save your configuration via the Admin Panel to encrypt it."
-- [ ] The warning does not prevent the application from starting or running.
+- [x] A plaintext password (no `ENC(...)` prefix) is used as-is.
+- [x] The application logs a warning when it detects a plaintext password: "server.password is stored in plaintext — save your configuration via the Admin Panel to encrypt it."
+- [x] The warning does not prevent the application from starting or running.
 
 ---
 
@@ -58,10 +58,10 @@ In the Admin Panel, the password fields behave as follows:
 - **On save:** If the admin has typed a new value into the password field, it is encrypted server-side before being written to `config.yml`. If the field is left as its placeholder (unchanged), the existing stored value is preserved as-is.
 
 **Acceptance Criteria:**
-- [ ] Loading the Admin Panel never sends a decrypted password to the browser.
-- [ ] After saving, the new password appears as `ENC(...)` in `config.yml`.
-- [ ] If the admin leaves a password field blank/unchanged, the previously saved value is not overwritten.
-- [ ] The Admin Panel form works identically whether `CLM_EXTRACT_KEY` is set or not — but saving a password without the key set logs a warning and stores it in plaintext.
+- [x] Loading the Admin Panel never sends a decrypted password to the browser.
+- [x] After saving, the new password appears as `ENC(...)` in `config.yml`.
+- [x] If the admin leaves a password field blank/unchanged, the previously saved value is not overwritten.
+- [x] The Admin Panel form works identically whether `CLM_EXTRACT_KEY` is set or not — but saving a password without the key set logs a warning and stores it in plaintext.
 
 ---
 
@@ -70,8 +70,8 @@ In the Admin Panel, the password fields behave as follows:
 When the application is run from the command line (`--config config.yml`), the same mechanism applies. If `CLM_EXTRACT_KEY` is set in the environment, encrypted passwords are decrypted transparently before use.
 
 **Acceptance Criteria:**
-- [ ] A CLI run with an encrypted `config.yml` and `CLM_EXTRACT_KEY` set completes normally.
-- [ ] A CLI run with an encrypted `config.yml` and no `CLM_EXTRACT_KEY` fails with a clear error message before making any API calls.
+- [x] A CLI run with an encrypted `config.yml` and `CLM_EXTRACT_KEY` set completes normally.
+- [x] A CLI run with an encrypted `config.yml` and no `CLM_EXTRACT_KEY` fails with a clear error message before making any API calls.
 
 ---
 

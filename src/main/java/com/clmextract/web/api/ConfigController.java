@@ -2,10 +2,13 @@ package com.clmextract.web.api;
 
 import com.clmextract.config.AppConfig;
 import com.clmextract.config.ConfigLoader;
+import com.clmextract.config.CredentialEncryptor;
 import com.clmextract.config.DateFormatConfig;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.Context;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import java.nio.file.Files;
@@ -14,10 +17,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ConfigController {
+
+    private static final Logger logger = LogManager.getLogger(ConfigController.class);
 
     private final String configPath;
     private final ObjectMapper objectMapper;
@@ -39,7 +45,8 @@ public class ConfigController {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("serverUrl", config.getBaseUrl());
         response.put("serverUsername", config.getUsername());
-        response.put("serverPassword", config.getPassword());
+        response.put("serverPassword", "");
+        response.put("serverPasswordIsSet", config.getPassword() != null && !config.getPassword().isBlank());
         response.put("endpointsFile", config.getEndpointsFile());
         response.put("batchSize", config.getBatchSize());
         response.put("retryMaxAttempts", config.getRetryMaxAttempts());
@@ -106,7 +113,8 @@ public class ConfigController {
         sftp.put("host", sftpCfg.getHost() != null ? sftpCfg.getHost() : "");
         sftp.put("port", sftpCfg.getPort());
         sftp.put("username", sftpCfg.getUsername() != null ? sftpCfg.getUsername() : "");
-        sftp.put("password", sftpCfg.getPassword() != null ? sftpCfg.getPassword() : "");
+        sftp.put("password", "");
+        sftp.put("passwordIsSet", sftpCfg.getPassword() != null && !sftpCfg.getPassword().isBlank());
         response.put("sftp", sftp);
         response.put("enableZipPackaging", config.isEnableZipPackaging());
         response.put("enableSftpUpload", config.isEnableSftpUpload());
@@ -194,9 +202,17 @@ public class ConfigController {
             config.setUsername(serverUsernameNode.asText(config.getUsername()));
         }
         JsonNode serverPasswordNode = body.get("serverPassword");
-        if (serverPasswordNode != null) {
-            config.setPassword(serverPasswordNode.asText(config.getPassword()));
+        if (serverPasswordNode != null && !serverPasswordNode.asText("").isBlank()) {
+            String newPassword = serverPasswordNode.asText();
+            Optional<String> masterKey = CredentialEncryptor.getMasterKey();
+            if (masterKey.isPresent()) {
+                config.setPassword(CredentialEncryptor.encrypt(newPassword, masterKey.get()));
+            } else {
+                logger.warn("CLM_EXTRACT_KEY is not set — saving server.password as plaintext");
+                config.setPassword(newPassword);
+            }
         }
+        // if blank/absent: keep existing value already in config from loadRaw()
         config.setEndpointsFile(body.get("endpointsFile").asText());
         config.setOutputRoot(body.get("outputRoot").asText());
         config.setBatchSize(body.get("batchSize").asInt());
@@ -334,7 +350,17 @@ public class ConfigController {
             JsonNode sftpUsernameNode = sftpNode.get("username");
             if (sftpUsernameNode != null) sftpConfig.setUsername(sftpUsernameNode.asText(""));
             JsonNode sftpPasswordNode = sftpNode.get("password");
-            if (sftpPasswordNode != null) sftpConfig.setPassword(sftpPasswordNode.asText(""));
+            if (sftpPasswordNode != null && !sftpPasswordNode.asText("").isBlank()) {
+                String newSftpPassword = sftpPasswordNode.asText();
+                Optional<String> masterKey = CredentialEncryptor.getMasterKey();
+                if (masterKey.isPresent()) {
+                    sftpConfig.setPassword(CredentialEncryptor.encrypt(newSftpPassword, masterKey.get()));
+                } else {
+                    logger.warn("CLM_EXTRACT_KEY is not set — saving sftp.password as plaintext");
+                    sftpConfig.setPassword(newSftpPassword);
+                }
+            }
+            // if blank/absent: keep existing value already in sftpConfig
             config.setSftp(sftpConfig);
         }
 

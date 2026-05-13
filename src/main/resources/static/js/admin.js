@@ -264,7 +264,11 @@ function populateForm(config) {
   // Server Connection
   setVal('server-url', config.serverUrl);
   setVal('server-username', config.serverUsername);
-  setVal('server-password', config.serverPassword);
+  const pwdEl = document.getElementById('server-password');
+  if (pwdEl) {
+    pwdEl.value = '';
+    pwdEl.placeholder = config.serverPasswordIsSet ? 'Password is set (leave blank to keep)' : 'Enter password';
+  }
 
   // API & Endpoints
   setVal('endpoints-file', config.endpointsFile);
@@ -317,7 +321,11 @@ function populateForm(config) {
   setVal('sftp-host', sftp.host);
   setVal('sftp-port', sftp.port);
   setVal('sftp-username', sftp.username);
-  setVal('sftp-password', sftp.password);
+  const sftpPwdEl = document.getElementById('sftp-password');
+  if (sftpPwdEl) {
+    sftpPwdEl.value = '';
+    sftpPwdEl.placeholder = (config.sftp && config.sftp.passwordIsSet) ? 'Password is set (leave blank to keep)' : 'Enter password';
+  }
 
   // ZIP / SFTP toggles
   const zipToggle = document.getElementById('enable-zip-packaging');
@@ -373,10 +381,13 @@ function collectConfig() {
     return { header: inputs[0]?.value?.trim() || '', position: Number(inputs[1]?.value) || 1 };
   }).filter(c => c.header);
 
+  const newServerPassword = val('server-password');
+  const newSftpPassword = val('sftp-password');
+
   return {
     serverUrl: val('server-url'),
     serverUsername: val('server-username'),
-    serverPassword: val('server-password'),
+    serverPassword: newServerPassword || undefined,
     endpointsFile: val('endpoints-file'),
     batchSize: num('batch-size'),
     retryMaxAttempts: num('retry-attempts'),
@@ -414,7 +425,7 @@ function collectConfig() {
       host: val('sftp-host'),
       port: num('sftp-port'),
       username: val('sftp-username'),
-      password: val('sftp-password'),
+      password: newSftpPassword || undefined,
     },
     enableZipPackaging: bool('enable-zip-packaging'),
     enableSftpUpload: bool('enable-sftp-upload'),

@@ -32,7 +32,7 @@ public class AuthController {
             return;
         }
         boolean isAdmin = config.getAdminEmails().stream()
-                .anyMatch(e -> e.equalsIgnoreCase(email.trim()));
+                .anyMatch(e -> matchesAdminEntry(e, email.trim()));
         ctx.contentType("application/json").result(mapper.writeValueAsString(Map.of("isAdmin", isAdmin)));
     }
 
@@ -60,7 +60,7 @@ public class AuthController {
             String sessionId = sessionManager.getSessionId();
 
             boolean isAdminEmail = asAdmin && config.getAdminEmails() != null
-                    && config.getAdminEmails().stream().anyMatch(e -> e.equalsIgnoreCase(username));
+                    && config.getAdminEmails().stream().anyMatch(e -> matchesAdminEntry(e, username));
             String role = isAdminEmail ? "ADMIN" : "OPERATOR";
             ctx.sessionAttribute("role", role);
             ctx.sessionAttribute("clmSessionId", sessionId);
@@ -77,6 +77,23 @@ public class AuthController {
         ctx.req().getSession().invalidate();
         ctx.status(200).result(mapper.writeValueAsString(Map.of("ok", true)));
         ctx.contentType("application/json");
+    }
+
+    /**
+     * Matches a submitted username/email against an adminEmails entry.
+     * Accepts an exact case-insensitive match, or — when the submitted value has no '@' —
+     * matches against the local-part of the configured email (the part before '@').
+     * This lets CLM short usernames (e.g. "ausov") match a configured entry of "ausov@corp.com".
+     */
+    static boolean matchesAdminEntry(String configuredEntry, String submitted) {
+        if (configuredEntry == null || submitted == null) return false;
+        if (configuredEntry.equalsIgnoreCase(submitted)) return true;
+        // If the submitted value has no '@', also compare against the local-part of the configured email
+        if (!submitted.contains("@") && configuredEntry.contains("@")) {
+            String localPart = configuredEntry.substring(0, configuredEntry.indexOf('@'));
+            return localPart.equalsIgnoreCase(submitted);
+        }
+        return false;
     }
 
     /**

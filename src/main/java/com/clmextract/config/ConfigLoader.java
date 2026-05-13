@@ -1,5 +1,7 @@
 package com.clmextract.config;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileInputStream;
@@ -10,10 +12,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ConfigLoader {
+
+    private static final Logger logger = LogManager.getLogger(ConfigLoader.class);
 
     private static final Set<String> VALID_CSV_MODES = Set.of(
             "per-component", "merged-single", "single-only"
@@ -28,8 +33,39 @@ public class ConfigLoader {
     public static AppConfig load(String configPath) {
         Map<String, Object> root = parseYaml(configPath);
         AppConfig config = parse(root);
+        resolvePasswords(config, CredentialEncryptor.getMasterKey());
         validate(config);
         return config;
+    }
+
+    /**
+     * Decrypts any ENC(...) password fields in-place and warns about plaintext
+     * passwords when a master key is present. Package-private for testability.
+     */
+    static void resolvePasswords(AppConfig config, Optional<String> masterKey) {
+        // server.password
+        String rawServerPassword = config.getPassword();
+        if (rawServerPassword != null && CredentialEncryptor.isEncrypted(rawServerPassword)) {
+            if (masterKey.isEmpty()) {
+                throw new ConfigValidationException("Encrypted credentials found but CLM_EXTRACT_KEY is not set");
+            }
+            config.setPassword(CredentialEncryptor.decrypt(rawServerPassword, masterKey.get()));
+        } else if (rawServerPassword != null && !rawServerPassword.isBlank() && masterKey.isPresent()) {
+            logger.warn("server.password is stored in plaintext — save your configuration via the Admin Panel to encrypt it.");
+        }
+
+        // sftp.password
+        if (config.getSftp() != null) {
+            String rawSftpPassword = config.getSftp().getPassword();
+            if (rawSftpPassword != null && CredentialEncryptor.isEncrypted(rawSftpPassword)) {
+                if (masterKey.isEmpty()) {
+                    throw new ConfigValidationException("Encrypted credentials found but CLM_EXTRACT_KEY is not set");
+                }
+                config.getSftp().setPassword(CredentialEncryptor.decrypt(rawSftpPassword, masterKey.get()));
+            } else if (rawSftpPassword != null && !rawSftpPassword.isBlank() && masterKey.isPresent()) {
+                logger.warn("sftp.password is stored in plaintext — save your configuration via the Admin Panel to encrypt it.");
+            }
+        }
     }
 
     private static AppConfig parse(Map<String, Object> root) {
