@@ -69,7 +69,7 @@ public class WebServer {
         AuthController authController = new AuthController(finalConfig, finalRegistry);
         ConfigController configController = new ConfigController(configPath, objectMapper);
         RunController runController = new RunController(configPath, stateStore, runExecutor, objectMapper, exportScheduler);
-        AdminController adminController = new AdminController(configPath, finalConfig);
+        AdminController adminController = new AdminController(configPath, finalConfig, stateStore);
 
         // --- Build Javalin app ---
         Javalin app = Javalin.create(cfg -> {
@@ -129,6 +129,7 @@ public class WebServer {
 
         // Admin routes
         app.get("/api/admin/bo-types", adminController::getBoTypes);
+        app.get("/api/admin/cached-bo-types", adminController::getCachedBoTypes);
         app.get("/api/admin/bo-metadata/{boType}", adminController::getBoMetadata);
         app.get("/api/admin/columns/{boType}", adminController::getColumns);
         app.put("/api/admin/columns/{boType}", adminController::putColumns);

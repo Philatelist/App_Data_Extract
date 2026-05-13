@@ -3,6 +3,9 @@ console.log('[dashboard.js] loaded');
 // internal name → display name, populated by loadBos()
 const boDisplayNames = {};
 
+// Loaded from config on startup; governs SFTP path visibility and validation
+let sftpEnabled = true;
+
 // ─── Step pill helpers ───────────────────────────────────────────────────────
 
 const STEP_IDS = {
@@ -334,7 +337,7 @@ async function deleteScheduleJob() {
 
 async function startExport() {
   const sftpPath = document.getElementById('sftp-path')?.value.trim();
-  if (!sftpPath) {
+  if (sftpEnabled && !sftpPath) {
     document.getElementById('sftp-path')?.focus();
     alert('SFTP Target Path is required before starting an export.');
     return;
@@ -449,12 +452,30 @@ async function loadHistory() {
   }
 }
 
+// ─── Config (SFTP visibility) ─────────────────────────────────────────────────
+
+async function loadDashboardConfig() {
+  try {
+    const res = await fetch('/api/config');
+    if (!res.ok) return;
+    const cfg = await res.json();
+    sftpEnabled = cfg.enableSftpUpload !== false;
+    const group = document.getElementById('sftp-path-group');
+    const star  = document.getElementById('sftp-path-star');
+    if (group) group.style.display = sftpEnabled ? '' : 'none';
+    if (star)  star.style.display  = sftpEnabled ? '' : 'none';
+  } catch (err) {
+    console.warn('[dashboard.js] Could not load config for SFTP visibility:', err);
+  }
+}
+
 // ─── Page init ────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
   wireScheduleToggle();
   loadBos();
   loadHistory();
+  loadDashboardConfig();
 
   document.getElementById('start-export-btn')?.addEventListener('click', () => {
     isScheduleOn() ? saveSchedule() : startExport();

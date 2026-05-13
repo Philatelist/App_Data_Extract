@@ -177,6 +177,58 @@ New routes:
 
 ---
 
+## 5. Post-Release Bug Fixes (2026-05-13)
+
+Bugs discovered during first live use. All fixed in the same session.
+
+### 5.1 `getColumns` NPE — field picker always crashed on open
+
+`AdminController.getColumns()` used `Map.of("fieldPaths", (Object) null)` to return the "no column file" response. `Map.of()` rejects null values and throws `NullPointerException`, causing a 500 on every `GET /api/admin/columns/{boType}` call. The field picker JS caught the error and showed "Failed to load fields", so admins could never select or deselect fields.
+
+**Fix:** replaced `Map.of(...)` with a `LinkedHashMap` with `put("fieldPaths", null)`.
+
+### 5.2 CLM BO list lost on re-login
+
+`clmBoData` is a JavaScript module variable; it resets to `null` on every page load. Admins had to click "Load from CLM" after every login.
+
+**Fix:** `getBoTypes()` now writes the result to `UiState.cachedBoTypes` in `ui-state.json`. New `GET /api/admin/cached-bo-types` endpoint re-merges `checked`/`localizedName` from the current `config.yml` and returns the cached list. `admin.js` calls this endpoint on `DOMContentLoaded` and auto-renders the table if data is present.
+
+### 5.3 Admin ZIP/SFTP toggles invisible
+
+The Enable ZIP Packaging and Enable SFTP Upload checkboxes in `admin.html` used `class="slider"` instead of `class="toggle-slider"`. The CSS only defines `.toggle-slider`, so the slider track was invisible. All other toggles in the file used the correct class.
+
+**Fix:** changed `class="slider"` → `class="toggle-slider"` for both checkboxes.
+
+### 5.4 Dashboard SFTP Target Path always required
+
+`dashboard.js` always validated that the SFTP Target Path field was non-empty before starting an export, even when `enableSftpUpload: false` was set in config. The field also always displayed the `*` required-star.
+
+**Fix:** `loadDashboardConfig()` calls `GET /api/config` on page load, reads `enableSftpUpload`, and hides the `#sftp-path-group` container and required star when false. The `startExport()` validation is guarded by `if (sftpEnabled && !sftpPath)`.
+
+### 5.5 Attachment download produces 0 with no diagnostic output
+
+`AttachmentDownloader` logged nothing about the tracking IDs it received or what `getAttachmentInfo()` returned, making it impossible to distinguish between "exportedIds is empty", "CLM returns no attachments", and "`isSignedPdf` filtering everything out".
+
+**Fix:** added INFO logs for tracking ID count on entry and per-ID attachment count / fileName / category.
+
+### 5.6 Field count badge lost on re-login
+
+`renderBoClmTable()` always initialised the fields badge to `'—'`. The badge was only updated in-memory when the admin clicked Apply in the field picker. On re-login, `loadCachedBoTypes()` re-rendered the table from the server-side cache, which did not carry `fieldCount`, so badges reset to `'—'` regardless of what was saved in `config/columns/`.
+
+**Fix:**
+- Added private static helper `readFieldCount(String boType)` in `AdminController` that reads `config/columns/<boType>.csv` and counts non-blank lines (returns `null` if the file is absent or empty).
+- `buildBoTypeResponse()` now includes `"fieldCount"` in each entry via `readFieldCount()`.
+- `getCachedBoTypes()` re-derives `fieldCount` from the current column file in its re-merge loop, so the value is always fresh on re-login.
+- `renderBoClmTable()` in `admin.js` initialises each badge to `bo.fieldCount + ' fields'` when `fieldCount != null`, falling back to `'—'`.
+
+### 5.7 Save Configuration did not save field picker selections
+
+Clicking Save Configuration only called `PUT /api/config` (writes `config.yml`). Column files are written by `PUT /api/admin/columns/{boType}`, which was only triggered by the Apply button inside the field picker. Admins who selected fields and then clicked Save Configuration (without clicking Apply first) lost their selections.
+
+**Fix:** Added `flushOpenFieldPickers()` in `admin.js`. It iterates all `.bo-field-picker-row .fp-apply[data-bo]` buttons currently visible in the DOM, collects each picker's checked `data-path` values, and PUTs them to `/api/admin/columns/{boType}`. `saveConfig()` now calls `await flushOpenFieldPickers()` before the `PUT /api/config` request, so open field pickers are saved automatically as part of Save Configuration.
+
+---
+
 ## 4. Testing Strategy
 
 - **`AuthController`** — unit tests for `checkAdmin()` (email in list, email not in list, null config) and `login()` with `asAdmin=true/false`.

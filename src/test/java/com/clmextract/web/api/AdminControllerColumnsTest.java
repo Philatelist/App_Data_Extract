@@ -22,7 +22,7 @@ class AdminControllerColumnsTest {
 
     // Minimal subclass that redirects resolveColumnFile to the temp directory.
     private AdminController controllerWithTempDir() {
-        return new AdminController(null, null) {
+        return new AdminController(null, null, null) {
             @Override
             protected Path resolveColumnFile(String boType) {
                 return tempDir.resolve(boType + ".csv");
@@ -36,7 +36,7 @@ class AdminControllerColumnsTest {
 
     @Test
     void resolveColumnFile_returnsExpectedRelativePath() {
-        AdminController controller = new AdminController(null, null);
+        AdminController controller = new AdminController(null, null, null);
         Path result = controller.resolveColumnFile("MyBo");
         assertEquals(Path.of("config", "columns", "MyBo.csv"), result);
     }

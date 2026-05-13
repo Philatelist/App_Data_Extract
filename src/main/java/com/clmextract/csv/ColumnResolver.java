@@ -83,11 +83,13 @@ public class ColumnResolver {
                         .map(String::trim)
                         .filter(line -> !line.isEmpty())
                         .collect(Collectors.toList());
-                logger.info("Loaded column order file for {}: {} fields", boType, orderFilePaths.size());
+                logger.info("Loaded column order file for {}: {} field(s) selected", boType, orderFilePaths.size());
             } catch (IOException e) {
                 logger.warn("Failed to read column order file: {}", e.getMessage());
                 orderFilePaths = null;
             }
+        } else {
+            logger.info("No column order file for {} — exporting all fields", boType);
         }
     }
 

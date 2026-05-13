@@ -8,6 +8,8 @@ import com.clmextract.export.ApiDataSource;
 import com.clmextract.metadata.BoMetadata;
 import com.clmextract.metadata.ComponentMetadata;
 import com.clmextract.metadata.FieldMetadata;
+import com.clmextract.web.state.StateStore;
+import com.clmextract.web.state.UiState;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.Context;
 import org.apache.logging.log4j.LogManager;
@@ -26,10 +28,12 @@ public class AdminController {
 
     private final String configPath;
     private final AppConfig config;
+    private final StateStore stateStore;
 
-    public AdminController(String configPath, AppConfig config) {
+    public AdminController(String configPath, AppConfig config, StateStore stateStore) {
         this.configPath = configPath;
         this.config = config;
+        this.stateStore = stateStore;
     }
 
     public void getBoTypes(Context ctx) throws Exception {
@@ -89,7 +93,55 @@ public class AdminController {
         // Step 4: Build response
         List<Map<String, Object>> result = buildBoTypeResponse(boTypeNames, metadataMap, configuredBoMap);
 
+        // Persist the list so it can be restored on next login without re-loading from CLM
+        if (stateStore != null) {
+            try {
+                UiState state = stateStore.read();
+                state.setCachedBoTypes(result);
+                stateStore.write(state);
+            } catch (Exception e) {
+                logger.warn("Failed to cache BO list in ui-state.json: {}", e.getMessage());
+            }
+        }
+
         ctx.contentType("application/json").result(mapper.writeValueAsString(result));
+    }
+
+    public void getCachedBoTypes(Context ctx) throws Exception {
+        String role = ctx.sessionAttribute("role");
+        if (!"ADMIN".equals(role)) { ctx.status(403).result("Forbidden"); return; }
+
+        List<Map<String, Object>> cached = stateStore != null
+                ? stateStore.read().getCachedBoTypes()
+                : List.of();
+
+        // Re-merge checked/localizedName from the current config so the table reflects
+        // any config changes made since the cache was last written.
+        if (!cached.isEmpty()) {
+            try {
+                AppConfig currentConfig = ConfigLoader.loadRaw(configPath);
+                Map<String, BoTypeConfig> configuredBoMap = currentConfig.getBoTypes().stream()
+                        .filter(bt -> bt.getName() != null && !bt.getName().isBlank())
+                        .collect(Collectors.toMap(BoTypeConfig::getName, bt -> bt, (a, b) -> a));
+
+                List<Map<String, Object>> merged = new ArrayList<>();
+                for (Map<String, Object> entry : cached) {
+                    String name = (String) entry.get("internalName");
+                    Map<String, Object> row = new LinkedHashMap<>(entry);
+                    row.put("checked", configuredBoMap.containsKey(name));
+                    BoTypeConfig existing = configuredBoMap.get(name);
+                    row.put("localizedName", existing != null && existing.getLocalizedName() != null
+                            ? existing.getLocalizedName() : "");
+                    row.put("fieldCount", readFieldCount(name));
+                    merged.add(row);
+                }
+                cached = merged;
+            } catch (Exception e) {
+                logger.warn("Failed to re-merge config state into cached BO list: {}", e.getMessage());
+            }
+        }
+
+        ctx.contentType("application/json").result(mapper.writeValueAsString(cached));
     }
 
     public void getBoMetadata(Context ctx) throws Exception {
@@ -124,8 +176,10 @@ public class AdminController {
         Path columnFile = resolveColumnFile(boType);
 
         if (!Files.exists(columnFile)) {
+            Map<String, Object> nullResponse = new LinkedHashMap<>();
+            nullResponse.put("fieldPaths", null);
             ctx.contentType("application/json")
-               .result(mapper.writeValueAsString(Map.of("fieldPaths", (Object) null)));
+               .result(mapper.writeValueAsString(nullResponse));
             return;
         }
 
@@ -133,6 +187,16 @@ public class AdminController {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
+
+        // Treat an empty column file the same as no file — "all fields selected"
+        if (paths.isEmpty()) {
+            Map<String, Object> nullResponse = new LinkedHashMap<>();
+            nullResponse.put("fieldPaths", null);
+            ctx.contentType("application/json")
+               .result(mapper.writeValueAsString(nullResponse));
+            return;
+        }
+
         ctx.contentType("application/json")
            .result(mapper.writeValueAsString(Map.of("fieldPaths", paths)));
     }
@@ -154,9 +218,15 @@ public class AdminController {
         List<String> fieldPaths = (List<String>) fieldPathsObj;
 
         Path columnFile = resolveColumnFile(boType);
-        Files.createDirectories(columnFile.getParent());
-        String content = String.join("\n", fieldPaths);
-        Files.writeString(columnFile, content);
+
+        if (fieldPaths.isEmpty()) {
+            logger.info("putColumns [{}]: 0 paths — deleting column file {}", boType, columnFile.toAbsolutePath());
+            Files.deleteIfExists(columnFile);
+        } else {
+            logger.info("putColumns [{}]: writing {} paths to {}", boType, fieldPaths.size(), columnFile.toAbsolutePath());
+            Files.createDirectories(columnFile.getParent());
+            Files.writeString(columnFile, String.join("\n", fieldPaths));
+        }
 
         ctx.status(200).result("OK");
     }
@@ -226,8 +296,20 @@ public class AdminController {
             entry.put("checked", configuredBoMap.containsKey(name));
             BoTypeConfig existing = configuredBoMap.get(name);
             entry.put("localizedName", existing != null && existing.getLocalizedName() != null ? existing.getLocalizedName() : "");
+            entry.put("fieldCount", readFieldCount(name));
             result.add(entry);
         }
         return result;
+    }
+
+    private static Integer readFieldCount(String boType) {
+        Path columnFile = Path.of("config", "columns", boType + ".csv");
+        if (!Files.exists(columnFile)) return null;
+        try (java.util.stream.Stream<String> lines = Files.lines(columnFile)) {
+            long count = lines.filter(l -> !l.trim().isEmpty()).count();
+            return count > 0 ? (int) count : null;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 }

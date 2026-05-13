@@ -29,7 +29,7 @@ public class ConfigController {
 
     public void getConfig(Context ctx) throws Exception {
         String role = ctx.sessionAttribute("role");
-        if (!"ADMIN".equals(role)) {
+        if (!"ADMIN".equals(role) && !"OPERATOR".equals(role)) {
             ctx.status(403).result("Forbidden");
             return;
         }

@@ -26,10 +26,16 @@ public class AttachmentDownloader {
      * @return count of files written
      */
     public int downloadPdfs(List<Long> trackingIds) {
+        LOG.info("downloadPdfs: {} tracking ID(s) to scan", trackingIds.size());
         int count = 0;
         for (Long trackingId : trackingIds) {
             List<Map<String, Object>> attachments = dataSource.getAttachmentInfo(
                     String.valueOf(trackingId));
+            if (attachments.isEmpty()) {
+                LOG.debug("No attachment info returned for tracking ID {}", trackingId);
+            } else {
+                LOG.info("Tracking ID {}: {} attachment(s) found", trackingId, attachments.size());
+            }
             for (Map<String, Object> attachment : attachments) {
                 if (!isSignedPdf(attachment)) {
                     continue;
@@ -67,11 +73,18 @@ public class AttachmentDownloader {
      * @return count of files written
      */
     public int downloadAttachments(List<Long> trackingIds) {
+        LOG.info("downloadAttachments: {} tracking ID(s) to scan", trackingIds.size());
         int count = 0;
         for (Long trackingId : trackingIds) {
             List<Map<String, Object>> attachments = dataSource.getAttachmentInfo(
                     String.valueOf(trackingId));
+            if (attachments.isEmpty()) {
+                LOG.debug("No attachment info returned for tracking ID {}", trackingId);
+            }
             for (Map<String, Object> attachment : attachments) {
+                String attCategory = extractString(attachment, "category", "");
+                String attFileName = extractString(attachment, "fileName", "attachment");
+                LOG.info("Tracking ID {}: found attachment '{}' category='{}'", trackingId, attFileName, attCategory);
                 if (isSignedPdf(attachment)) {
                     continue;
                 }

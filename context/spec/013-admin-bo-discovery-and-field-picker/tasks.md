@@ -73,6 +73,56 @@
 
 ---
 
+---
+
+## Slice 7: Post-release bug fixes (2026-05-13)
+
+Bugs found during first live use of the spec 013 features.
+
+### 7a — `getColumns` NullPointerException crashing field picker load
+
+- [x] `AdminController.getColumns()` — replace `Map.of("fieldPaths", (Object) null)` with `LinkedHashMap` so Jackson can serialize `null` without throwing NPE (`Map.of` disallows null values). **Root cause:** field picker always showed "Failed to load fields" error, preventing any field selection from working.
+
+### 7b — CLM BO list lost on re-login
+
+- [x] `UiState` — add `List<Map<String, Object>> cachedBoTypes` field (getter/setter).
+- [x] `AdminController` — add `StateStore stateStore` constructor parameter; after building the `getBoTypes()` response, write it to `stateStore.cachedBoTypes`.
+- [x] `AdminController.getCachedBoTypes()` — new `GET /api/admin/cached-bo-types` endpoint (requires ADMIN role): reads `cachedBoTypes` from `StateStore`, re-merges `checked` and `localizedName` from current `config.yml`, returns the merged list (empty array if no cache).
+- [x] `WebServer` — pass `stateStore` to `AdminController`; register `GET /api/admin/cached-bo-types`.
+- [x] `admin.js` — add `loadCachedBoTypes()` function: on `DOMContentLoaded` calls `GET /api/admin/cached-bo-types`; if data returned, sets `clmBoData` and renders the CLM table (shows table, hides manual wrap).
+
+### 7c — Column file not found logged silently
+
+- [x] `ColumnResolver.loadOrderFile()` — add `logger.info("No column order file for {} — exporting all fields", boType)` in the `else` branch so run logs make it visible whether a column file was loaded.
+
+### 7d — Attachment download produces 0 with no diagnostic output
+
+- [x] `AttachmentDownloader.downloadPdfs()` — log total tracking ID count on entry; log per-ID attachment count when `getAttachmentInfo()` returns empty.
+- [x] `AttachmentDownloader.downloadAttachments()` — same entry log; log each attachment's `fileName` and `category` so the `isSignedPdf` filter decision is visible in the run log.
+
+### 7e — Admin panel ZIP / SFTP toggles invisible
+
+- [x] `admin.html` — fix `class="slider"` → `class="toggle-slider"` for the Enable ZIP Packaging and Enable SFTP Upload checkboxes (all other toggles already used the correct class; these two were written with the wrong class name).
+
+### 7f — Dashboard SFTP Target Path always required regardless of config
+
+- [x] `dashboard.html` — add `id="sftp-path-group"` to the SFTP path container div; add `id="sftp-path-star"` to the required-star span.
+- [x] `dashboard.js` — add module-level `sftpEnabled = true`; add `loadDashboardConfig()` function: calls `GET /api/config`, reads `enableSftpUpload`, hides `#sftp-path-group` and `#sftp-path-star` when false; call `loadDashboardConfig()` in `DOMContentLoaded`; guard `startExport()` sftpPath validation with `if (sftpEnabled && !sftpPath)`.
+
+### 7g — Field count badge lost on re-login
+
+- [x] `AdminController` — add private static `readFieldCount(String boType)` helper: reads `config/columns/<boType>.csv`, counts non-blank lines, returns `Integer` (null if file absent or empty).
+- [x] `AdminController.buildBoTypeResponse()` — call `readFieldCount(name)` for each BO entry; include result as `"fieldCount"` key in the response map.
+- [x] `AdminController.getCachedBoTypes()` — in the re-merge loop, also call `readFieldCount(name)` and put result as `"fieldCount"` so the badge reflects the current column file state after re-login.
+- [x] `admin.js` `renderBoClmTable()` — initialise the fields badge from `bo.fieldCount != null ? bo.fieldCount + ' fields' : '—'` instead of always showing `'—'`.
+
+### 7h — Save Configuration did not save field picker selections
+
+- [x] `admin.js` — add `flushOpenFieldPickers()` async function: iterates all `.bo-field-picker-row .fp-apply[data-bo]` buttons currently in the DOM; for each, collects checked `data-path` values and PUTs to `/api/admin/columns/{boType}`; updates the badge on success.
+- [x] `admin.js` `saveConfig()` — call `await flushOpenFieldPickers()` before the `PUT /api/config` request so any open field picker is saved automatically when the admin clicks Save Configuration.
+
+---
+
 ## Subagent Recommendations
 
 | Task/Slice | Issue | Recommendation |

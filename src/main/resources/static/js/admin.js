@@ -83,7 +83,7 @@ function renderBoClmTable(rows) {
             value="${escapeHtml(bo.localizedName || bo.displayName)}"
             placeholder="${escapeHtml(bo.displayName)}" /></td>
       <td>${escapeHtml(bo.usageType || '')}</td>
-      <td><span class="bo-fields-badge" id="fields-badge-${escapeHtml(bo.internalName)}">—</span></td>
+      <td><span class="bo-fields-badge" id="fields-badge-${escapeHtml(bo.internalName)}">${bo.fieldCount != null ? bo.fieldCount + ' fields' : '—'}</span></td>
       <td><button class="btn-secondary btn-sm bo-edit-fields" type="button"
             data-bo="${escapeHtml(bo.internalName)}">Edit Fields</button></td>
     `;
@@ -174,11 +174,17 @@ function renderFieldPicker(container, boType, metadata, selectedPaths) {
 
   container.innerHTML = html;
 
-  // Wire search
+  // Wire search — also opens/closes <details> so results inside collapsed sections are visible
   container.querySelector('.fp-search')?.addEventListener('input', e => {
-    const q = e.target.value.toLowerCase();
-    container.querySelectorAll('.fp-field-row').forEach(row => {
-      row.style.display = (row.dataset.display || '').includes(q) ? '' : 'none';
+    const q = e.target.value.toLowerCase().trim();
+    container.querySelectorAll('.fp-component').forEach(details => {
+      let hasMatch = false;
+      details.querySelectorAll('.fp-field-row').forEach(row => {
+        const matches = !q || (row.dataset.display || '').includes(q);
+        row.style.display = matches ? '' : 'none';
+        if (matches) hasMatch = true;
+      });
+      if (q) details.open = hasMatch;
     });
   });
 
@@ -207,6 +213,15 @@ function renderFieldPicker(container, boType, metadata, selectedPaths) {
   container.querySelector('.fp-apply')?.addEventListener('click', async () => {
     const checkedPaths = Array.from(container.querySelectorAll('.fp-field-check:checked'))
       .map(cb => cb.dataset.path).filter(Boolean);
+
+    console.log(`[field-picker] Apply for ${boType}: ${checkedPaths.length} paths collected`, checkedPaths);
+
+    if (checkedPaths.length === 0) {
+      const confirmAll = confirm(
+        'No fields are selected. This will remove the column filter and export ALL fields. Continue?'
+      );
+      if (!confirmAll) return;
+    }
 
     const applyBtn = container.querySelector('.fp-apply');
     if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = 'Saving…'; }
@@ -427,11 +442,35 @@ function showFieldErrors(errors) {
   });
 }
 
+async function flushOpenFieldPickers() {
+  const pickers = document.querySelectorAll('.bo-field-picker-row .fp-apply[data-bo]');
+  for (const applyBtn of pickers) {
+    const boType = applyBtn.dataset.bo;
+    const container = applyBtn.closest('.field-picker-wrap');
+    if (!container) continue;
+    const checkedPaths = Array.from(container.querySelectorAll('.fp-field-check:checked'))
+      .map(cb => cb.dataset.path).filter(Boolean);
+    try {
+      await fetch(`/api/admin/columns/${encodeURIComponent(boType)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fieldPaths: checkedPaths }),
+      });
+      const badge = document.getElementById(`fields-badge-${boType}`);
+      if (badge) badge.textContent = checkedPaths.length > 0 ? `${checkedPaths.length} fields` : '—';
+    } catch (err) {
+      console.warn(`[admin.js] Failed to save field selection for ${boType}:`, err);
+    }
+  }
+}
+
 async function saveConfig() {
   const btn = document.getElementById('save-btn');
   const status = document.getElementById('save-status');
   document.querySelectorAll('.field-error').forEach(el => el.remove());
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  await flushOpenFieldPickers();
 
   try {
     const res = await fetch('/api/config', {
@@ -475,8 +514,30 @@ function applySftpUploadToggle() {
 
 document.getElementById('enable-sftp-upload')?.addEventListener('change', applySftpUploadToggle);
 
+async function loadCachedBoTypes() {
+  try {
+    const res = await fetch('/api/admin/cached-bo-types');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return;
+
+    clmBoData = data;
+    renderBoClmTable(clmBoData);
+
+    const tableWrap = document.getElementById('bo-clm-table-wrap');
+    const manualWrap = document.getElementById('bo-manual-wrap');
+    const searchEl = document.getElementById('bo-search');
+    if (tableWrap) tableWrap.style.display = '';
+    if (manualWrap) manualWrap.style.display = 'none';
+    if (searchEl) searchEl.style.display = '';
+  } catch (err) {
+    console.warn('[admin.js] Could not load cached BO types:', err);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadConfig();
+  loadCachedBoTypes();
   // Conditional field visibility
   const toggleConditional = (checkboxId, groupId, defaultShow) => {
     const cb = document.getElementById(checkboxId);

@@ -12,6 +12,7 @@ public class UiState {
     private String sftpTargetPath = "";
     private RunState currentRun = null;
     private List<RunState> runHistory = new ArrayList<>();
+    private List<Map<String, Object>> cachedBoTypes = new ArrayList<>();
 
     public Map<String, String> getBoLastRun() { return boLastRun; }
     public void setBoLastRun(Map<String, String> boLastRun) { this.boLastRun = boLastRun; }
@@ -27,6 +28,11 @@ public class UiState {
 
     public List<RunState> getRunHistory() { return runHistory; }
     public void setRunHistory(List<RunState> runHistory) { this.runHistory = runHistory; }
+
+    public List<Map<String, Object>> getCachedBoTypes() { return cachedBoTypes; }
+    public void setCachedBoTypes(List<Map<String, Object>> cachedBoTypes) {
+        this.cachedBoTypes = cachedBoTypes != null ? cachedBoTypes : new ArrayList<>();
+    }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ScheduleState {
