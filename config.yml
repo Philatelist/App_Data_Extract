@@ -1,5 +1,7 @@
 server: {url: 'https://pepsico-clone.auto-dev.selectica.com/services/rest/methods',
   username: ausov@corcentric.com, password: Sel1234_}
+adminEmails:
+- ausov@corcentric.com
 endpointsFile: inputs/endpoints.yml
 batchSize: 30
 outputRoot: output
