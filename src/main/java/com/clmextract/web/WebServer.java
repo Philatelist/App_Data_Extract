@@ -68,7 +68,13 @@ public class WebServer {
             } catch (ConfigValidationException e) {
                 logger.warn("Config has validation warnings (some fields may be blank), continuing in serve mode: {}",
                         e.getMessage());
-                // config remains null; admin login still works without CLM config
+                // Fall back to raw config so adminEmails (and other non-validated fields) remain
+                // available for the web UI — e.g. the admin toggle still works when server.password is blank.
+                try {
+                    config = ConfigLoader.loadRaw(configPath);
+                } catch (Exception rawEx) {
+                    logger.warn("Failed to load raw config fallback: {}", rawEx.getMessage());
+                }
             } catch (Exception e) {
                 logger.warn("Failed to load config from '{}', continuing in serve mode: {}",
                         configPath, e.getMessage());
