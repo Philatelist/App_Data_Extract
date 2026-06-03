@@ -197,3 +197,25 @@ For each BO type, a downloads CSV is produced in the `downloads/` directory list
 | 0 | Successful run |
 | 1 | Missing `--config` argument or configuration error |
 | 2 | Runtime failure during export |
+
+## PDF Conversion Setup
+
+The `convertAttachmentsToPdf` setting requires LibreOffice to be installed on the host running the application. This setting defaults to `false` and is a no-op until explicitly enabled in the Admin Panel and LibreOffice is installed.
+
+**macOS:**
+
+```bash
+brew install --cask libreoffice
+```
+
+**Debian / Ubuntu:**
+
+```bash
+sudo apt-get install libreoffice
+```
+
+**RHEL / CentOS / Fedora:**
+
+```bash
+sudo dnf install libreoffice
+```

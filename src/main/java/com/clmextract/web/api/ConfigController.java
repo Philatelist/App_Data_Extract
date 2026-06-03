@@ -118,6 +118,8 @@ public class ConfigController {
         response.put("sftp", sftp);
         response.put("enableZipPackaging", config.isEnableZipPackaging());
         response.put("enableSftpUpload", config.isEnableSftpUpload());
+        response.put("convertAttachmentsToPdf", config.isConvertAttachmentsToPdf());
+        response.put("includeEmptyExportFiles", config.isIncludeEmptyExportFiles());
         response.put("adminEmails", config.getAdminEmails());
 
         ctx.contentType("application/json");
@@ -370,6 +372,12 @@ public class ConfigController {
         JsonNode enableSftpNode = body.get("enableSftpUpload");
         if (enableSftpNode != null) config.setEnableSftpUpload(enableSftpNode.asBoolean(true));
 
+        JsonNode convertAttachmentsToPdfNode = body.get("convertAttachmentsToPdf");
+        if (convertAttachmentsToPdfNode != null) config.setConvertAttachmentsToPdf(convertAttachmentsToPdfNode.asBoolean(false));
+
+        JsonNode includeEmptyExportFilesNode = body.get("includeEmptyExportFiles");
+        if (includeEmptyExportFilesNode != null) config.setIncludeEmptyExportFiles(includeEmptyExportFilesNode.asBoolean(true));
+
         JsonNode adminEmailsNode = body.get("adminEmails");
         if (adminEmailsNode != null && adminEmailsNode.isArray()) {
             List<String> adminEmails = new ArrayList<>();
@@ -473,6 +481,8 @@ public class ConfigController {
         root.put("sftp", sftpMap);
         root.put("enableZipPackaging", config.isEnableZipPackaging());
         root.put("enableSftpUpload", config.isEnableSftpUpload());
+        root.put("convertAttachmentsToPdf", config.isConvertAttachmentsToPdf());
+        root.put("includeEmptyExportFiles", config.isIncludeEmptyExportFiles());
         root.put("adminEmails", config.getAdminEmails());
 
         String yaml = new Yaml().dump(root);

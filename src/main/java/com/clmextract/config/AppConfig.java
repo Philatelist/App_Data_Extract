@@ -40,6 +40,8 @@ public class AppConfig {
     private SftpConfig sftp = new SftpConfig();
     private boolean enableZipPackaging = true;
     private boolean enableSftpUpload = true;
+    private boolean convertAttachmentsToPdf = false;
+    private boolean includeEmptyExportFiles = true;
     private List<String> adminEmails = new ArrayList<>();
 
     public static class SftpConfig {
@@ -362,6 +364,22 @@ public class AppConfig {
 
     public void setEnableSftpUpload(boolean enableSftpUpload) {
         this.enableSftpUpload = enableSftpUpload;
+    }
+
+    public boolean isConvertAttachmentsToPdf() {
+        return convertAttachmentsToPdf;
+    }
+
+    public void setConvertAttachmentsToPdf(boolean convertAttachmentsToPdf) {
+        this.convertAttachmentsToPdf = convertAttachmentsToPdf;
+    }
+
+    public boolean isIncludeEmptyExportFiles() {
+        return includeEmptyExportFiles;
+    }
+
+    public void setIncludeEmptyExportFiles(boolean includeEmptyExportFiles) {
+        this.includeEmptyExportFiles = includeEmptyExportFiles;
     }
 
     public List<String> getAdminEmails() { return adminEmails; }

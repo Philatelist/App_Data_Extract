@@ -12,7 +12,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.InputStream;
+import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -186,6 +191,32 @@ public class ApiDataSource implements DataSource {
         } catch (Exception e) {
             logger.warn("Failed to download document for url {}: {}", encryptedUrl, e.getMessage());
             return new byte[0];
+        }
+    }
+
+    @Override
+    public InputStream downloadAttachmentsZip(String trackingNumber) {
+        try {
+            String fullUrl = config.getBaseUrl() + "/contract/" + trackingNumber
+                    + "/attachments/" + sessionManager.getSessionId();
+            HttpClient httpClient = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(fullUrl))
+                    .GET()
+                    .build();
+            HttpResponse<InputStream> response = httpClient.send(
+                    request, HttpResponse.BodyHandlers.ofInputStream());
+            int status = response.statusCode();
+            if (status < 200 || status >= 300) {
+                logger.warn("downloadAttachmentsZip returned HTTP {} for tracking number {}",
+                        status, trackingNumber);
+                return InputStream.nullInputStream();
+            }
+            return response.body();
+        } catch (Exception e) {
+            logger.warn("Failed to download attachments ZIP for tracking number {}: {}",
+                    trackingNumber, e.getMessage());
+            return InputStream.nullInputStream();
         }
     }
 }

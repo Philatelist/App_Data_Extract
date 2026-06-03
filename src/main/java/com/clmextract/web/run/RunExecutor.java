@@ -224,6 +224,10 @@ public class RunExecutor {
 
                 if (boTypes.isEmpty() || successCount > 0) {
                     updateStep(runId, STEP_EXPORT_CSV, RunStatus.SUCCESS);
+                    // Remove header-only or empty CSV files unless operator wants them preserved
+                    if (!csvConfig.isIncludeEmptyExportFiles()) {
+                        deleteEmptyCsvFiles(outputDir);
+                    }
                     // Enforce backup retention after a successful export
                     try {
                         new BackupManager(
@@ -246,24 +250,15 @@ public class RunExecutor {
                 return;
             }
 
-            // EXPORT_PDF
-            updateStep(runId, STEP_EXPORT_PDF, RunStatus.IN_PROGRESS);
-            try {
-                AttachmentDownloader downloader = new AttachmentDownloader(dataSource, outputDir);
-                int count = downloader.downloadPdfs(exportedIds);
-                LOG.info("EXPORT_PDF: downloaded {} signed PDF(s)", count);
-                updateStep(runId, STEP_EXPORT_PDF, RunStatus.SUCCESS);
-            } catch (Exception e) {
-                LOG.error("EXPORT_PDF failed: {}", e.getMessage(), e);
-                updateStep(runId, STEP_EXPORT_PDF, RunStatus.FAILED);
-                failRemaining(runId, STEP_EXPORT_PDF);
-                return;
-            }
+            // EXPORT_PDF (skipped — PDF conversion is handled in EXPORT_ATTACHMENTS)
+            updateStep(runId, STEP_EXPORT_PDF, RunStatus.SKIPPED);
 
             // EXPORT_ATTACHMENTS
             updateStep(runId, STEP_EXPORT_ATTACHMENTS, RunStatus.IN_PROGRESS);
             try {
-                AttachmentDownloader downloader = new AttachmentDownloader(dataSource, outputDir);
+                AppConfig attConfig = ConfigLoader.loadRaw(configPath);
+                boolean convertToPdf = attConfig.isConvertAttachmentsToPdf();
+                AttachmentDownloader downloader = new AttachmentDownloader(dataSource, outputDir, convertToPdf);
                 int count = downloader.downloadAttachments(exportedIds);
                 LOG.info("EXPORT_ATTACHMENTS: downloaded {} attachment(s)", count);
                 updateStep(runId, STEP_EXPORT_ATTACHMENTS, RunStatus.SUCCESS);
@@ -361,6 +356,26 @@ public class RunExecutor {
                 stateStore.write(state);
             }
             running.set(false);
+        }
+    }
+
+    private void deleteEmptyCsvFiles(Path outputDir) {
+        try {
+            Files.list(outputDir)
+                .filter(p -> p.toString().endsWith(".csv"))
+                .forEach(path -> {
+                    try {
+                        long lineCount = Files.lines(path).count();
+                        if (lineCount <= 1) {
+                            Files.delete(path);
+                            LOG.info("Skipping empty CSV file: {}", path.getFileName());
+                        }
+                    } catch (IOException e) {
+                        LOG.warn("Could not evaluate/delete CSV file {}: {}", path.getFileName(), e.getMessage());
+                    }
+                });
+        } catch (IOException e) {
+            LOG.warn("deleteEmptyCsvFiles: could not list output directory {}: {}", outputDir, e.getMessage());
         }
     }
 

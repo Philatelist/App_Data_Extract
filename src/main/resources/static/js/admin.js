@@ -294,6 +294,8 @@ function populateForm(config) {
   setVal('summary-template', config.summaryFilenameTemplate);
   setCheck('gen-parent', config.generateParentCsv);
   setVal('parent-template', config.parentFilenameTemplate);
+  setCheck('convert-attachments-pdf', config.convertAttachmentsToPdf !== false);
+  setCheck('include-empty-files',     config.includeEmptyExportFiles !== false);
 
   // Column Filtering
   setTagList('skip-columns-list', config.skipColumns);
@@ -407,6 +409,8 @@ function collectConfig() {
     summaryFilenameTemplate: val('summary-template'),
     generateParentCsv: bool('gen-parent'),
     parentFilenameTemplate: val('parent-template'),
+    convertAttachmentsToPdf: bool('convert-attachments-pdf'),
+    includeEmptyExportFiles: bool('include-empty-files'),
     skipColumns: getTagListValues('skip-columns-list'),
     skipComponents: getTagListValues('skip-components-list'),
     additionalColumns,

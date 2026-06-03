@@ -115,6 +115,12 @@ _Replace the CLI-only workflow with a self-contained web application. Administra
   - [x] **Field picker per BO:** "Edit Fields" opens an inline panel showing all components (collapsible when > 5) and their fields with checkboxes. Pre-populated from the existing `config/columns/<BoType>.csv` if present; otherwise all fields are pre-checked. Apply writes the selection immediately.
   - [x] **Save configuration:** "Save Configuration" writes the checked BO list to `config.yml` via the existing `PUT /api/config` endpoint. Column files are written per-BO on Apply and are never deleted when a BO is unchecked.
 - [x] **Credential Security: Encrypted Password Storage** *(spec 014)*
+- [x] **Attachment Export and PDF Conversion** *(spec 015)*
+  - [x] **Attachment download:** After CSV export, the tool downloads all attachments per record as a ZIP archive, extracts them, and deletes the archive. Records with no attachments are silently skipped.
+  - [x] **PDF conversion (admin-controlled):** New `convertAttachmentsToPdf` config flag (default off). When on, JODConverter + LibreOffice converts each extracted file to PDF named `{trackingId}-{docName}-{version}.pdf`. Conversion failure saves the original file alongside a companion `.txt` explanation.
+  - [x] **Empty-file suppression (admin-controlled):** New `includeEmptyExportFiles` config flag (default on). When off, header-only CSVs are deleted before packaging.
+  - [x] **Admin Panel toggles:** Both settings exposed as toggles in the Output & Files section of the Admin Panel (admin-only).
+  - [x] **Archive packaging:** `ZipPackager` already splits at 200 MB; no changes required — attachment files are packaged automatically alongside CSVs.
   - [x] **`CredentialEncryptor`:** AES-256-GCM encrypt/decrypt utility using `javax.crypto` only (no new dependencies). Token format `ENC(base64(IV+ciphertext+GCM-tag))`. Master key derived from `CLM_EXTRACT_KEY` environment variable via SHA-256.
   - [x] **Config load decryption:** `ConfigLoader.load()` transparently decrypts `ENC(...)` passwords before use. Fails fast with `ConfigValidationException` if encrypted values are present but `CLM_EXTRACT_KEY` is not set. Warns when plaintext password is found with key present.
   - [x] **Serve-mode startup check:** `WebServer.start()` checks for encrypted passwords on startup and throws `IllegalStateException` if the key is absent, preventing the server from starting in an unusable state.

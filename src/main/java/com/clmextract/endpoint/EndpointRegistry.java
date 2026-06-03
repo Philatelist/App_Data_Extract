@@ -25,6 +25,7 @@ public class EndpointRegistry {
     public static final String GET_ATTACHMENT_INFO = "GET_ATTACHMENT_INFO";
     public static final String GET_TRACKING_NUMBERS_AFTER_DATE = "GET_TRACKING_NUMBERS_AFTER_DATE";
     public static final String GET_TRACKING_NUMBERS_IN_FLIGHT = "GET_TRACKING_NUMBERS_IN_FLIGHT";
+    public static final String DOWNLOAD_ATTACHMENTS_ZIP = "DOWNLOAD_ATTACHMENTS_ZIP";
 
     private static final Map<String, String> OPERATION_NAME_MAP = new HashMap<>();
 
@@ -41,6 +42,7 @@ public class EndpointRegistry {
         OPERATION_NAME_MAP.put("documentsAttachmentsGetAllAttachmentInfo", GET_ATTACHMENT_INFO);
         OPERATION_NAME_MAP.put("trackingNumbersAfterDate", GET_TRACKING_NUMBERS_AFTER_DATE);
         OPERATION_NAME_MAP.put("trackingNumbersInFlight", GET_TRACKING_NUMBERS_IN_FLIGHT);
+        OPERATION_NAME_MAP.put("documentsAttachmentsDownloadAllAttachmentsZip", DOWNLOAD_ATTACHMENTS_ZIP);
     }
 
     private static final String[] REQUIRED_OPERATIONS = {

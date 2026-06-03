@@ -891,4 +891,82 @@ class ConfigLoaderTest {
                 () -> ConfigLoader.load(path));
         assertTrue(ex.getMessage().contains("dateFormat.inputDateTimeFormats"));
     }
+
+    // ------------------------------------------------------------------
+    // 39. convertAttachmentsToPdf: absent => default false
+    // ------------------------------------------------------------------
+
+    @Test
+    void convertAttachmentsToPdf_absent_defaultFalse() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertFalse(config.isConvertAttachmentsToPdf());
+    }
+
+    // ------------------------------------------------------------------
+    // 40. convertAttachmentsToPdf: explicit true => loads as true
+    // ------------------------------------------------------------------
+
+    @Test
+    void convertAttachmentsToPdf_explicitTrue_loadsAsTrue() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                convertAttachmentsToPdf: true
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertTrue(config.isConvertAttachmentsToPdf());
+    }
+
+    // ------------------------------------------------------------------
+    // 41. includeEmptyExportFiles: absent => default true
+    // ------------------------------------------------------------------
+
+    @Test
+    void includeEmptyExportFiles_absent_defaultTrue() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertTrue(config.isIncludeEmptyExportFiles());
+    }
+
+    // ------------------------------------------------------------------
+    // 42. includeEmptyExportFiles: explicit false => loads as false
+    // ------------------------------------------------------------------
+
+    @Test
+    void includeEmptyExportFiles_explicitFalse_loadsAsFalse() throws IOException {
+        String yaml = """
+                server:
+                  url: "http://example.com"
+                  username: "user"
+                  password: "pass"
+                outputRoot: "out"
+                includeEmptyExportFiles: false
+                """;
+
+        String path = writeYaml(tempDir, yaml);
+        AppConfig config = ConfigLoader.load(path);
+        assertFalse(config.isIncludeEmptyExportFiles());
+    }
 }

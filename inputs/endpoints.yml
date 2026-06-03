@@ -822,7 +822,7 @@ endpoints:
   method: GET
   path: /contract/12345/attachments/{{session_id}}
   response:
-    type: json
+    type: binary
 - name: documentsAttachmentsGetDocument
   method: GET
   path: /document?url=encryptedUrl

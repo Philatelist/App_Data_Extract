@@ -2,6 +2,7 @@ package com.clmextract.export;
 
 import com.clmextract.metadata.BoMetadata;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -41,5 +42,9 @@ public interface DataSource {
 
     default byte[] downloadDocument(String encryptedUrl) {
         return new byte[0];
+    }
+
+    default InputStream downloadAttachmentsZip(String trackingNumber) {
+        return InputStream.nullInputStream();
     }
 }

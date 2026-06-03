@@ -1,7 +1,7 @@
 # Technical Specification: Attachment Export and PDF Conversion
 
 - **Functional Specification:** `context/spec/015-attachment-export-pdf-conversion/functional-spec.md`
-- **Status:** Draft
+- **Status:** Completed
 - **Author(s):** Alex
 
 ---

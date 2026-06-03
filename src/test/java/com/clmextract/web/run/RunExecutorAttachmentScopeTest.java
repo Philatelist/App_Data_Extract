@@ -135,22 +135,15 @@ class RunExecutorAttachmentScopeTest {
         assertEquals(expectedIds, exportedIds,
                 "exportedIds must contain exactly the tracking IDs returned by getTrackingNumbers");
 
-        // Simulate EXPORT_PDF step using exportedIds (not re-fetching from DataSource)
-        AttachmentDownloader downloader = new AttachmentDownloader(ds, tempDir);
-        int pdfCount = downloader.downloadPdfs(exportedIds);
+        // Simulate EXPORT_ATTACHMENTS step using exportedIds (not re-fetching from DataSource)
+        AttachmentDownloader downloader = new AttachmentDownloader(ds, tempDir, false);
+        int attachmentCount = downloader.downloadAttachments(exportedIds);
 
         // The downloader calls getAttachmentInfo() per ID but NOT getTrackingNumbers()
         assertEquals(1, ds.getTrackingNumbersCallCount.get(),
-                "getTrackingNumbers must NOT be called again during EXPORT_PDF step");
-
-        // Simulate EXPORT_ATTACHMENTS step using exportedIds
-        int attachmentCount = downloader.downloadAttachments(exportedIds);
-
-        assertEquals(1, ds.getTrackingNumbersCallCount.get(),
                 "getTrackingNumbers must NOT be called again during EXPORT_ATTACHMENTS step");
 
-        // Both downloads should complete (with 0 actual files since stub returns empty attachments)
-        assertEquals(0, pdfCount, "No PDFs expected when stub returns empty attachment info");
+        // No files expected when stub returns empty attachment info
         assertEquals(0, attachmentCount, "No attachments expected when stub returns empty attachment info");
     }
 
@@ -223,9 +216,7 @@ class RunExecutorAttachmentScopeTest {
         assertTrue(exportedIds.isEmpty(), "exportedIds must be empty when data source has no tracking IDs");
 
         // Downloader should handle empty list without errors
-        AttachmentDownloader downloader = new AttachmentDownloader(ds, tempDir);
-        assertDoesNotThrow(() -> downloader.downloadPdfs(exportedIds),
-                "downloadPdfs must not throw when given an empty ID list");
+        AttachmentDownloader downloader = new AttachmentDownloader(ds, tempDir, false);
         assertDoesNotThrow(() -> downloader.downloadAttachments(exportedIds),
                 "downloadAttachments must not throw when given an empty ID list");
 

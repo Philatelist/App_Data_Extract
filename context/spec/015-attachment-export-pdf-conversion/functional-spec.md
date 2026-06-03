@@ -1,7 +1,7 @@
 # Functional Specification: Attachment Export and PDF Conversion
 
 - **Roadmap Item:** Attachment download, PDF conversion, and final archive packaging
-- **Status:** Draft
+- **Status:** Completed
 - **Author:** Alex
 
 ---
@@ -32,9 +32,9 @@ During an export run, after the CSV data for a record type has been exported, th
 - If a record has no attachments, the tool silently skips it and moves on to the next record.
 
 **Acceptance Criteria:**
-- [ ] Given an export run is started with at least one configured record type that has attachments, when the CSV export step for that type completes, then the tool proceeds to download attachments for each record without requiring any user action.
-- [ ] Given the tool has downloaded and extracted the attachment archive for a record, then the original downloaded archive file is no longer present in the output folder.
-- [ ] Given a record has no attached documents, then no files are written for that record and no error or warning is shown.
+- [x] Given an export run is started with at least one configured record type that has attachments, when the CSV export step for that type completes, then the tool proceeds to download attachments for each record without requiring any user action.
+- [x] Given the tool has downloaded and extracted the attachment archive for a record, then the original downloaded archive file is no longer present in the output folder.
+- [x] Given a record has no attached documents, then no files are written for that record and no error or warning is shown.
 
 ---
 
@@ -54,9 +54,9 @@ Example: `CLM-10042-SupportingAgreement-v2.pdf`
 - The run continues normally.
 
 **Acceptance Criteria:**
-- [ ] Given the "Convert attachments to PDF" setting is ON and an attachment is successfully converted, then a PDF file named `[TrackingNumber]-[DocumentName]-[Version].pdf` appears in the same output folder as the record type's CSV.
-- [ ] Given the "Convert attachments to PDF" setting is ON and an attachment cannot be converted, then the original file is present in the output folder alongside a text file bearing the same base name; the text file contains a human-readable explanation of the conversion failure.
-- [ ] Given the "Convert attachments to PDF" setting is ON and some attachments fail conversion, then the run does not stop — successfully converted files are still included in the output.
+- [x] Given the "Convert attachments to PDF" setting is ON and an attachment is successfully converted, then a PDF file named `[TrackingNumber]-[DocumentName]-[Version].pdf` appears in the same output folder as the record type's CSV.
+- [x] Given the "Convert attachments to PDF" setting is ON and an attachment cannot be converted, then the original file is present in the output folder alongside a text file bearing the same base name; the text file contains a human-readable explanation of the conversion failure.
+- [x] Given the "Convert attachments to PDF" setting is ON and some attachments fail conversion, then the run does not stop — successfully converted files are still included in the output.
 
 ---
 
@@ -65,7 +65,7 @@ Example: `CLM-10042-SupportingAgreement-v2.pdf`
 When the "Convert attachments to PDF" setting is turned OFF, attachment files are extracted and saved in their original file formats. The same naming pattern is used (`[Tracking Number]-[Document Name]-[Version]`), but each file keeps its original extension (e.g., `.docx`, `.png`, `.xlsx`).
 
 **Acceptance Criteria:**
-- [ ] Given the "Convert attachments to PDF" setting is OFF, when attachments are downloaded and extracted, then each file is saved with its original extension in the output folder, with no conversion attempted.
+- [x] Given the "Convert attachments to PDF" setting is OFF, when attachments are downloaded and extracted, then each file is saved with its original extension in the output folder, with no conversion attempted.
 
 ---
 
@@ -82,10 +82,10 @@ Two new settings appear in the Admin Panel. Both are visible and editable only b
 - When OFF: CSV files with no data records (header row only) are omitted from the output and are not included in the final archive.
 
 **Acceptance Criteria:**
-- [ ] Given an administrator opens the Admin Panel, then both the "Convert attachments to PDF" toggle and the "Include empty export files" toggle are visible on the page.
-- [ ] Given an administrator changes either toggle and saves the configuration, then subsequent export runs reflect the updated setting.
-- [ ] Given the "Include empty export files" setting is OFF and a configured record type yields no records during an export run, then the CSV file for that record type is not present in the output folder or the final archive.
-- [ ] Given the "Include empty export files" setting is ON and a configured record type yields no records, then the CSV file for that record type is present in the output (containing only the header row).
+- [x] Given an administrator opens the Admin Panel, then both the "Convert attachments to PDF" toggle and the "Include empty export files" toggle are visible on the page.
+- [x] Given an administrator changes either toggle and saves the configuration, then subsequent export runs reflect the updated setting.
+- [x] Given the "Include empty export files" setting is OFF and a configured record type yields no records during an export run, then the CSV file for that record type is not present in the output folder or the final archive.
+- [x] Given the "Include empty export files" setting is ON and a configured record type yields no records, then the CSV file for that record type is present in the output (containing only the header row).
 
 ---
 
@@ -97,9 +97,9 @@ After all CSV files and attachment files have been produced for all record types
 - If the total exceeds 200 MB, the tool automatically splits the output into sequential parts, each smaller than 200 MB, using the standard multi-part archive naming convention (e.g., `export.zip.001`, `export.zip.002`).
 
 **Acceptance Criteria:**
-- [ ] Given an export run completes, then a ZIP archive is present in the run's output folder containing all produced CSV files and all attachment files (PDFs or originals).
-- [ ] Given the total output is 200 MB or less, then a single archive file is created.
-- [ ] Given the total output exceeds 200 MB, then multiple archive parts are created in the run output folder, each smaller than 200 MB, using the `.zip.001`, `.zip.002` naming pattern.
+- [x] Given an export run completes, then a ZIP archive is present in the run's output folder containing all produced CSV files and all attachment files (PDFs or originals).
+- [x] Given the total output is 200 MB or less, then a single archive file is created.
+- [x] Given the total output exceeds 200 MB, then multiple archive parts are created in the run output folder, each smaller than 200 MB, using the `.zip.001`, `.zip.002` naming pattern.
 
 ---
 

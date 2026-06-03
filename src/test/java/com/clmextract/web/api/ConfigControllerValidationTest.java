@@ -219,6 +219,37 @@ class ConfigControllerValidationTest {
         assertFalse(reloaded.isEnableSftpUpload(), "enableSftpUpload should be false after save");
     }
 
+    @Test
+    void convertAttachmentsToPdfAndIncludeEmptyExportFiles_roundTripThroughPutAndGet() throws Exception {
+        // Build a valid body with both new flags set to non-default values
+        ObjectNode body = buildValidBody();
+        body.put("convertAttachmentsToPdf", true);
+        body.put("includeEmptyExportFiles", false);
+
+        // Validation should pass (these are boolean fields, not validated for content)
+        List<Map<String, String>> errors = controller.validateBody(objectMapper.readTree(body.toString()));
+        assertTrue(errors.isEmpty(), "No validation errors expected for convertAttachmentsToPdf/includeEmptyExportFiles");
+
+        // Simulate the PUT write: load raw config, set fields, write YAML
+        AppConfig config = ConfigLoader.loadRaw(configFile.toString());
+        config.setConvertAttachmentsToPdf(true);
+        config.setIncludeEmptyExportFiles(false);
+
+        // Write back using SnakeYAML (mirrors ConfigController.putConfig write logic)
+        String existingYaml = Files.readString(configFile);
+        org.yaml.snakeyaml.Yaml yaml = new org.yaml.snakeyaml.Yaml();
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> existing = yaml.load(existingYaml);
+        existing.put("convertAttachmentsToPdf", true);
+        existing.put("includeEmptyExportFiles", false);
+        Files.writeString(configFile, yaml.dump(existing));
+
+        // Reload and verify the round-trip
+        AppConfig reloaded = ConfigLoader.loadRaw(configFile.toString());
+        assertTrue(reloaded.isConvertAttachmentsToPdf(), "convertAttachmentsToPdf should be true after save");
+        assertFalse(reloaded.isIncludeEmptyExportFiles(), "includeEmptyExportFiles should be false after save");
+    }
+
     /**
      * Mirrors the YAML-writing logic from ConfigController.putConfig so that
      * the round-trip test can verify ConfigLoader.loadRaw without needing a

@@ -176,6 +176,8 @@ public class ConfigLoader {
         // --- enableZipPackaging / enableSftpUpload ---
         config.setEnableZipPackaging(getBooleanOrDefault(root, "enableZipPackaging", true));
         config.setEnableSftpUpload(getBooleanOrDefault(root, "enableSftpUpload", true));
+        config.setConvertAttachmentsToPdf(getBooleanOrDefault(root, "convertAttachmentsToPdf", false));
+        config.setIncludeEmptyExportFiles(getBooleanOrDefault(root, "includeEmptyExportFiles", true));
         config.setAdminEmails(getStringList(root, "adminEmails"));
 
         return config;

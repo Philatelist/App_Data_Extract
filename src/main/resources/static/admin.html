@@ -252,6 +252,34 @@
           <input class="form-control" id="parent-template" type="text" placeholder="{boType}_parent_links_{date}.csv" />
           <span class="field-hint">Template for the parent linkage file name.</span>
         </div>
+
+        <!-- Convert Attachments to PDF toggle -->
+        <div class="form-group form-group-toggle" style="margin-top:0.25rem;">
+          <label class="toggle-label" for="convert-attachments-pdf">
+            <div>
+              <span>Convert attachments to PDF</span>
+              <p class="field-hint">When enabled, downloaded attachments are converted to PDF. Requires LibreOffice to be installed on the host — see README for setup instructions.</p>
+            </div>
+            <span class="toggle-switch">
+              <input type="checkbox" id="convert-attachments-pdf" />
+              <span class="toggle-slider"></span>
+            </span>
+          </label>
+        </div>
+
+        <!-- Include empty export files toggle -->
+        <div class="form-group form-group-toggle" style="margin-top:0.25rem;">
+          <label class="toggle-label" for="include-empty-files">
+            <div>
+              <span>Include empty export files</span>
+              <p class="field-hint">When enabled, CSV files that contain only a header row and no data records are included in the output. When disabled, those files are omitted.</p>
+            </div>
+            <span class="toggle-switch">
+              <input type="checkbox" id="include-empty-files" checked />
+              <span class="toggle-slider"></span>
+            </span>
+          </label>
+        </div>
       </section>
 
       <!-- ===== COLUMN & COMPONENT FILTERING ===== -->
