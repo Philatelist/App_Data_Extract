@@ -1,7 +1,7 @@
 # Functional Specification: PDF Conversion Failure Report
 
 - **Roadmap Item:** Consolidated PDF conversion failure report with failure reasons
-- **Status:** Draft
+- **Status:** Completed
 - **Author:** Alex
 
 ---
@@ -29,18 +29,18 @@ When an export run completes and at least one attachment could not be converted 
 - The per-attachment companion `.txt` files written by the previous behaviour are removed — only the single consolidated report remains.
 
 **Acceptance Criteria:**
-- [ ] Given the "Convert attachments to PDF" setting is ON and at least one attachment fails conversion, then a single file named `pdf_conversion_failures.txt` is present in the run's output folder after the run completes.
-- [ ] Given `pdf_conversion_failures.txt` is created, then it lists every failed file with its original name, its saved name, and a human-readable reason for the failure.
-- [ ] Given the "Convert attachments to PDF" setting is ON and all attachments convert successfully, then `pdf_conversion_failures.txt` is not created.
-- [ ] Given the "Convert attachments to PDF" setting is ON and multiple attachments fail, then all failures appear in the single report — no per-file companion `.txt` files exist alongside them.
+- [x] Given the "Convert attachments to PDF" setting is ON and at least one attachment fails conversion, then a single file named `pdf_conversion_failures.txt` is present in the run's output folder after the run completes.
+- [x] Given `pdf_conversion_failures.txt` is created, then it lists every failed file with its original name, its saved name, and a human-readable reason for the failure.
+- [x] Given the "Convert attachments to PDF" setting is ON and all attachments convert successfully, then `pdf_conversion_failures.txt` is not created.
+- [x] Given the "Convert attachments to PDF" setting is ON and multiple attachments fail, then all failures appear in the single report — no per-file companion `.txt` files exist alongside them.
 
 ### 2.2 ZIP Packaging Always Runs
 
 After the CSV export and attachment download steps complete — even if some or all attachments could not be converted to PDF — the tool must still compress all produced files into a ZIP archive. A partial attachment failure is not a reason to skip packaging.
 
 **Acceptance Criteria:**
-- [ ] Given some attachments could not be converted to PDF and were saved in their original format, when the run reaches the packaging step, then a ZIP archive is still created containing all CSV files and all attachment files (converted or original).
-- [ ] Given the attachment download step encountered errors but the CSV export completed successfully, then the packaging step still runs and produces a ZIP archive of the CSV output.
+- [x] Given some attachments could not be converted to PDF and were saved in their original format, when the run reaches the packaging step, then a ZIP archive is still created containing all CSV files and all attachment files (converted or original).
+- [x] Given the attachment download step encountered errors but the CSV export completed successfully, then the packaging step still runs and produces a ZIP archive of the CSV output.
 
 ---
 
@@ -49,7 +49,7 @@ After the CSV export and attachment download steps complete — even if some or 
 The run progress display no longer shows a step labelled "Export — Signed PDFs" (or similar). This step was a legacy concept from a previous implementation and no longer applies — attachments are now downloaded as a unified archive. Operators should not see it in the dashboard.
 
 **Acceptance Criteria:**
-- [ ] Given an operator views the live run progress or a completed run in history, then no step referencing "Signed PDFs" or the previous PDF-export behaviour appears in the step list.
+- [x] Given an operator views the live run progress or a completed run in history, then no step referencing "Signed PDFs" or the previous PDF-export behaviour appears in the step list.
 
 ---
 

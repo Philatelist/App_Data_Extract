@@ -29,6 +29,8 @@ public class AttachmentDownloader {
         this.convertToPdf = convertToPdf;
     }
 
+    record ConversionFailure(String originalFileName, String savedAsFileName, String reason) {}
+
     /**
      * Downloads attachments for all tracking IDs into outputDir.
      * When convertToPdf is true, attempts to convert each attachment to PDF via PdfConverter.
@@ -38,13 +40,17 @@ public class AttachmentDownloader {
     public int downloadAttachments(List<Long> trackingIds) {
         LOG.info("downloadAttachments: {} tracking ID(s) to scan", trackingIds.size());
         int count = 0;
+        List<ConversionFailure> failures = new ArrayList<>();
         for (Long trackingId : trackingIds) {
-            count += processTrackingId(trackingId);
+            count += processTrackingId(trackingId, failures);
+        }
+        if (!failures.isEmpty()) {
+            writeFailureReport(outputDir, failures);
         }
         return count;
     }
 
-    private int processTrackingId(Long trackingId) {
+    private int processTrackingId(Long trackingId, List<ConversionFailure> failures) {
         // Step 1: Get attachment metadata
         List<Map<String, Object>> rawInfo = dataSource.getAttachmentInfo(String.valueOf(trackingId));
         List<AttachmentMeta> metaList = parseAttachmentMeta(rawInfo);
@@ -155,15 +161,15 @@ public class AttachmentDownloader {
                         // Step 5f: Convert to PDF
                         Path finalPdfPath = outputDir.resolve(
                                 sanitizedId + "-" + sanitizedBase + "-" + sanitizedVersion + ".pdf");
-                        boolean converted = pdfConverter.convert(tempExtract, finalPdfPath);
-                        if (converted) {
+                        ConversionResult result = pdfConverter.convert(tempExtract, finalPdfPath);
+                        if (result.success()) {
                             deleteQuietly(tempExtract);
                             count++;
                         } else {
-                            // Rename to original extension and write companion .txt
-                            String originalName = sanitizedId + "-" + sanitizedBase + "-" + sanitizedVersion
+                            // Rename to original extension
+                            String finalOutputFileName = sanitizedId + "-" + sanitizedBase + "-" + sanitizedVersion
                                     + (originalExt.isEmpty() ? "" : "." + originalExt);
-                            Path originalPath = outputDir.resolve(originalName);
+                            Path originalPath = outputDir.resolve(finalOutputFileName);
                             try {
                                 Files.move(tempExtract, originalPath, StandardCopyOption.REPLACE_EXISTING);
                             } catch (IOException e) {
@@ -173,17 +179,7 @@ public class AttachmentDownloader {
                                 entryIndex++;
                                 continue;
                             }
-                            // Write companion .txt
-                            String companionName = sanitizedId + "-" + sanitizedBase + "-" + sanitizedVersion + ".txt";
-                            Path companionPath = outputDir.resolve(companionName);
-                            try {
-                                Files.writeString(companionPath,
-                                        "PDF conversion failed for: " + entryName + System.lineSeparator()
-                                                + "Original file saved as: " + originalName + System.lineSeparator(),
-                                        StandardCharsets.UTF_8);
-                            } catch (IOException e) {
-                                LOG.warn("Failed to write companion .txt for {}: {}", entryName, e.getMessage());
-                            }
+                            failures.add(new ConversionFailure(entryName, finalOutputFileName, result.reason()));
                             count++;
                         }
                     } else {
@@ -211,6 +207,28 @@ public class AttachmentDownloader {
         // Step 6: Delete temp ZIP
         deleteQuietly(tempZip);
         return count;
+    }
+
+    private void writeFailureReport(Path outputDir, List<ConversionFailure> failures) {
+        Path reportPath = outputDir.resolve("pdf_conversion_failures.txt");
+        StringBuilder sb = new StringBuilder();
+        String ls = System.lineSeparator();
+        sb.append("PDF Conversion Failures").append(ls);
+        sb.append("=======================").append(ls);
+        sb.append("Run output: ").append(outputDir.toAbsolutePath()).append(ls);
+        for (ConversionFailure f : failures) {
+            sb.append(ls);
+            sb.append(f.originalFileName()).append(ls);
+            sb.append("  Saved as : ").append(f.savedAsFileName()).append(ls);
+            sb.append("  Reason   : ").append(f.reason()).append(ls);
+        }
+        sb.append(ls);
+        sb.append("Total: ").append(failures.size()).append(" file(s) could not be converted to PDF.").append(ls);
+        try {
+            Files.writeString(reportPath, sb.toString(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            LOG.warn("Failed to write PDF conversion failure report to {}: {}", reportPath, e.getMessage());
+        }
     }
 
     /**

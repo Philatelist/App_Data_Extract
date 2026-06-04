@@ -121,6 +121,11 @@ _Replace the CLI-only workflow with a self-contained web application. Administra
   - [x] **Empty-file suppression (admin-controlled):** New `includeEmptyExportFiles` config flag (default on). When off, header-only CSVs are deleted before packaging.
   - [x] **Admin Panel toggles:** Both settings exposed as toggles in the Output & Files section of the Admin Panel (admin-only).
   - [x] **Archive packaging:** `ZipPackager` already splits at 200 MB; no changes required — attachment files are packaged automatically alongside CSVs.
+- [x] **PDF Conversion Failure Report** *(spec 016)*
+  - [x] **Consolidated failure report:** A single `pdf_conversion_failures.txt` is written to the run output folder when at least one attachment cannot be converted; each entry includes the original file name, saved file name, and a plain-language reason. No per-file companion `.txt` files.
+  - [x] **`ConversionResult` return type:** `PdfConverter.convert()` now returns a `ConversionResult` record (`boolean success`, `String reason`) so callers receive the failure cause without shared mutable state.
+  - [x] **PACKAGING always runs:** The EXPORT_ATTACHMENTS failure handler no longer calls `failRemaining` — PACKAGING executes even when the attachment step fails entirely.
+  - [x] **Signed PDFs step removed:** `STEP_EXPORT_PDF` removed from `RunExecutor.STEPS`; the matching step card removed from `dashboard.html` and `dashboard.js` so the legacy "Export — Signed PDFs" entry never appears in run progress.
   - [x] **`CredentialEncryptor`:** AES-256-GCM encrypt/decrypt utility using `javax.crypto` only (no new dependencies). Token format `ENC(base64(IV+ciphertext+GCM-tag))`. Master key derived from `CLM_EXTRACT_KEY` environment variable via SHA-256.
   - [x] **Config load decryption:** `ConfigLoader.load()` transparently decrypts `ENC(...)` passwords before use. Fails fast with `ConfigValidationException` if encrypted values are present but `CLM_EXTRACT_KEY` is not set. Warns when plaintext password is found with key present.
   - [x] **Serve-mode startup check:** `WebServer.start()` checks for encrypted passwords on startup and throws `IllegalStateException` if the key is absent, preventing the server from starting in an unusable state.

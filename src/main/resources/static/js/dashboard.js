@@ -10,7 +10,6 @@ let sftpEnabled = true;
 
 const STEP_IDS = {
   EXPORT_CSV:          'step-csv',
-  EXPORT_PDF:          'step-pdf',
   EXPORT_ATTACHMENTS:  'step-attachments',
   PACKAGING:           'step-packaging',
   SFTP_UPLOAD:         'step-sftp',

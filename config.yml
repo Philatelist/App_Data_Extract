@@ -1,7 +1,5 @@
 server: {url: 'https://pepsico-clone.auto-dev.selectica.com/services/rest/methods',
-  username: ausov@corcentric.com, password: Sel1234_}
-adminEmails:
-- ausov@corcentric.com
+  username: '', password: null}
 endpointsFile: inputs/endpoints.yml
 batchSize: 30
 outputRoot: output
@@ -18,11 +16,7 @@ generateSummaryCsv: false
 summaryFilenameTemplate: Summary_{DDMMYYYY}_{HHMMSS}.csv
 boUsageTypeFilter: Contract
 trackingFilter: ''
-boTypes:
-- {name: GPPWF_BO, localizedName: PGCS}
-- {name: NAFBO, localizedName: NAF}
-- {name: GlobalProcurementBO, localizedName: GP-NY}
-- {name: GPEuropeBO, localizedName: GPE}
+boTypes: []
 skipColumns: []
 skipComponents: []
 retry: {maxAttempts: 3, baseDelayMs: 1000}
@@ -39,3 +33,6 @@ dateFormat:
 sftp: {host: '', port: 22, username: '', password: ''}
 enableZipPackaging: false
 enableSftpUpload: false
+convertAttachmentsToPdf: true
+includeEmptyExportFiles: false
+adminEmails: [ausov@corcentric.com]

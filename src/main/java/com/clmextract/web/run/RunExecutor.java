@@ -43,7 +43,7 @@ public class RunExecutor {
     public static final String STEP_SFTP_UPLOAD = "SFTP_UPLOAD";
 
     private static final List<String> STEPS = List.of(
-        STEP_EXPORT_CSV, STEP_EXPORT_PDF, STEP_EXPORT_ATTACHMENTS, STEP_PACKAGING, STEP_SFTP_UPLOAD
+        STEP_EXPORT_CSV, STEP_EXPORT_ATTACHMENTS, STEP_PACKAGING, STEP_SFTP_UPLOAD
     );
 
     private final String configPath;
@@ -250,9 +250,6 @@ public class RunExecutor {
                 return;
             }
 
-            // EXPORT_PDF (skipped — PDF conversion is handled in EXPORT_ATTACHMENTS)
-            updateStep(runId, STEP_EXPORT_PDF, RunStatus.SKIPPED);
-
             // EXPORT_ATTACHMENTS
             updateStep(runId, STEP_EXPORT_ATTACHMENTS, RunStatus.IN_PROGRESS);
             try {
@@ -265,8 +262,6 @@ public class RunExecutor {
             } catch (Exception e) {
                 LOG.error("EXPORT_ATTACHMENTS failed: {}", e.getMessage(), e);
                 updateStep(runId, STEP_EXPORT_ATTACHMENTS, RunStatus.FAILED);
-                failRemaining(runId, STEP_EXPORT_ATTACHMENTS);
-                return;
             }
 
             // PACKAGING

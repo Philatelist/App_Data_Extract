@@ -207,11 +207,11 @@ class AttachmentDownloaderTest {
 
     // ----------------------------------------------------------------
     // Test 4: Conversion failure — .docx input, LibreOffice absent
-    //         Original file saved + companion .txt written
+    //         Original file saved; no per-file companion .txt written
     // ----------------------------------------------------------------
 
     @Test
-    void conversionFailure_savesOriginalAndCompanionTxt() throws IOException {
+    void conversionFailure_savesOriginal_noCompanionTxt() throws IOException {
         long trackingId = 88888L;
         String fileName = "report.docx";
         String fileVersion = "1";
@@ -234,12 +234,101 @@ class AttachmentDownloaderTest {
         Path originalFile = tmpDir.resolve("88888-report-1.docx");
         assertTrue(Files.exists(originalFile), "Original .docx file must be saved on conversion failure");
 
-        // Companion .txt must exist at the same base name
+        // Per-file companion .txt must NOT exist
         Path companionFile = tmpDir.resolve("88888-report-1.txt");
-        assertTrue(Files.exists(companionFile), "Companion .txt must be written on conversion failure");
-        String companionContent = Files.readString(companionFile, StandardCharsets.UTF_8);
-        assertTrue(companionContent.contains("conversion failed") || companionContent.contains("PDF conversion"),
-                "Companion .txt must explain the conversion failure");
+        assertFalse(Files.exists(companionFile), "Per-file companion .txt must NOT be written (consolidated report replaces it)");
+    }
+
+    // ----------------------------------------------------------------
+    // Test 4b: Consolidated report — single file failure
+    // ----------------------------------------------------------------
+
+    @Test
+    void conversionFailure_singleFile_writesConsolidatedReport() throws IOException {
+        long trackingId = 11111L;
+        String fileName = "contract.docx";
+        String fileVersion = "2";
+        byte[] content = "DOCX_BYTES".getBytes(StandardCharsets.UTF_8);
+
+        byte[] zip = buildZip(fileName, content);
+
+        StubDataSource stub = new StubDataSource();
+        stub.putAttachmentInfo("11111", List.of(attachmentInfoEntry(fileName, fileVersion)));
+        stub.putZip("11111", zip);
+
+        AttachmentDownloader downloader = new AttachmentDownloader(stub, tmpDir, true);
+        downloader.downloadAttachments(List.of(trackingId));
+
+        Path reportFile = tmpDir.resolve("pdf_conversion_failures.txt");
+        assertTrue(Files.exists(reportFile), "pdf_conversion_failures.txt must be written on conversion failure");
+
+        String reportContent = Files.readString(reportFile, StandardCharsets.UTF_8);
+        assertTrue(reportContent.contains(fileName), "Report must contain the original filename");
+        assertTrue(reportContent.contains("11111-contract-2.docx"), "Report must contain the saved-as filename");
+        assertFalse(reportContent.isBlank(), "Report must not be blank");
+        // reason must be present and non-blank
+        int reasonIdx = reportContent.indexOf("Reason   :");
+        assertTrue(reasonIdx >= 0, "Report must contain a Reason line");
+        String afterReason = reportContent.substring(reasonIdx + "Reason   :".length()).trim();
+        assertFalse(afterReason.isEmpty(), "Reason must not be blank");
+    }
+
+    // ----------------------------------------------------------------
+    // Test 4c: Consolidated report — multiple failures, all in one report
+    // ----------------------------------------------------------------
+
+    @Test
+    void conversionFailure_multipleFiles_allInOneReport() throws IOException {
+        long trackingId1 = 22221L;
+        long trackingId2 = 22222L;
+        String fileName1 = "doc1.docx";
+        String fileName2 = "doc2.docx";
+        byte[] content = "CONTENT".getBytes(StandardCharsets.UTF_8);
+
+        StubDataSource stub = new StubDataSource();
+        stub.putAttachmentInfo("22221", List.of(attachmentInfoEntry(fileName1, "1")));
+        stub.putZip("22221", buildZip(fileName1, content));
+        stub.putAttachmentInfo("22222", List.of(attachmentInfoEntry(fileName2, "1")));
+        stub.putZip("22222", buildZip(fileName2, content));
+
+        AttachmentDownloader downloader = new AttachmentDownloader(stub, tmpDir, true);
+        downloader.downloadAttachments(List.of(trackingId1, trackingId2));
+
+        Path reportFile = tmpDir.resolve("pdf_conversion_failures.txt");
+        assertTrue(Files.exists(reportFile), "pdf_conversion_failures.txt must exist when multiple conversions fail");
+
+        String reportContent = Files.readString(reportFile, StandardCharsets.UTF_8);
+        assertTrue(reportContent.contains(fileName1), "Report must contain first original filename");
+        assertTrue(reportContent.contains(fileName2), "Report must contain second original filename");
+
+        // No per-file .txt files must exist
+        assertFalse(Files.exists(tmpDir.resolve("22221-doc1-1.txt")), "No per-file .txt for doc1");
+        assertFalse(Files.exists(tmpDir.resolve("22222-doc2-1.txt")), "No per-file .txt for doc2");
+    }
+
+    // ----------------------------------------------------------------
+    // Test 4d: No failures — no report file written
+    // ----------------------------------------------------------------
+
+    @Test
+    void noConversionFailures_noReportFile() throws IOException {
+        long trackingId = 33333L;
+        String fileName = "document.pdf";
+        String fileVersion = "1";
+        byte[] content = "PDF_CONTENT".getBytes(StandardCharsets.UTF_8);
+
+        byte[] zip = buildZip(fileName, content);
+
+        StubDataSource stub = new StubDataSource();
+        stub.putAttachmentInfo("33333", List.of(attachmentInfoEntry(fileName, fileVersion)));
+        stub.putZip("33333", zip);
+
+        // .pdf input passes through successfully — no failure
+        AttachmentDownloader downloader = new AttachmentDownloader(stub, tmpDir, true);
+        downloader.downloadAttachments(List.of(trackingId));
+
+        Path reportFile = tmpDir.resolve("pdf_conversion_failures.txt");
+        assertFalse(Files.exists(reportFile), "pdf_conversion_failures.txt must NOT be written when there are no failures");
     }
 
     // ----------------------------------------------------------------
